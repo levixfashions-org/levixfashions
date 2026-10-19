@@ -7,8 +7,26 @@ export const CategoryGrid: React.FC = () => {
   const { categories, products } = useStore()
   const publishedCategories = categories.filter((c) => c.isPublished)
 
-  const getProductCount = (categoryId: string) => {
-    return products.filter((p) => p.categoryId === categoryId && p.isPublished).length
+  const getProductCount = (category: typeof categories[0]) => {
+    return products.filter((p) => {
+      if (!p.isPublished) return false
+      if (p.categoryId === category.id || p.categoryId === category.slug) return true
+      if (p.categoryName?.trim().toLowerCase() === category.name.trim().toLowerCase()) return true
+      if (category.slug === 't-shirts') {
+        const cat = (p.categoryId || '').toLowerCase()
+        const name = (p.name || '').toLowerCase()
+        if (
+          cat.includes('t-shirt') ||
+          cat.includes('tee') ||
+          name.includes('t-shirt') ||
+          name.includes('tee') ||
+          name.includes('tshirt')
+        ) {
+          return true
+        }
+      }
+      return false
+    }).length
   }
 
   return (
