@@ -614,7 +614,27 @@ export const AdminProducts: React.FC = () => {
       {/* Create / Edit Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white max-w-2xl w-full border border-levix-border shadow-2xl p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`bg-white max-w-2xl w-full border shadow-2xl p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto relative transition-colors ${
+              isDragging ? 'border-2 border-levix-orange ring-4 ring-levix-orange/20' : 'border-levix-border'
+            }`}
+          >
+            {/* Full-Modal Dragging Overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 z-50 bg-levix-charcoal/90 backdrop-blur-xs flex flex-col items-center justify-center text-white border-4 border-dashed border-levix-orange pointer-events-none p-6 text-center animate-in fade-in duration-150">
+                <Upload className="w-14 h-14 text-levix-orange mb-3 animate-bounce" />
+                <h4 className="text-base font-black uppercase tracking-widest text-white">
+                  Drop Product Photos Here
+                </h4>
+                <p className="text-xs text-neutral-300 mt-1 max-w-sm">
+                  Release to instantly optimize, compress, and attach photos to this product
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between pb-3 border-b border-levix-border">
               <h3 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
                 {editingProduct ? 'Edit Garment / Accessory' : 'Create New Product'}
