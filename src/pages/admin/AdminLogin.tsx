@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { SEO } from '../../components/common/SEO'
 
 export const AdminLogin: React.FC = () => {
-  const { login, loginDemoAdmin } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
@@ -18,18 +18,17 @@ export const AdminLogin: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-      await login(email, password)
-      navigate('/admin')
+      const isUserAdmin = await login(email, password)
+      if (isUserAdmin) {
+        navigate('/admin')
+      } else {
+        setError('This account is not authorized as an administrator.')
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid administrator credentials.')
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleOneClickDemo = () => {
-    loginDemoAdmin()
-    navigate('/admin')
   }
 
   return (
