@@ -35,7 +35,27 @@ async function checkAndSync() {
     changedFiles.slice(0, 5).forEach((f) => console.log(`   • ${f}`))
     if (changedFiles.length > 5) console.log(`   ...and ${changedFiles.length - 5} more`)
 
-    // Stage all changes
+    // Rebuild production dist assets if source files changed
+    const shouldRebuild = changedFiles.some((f) => 
+      f.startsWith('src/') || 
+      f.startsWith('public/') || 
+      f.endsWith('.html') || 
+      f.endsWith('.json') || 
+      f.endsWith('.ts') || 
+      f.endsWith('.tsx') ||
+      f.endsWith('.css')
+    )
+    if (shouldRebuild) {
+      console.log('📦 [Auto-Sync] Building production dist bundle for Hostinger...')
+      try {
+        execSync('npm run build', { stdio: 'pipe', cwd: process.cwd() })
+        console.log('✔ [Auto-Sync] Production dist bundle compiled successfully!')
+      } catch (buildErr) {
+        console.warn('⚠️ [Auto-Sync] Build note:', buildErr.message)
+      }
+    }
+
+    // Stage all changes (including dist)
     runGit('add -A')
 
     // Commit
