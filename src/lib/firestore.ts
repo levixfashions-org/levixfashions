@@ -127,35 +127,56 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     updatedAt: now,
   }
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const sanitized = cleanData({
-        ...fullProduct,
-        updatedAt: serverTimestamp(),
-      })
-      await setDoc(doc(db, PRODUCTS_COL, id), sanitized)
-    } catch (err) {
-      console.error('Failed to save product to Firestore:', err)
-    }
-  }
-
-  // Update local storage
+  // 1. Immediately persist locally so the product is saved in 0ms with zero lag
   const existing = localStore.getProducts()
   const updated = [fullProduct, ...existing.filter((p) => p.id !== id)]
   localStore.setProducts(updated)
+
+  // 2. Sync to Firestore with a fast 2.5s race timeout in background so it never hangs
+  if (isFirebaseConfigured && db) {
+    const firestoreWrite = async () => {
+      try {
+        const sanitized = cleanData({
+          ...fullProduct,
+          updatedAt: serverTimestamp(),
+        })
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore timeout')), 2500)
+        )
+        await Promise.race([
+          setDoc(doc(db, PRODUCTS_COL, id), sanitized),
+          timeoutPromise,
+        ])
+      } catch (err) {
+        console.warn('Firestore sync note (data preserved in local storage):', err)
+      }
+    }
+    firestoreWrite().catch(() => {})
+  }
+
   return fullProduct
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  if (isFirebaseConfigured && db) {
-    try {
-      await deleteDoc(doc(db, PRODUCTS_COL, id))
-    } catch (err) {
-      console.error('Failed to delete product from Firestore:', err)
-    }
-  }
   const existing = localStore.getProducts()
   localStore.setProducts(existing.filter((p) => p.id !== id))
+
+  if (isFirebaseConfigured && db) {
+    const firestoreDelete = async () => {
+      try {
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore timeout')), 2500)
+        )
+        await Promise.race([
+          deleteDoc(doc(db, PRODUCTS_COL, id)),
+          timeoutPromise,
+        ])
+      } catch (err) {
+        console.warn('Firestore delete note (removed locally):', err)
+      }
+    }
+    firestoreDelete().catch(() => {})
+  }
 }
 
 // --- CATEGORIES ---
@@ -175,16 +196,27 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function saveCategory(category: Category): Promise<Category> {
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, CATEGORIES_COL, category.id), category)
-    } catch (err) {
-      console.error('Failed to save category to Firestore:', err)
-    }
-  }
   const existing = localStore.getCategories()
   const updated = [category, ...existing.filter((c) => c.id !== category.id)]
   localStore.setCategories(updated)
+
+  if (isFirebaseConfigured && db) {
+    const firestoreCat = async () => {
+      try {
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore timeout')), 2500)
+        )
+        await Promise.race([
+          setDoc(doc(db, CATEGORIES_COL, category.id), category),
+          timeoutPromise,
+        ])
+      } catch (err) {
+        console.warn('Firestore saveCategory note:', err)
+      }
+    }
+    firestoreCat().catch(() => {})
+  }
+
   return category
 }
 
