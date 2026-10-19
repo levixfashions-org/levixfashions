@@ -80,6 +80,23 @@ export async function getProductById(id: string): Promise<Product | null> {
   return local.find((p) => p.id === id) || null
 }
 
+function cleanData<T extends Record<string, any>>(obj: T): T {
+  const clean: any = {}
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === undefined) continue
+    if (val !== null && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date)) {
+      clean[key] = cleanData(val)
+    } else if (Array.isArray(val)) {
+      clean[key] = val.map((item) =>
+        item !== null && typeof item === 'object' ? cleanData(item) : item
+      )
+    } else {
+      clean[key] = val
+    }
+  }
+  return clean
+}
+
 export async function saveProduct(product: Partial<Product> & { name: string }): Promise<Product> {
   const id = product.id || `prod-${Date.now()}`
   const now = new Date().toISOString()
@@ -93,6 +110,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     categoryId: product.categoryId || 'cat-essentials',
     categoryName: product.categoryName || 'Minimal Essentials',
     images: product.images && product.images.length > 0 ? product.images : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80'],
+    colorImages: product.colorImages || {},
     price: product.price || 199900,
     salePrice: product.salePrice ?? null,
     stock: product.stock ?? 10,
@@ -111,10 +129,11 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
 
   if (isFirebaseConfigured && db) {
     try {
-      await setDoc(doc(db, PRODUCTS_COL, id), {
+      const sanitized = cleanData({
         ...fullProduct,
         updatedAt: serverTimestamp(),
       })
+      await setDoc(doc(db, PRODUCTS_COL, id), sanitized)
     } catch (err) {
       console.error('Failed to save product to Firestore:', err)
     }

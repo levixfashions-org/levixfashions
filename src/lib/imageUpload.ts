@@ -6,8 +6,8 @@
 
 export const compressAndProcessImage = (
   file: File,
-  maxDimension = 1200,
-  quality = 0.85
+  maxDimension = 900,
+  quality = 0.75
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     // Validate file type
