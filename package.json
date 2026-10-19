@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "node server/index.js",
-    "lint": "oxlint",
+    "lint": "oxlint src server tests",
     "preview": "vite preview",
     "test": "node --test tests/ecommerce.test.js",
     "server": "node server/index.js",
