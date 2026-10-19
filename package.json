@@ -10,7 +10,7 @@
     "start": "node server/index.js",
     "lint": "oxlint src server tests",
     "preview": "vite preview",
-    "test": "node --test tests/ecommerce.test.js",
+    "test": "node --test tests/ecommerce.test.js tests/load.test.js",
     "server": "node server/index.js",
     "server:dev": "node --watch server/index.js",
     "git:sync": "node scripts/auto-sync.js"
