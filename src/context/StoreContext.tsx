@@ -91,29 +91,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     // Auto-update whenever the user focuses or switches back to this browser tab
-    const handleFocus = () => {
+    const handleActive = () => {
       loadData()
     }
-    window.addEventListener('focus', handleFocus)
+    window.addEventListener('focus', handleActive)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadData()
+      }
+    })
 
-    // Storage event sync (backup for multi-tab updates)
+    // Storage event sync (instant cross-tab update backup)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'levix_products_v2') {
         setProducts(localStore.getProducts())
       } else if (e.key === 'levix_categories_v1') {
         setCategories(localStore.getCategories())
+      } else if (e.key === 'levix_settings_v1') {
+        setSettings(localStore.getSettings())
       }
     }
     window.addEventListener('storage', handleStorage)
 
-    // Periodic background silent sync every 12 seconds so visitors see updates without refreshing
+    // Fast 5-second background heartbeat so any change by admin reflects everywhere automatically
     const interval = setInterval(() => {
       loadData()
-    }, 12000)
+    }, 5000)
 
     return () => {
       if (channel) channel.close()
-      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('focus', handleActive)
       window.removeEventListener('storage', handleStorage)
       clearInterval(interval)
     }
