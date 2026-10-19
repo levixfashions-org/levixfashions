@@ -93,6 +93,9 @@ export const AdminProducts: React.FC = () => {
     setIsBestseller(false)
     setSeoTitle('')
     setSeoDescription('')
+    setShowUrlTextarea(false)
+    setIsUploadingImage(false)
+    setUploadingColor(null)
     setFormError(null)
     setIsModalOpen(true)
   }
@@ -132,6 +135,9 @@ export const AdminProducts: React.FC = () => {
     setIsBestseller(Boolean(p.isBestseller))
     setSeoTitle(p.seoTitle || '')
     setSeoDescription(p.seoDescription || '')
+    setShowUrlTextarea(false)
+    setIsUploadingImage(false)
+    setUploadingColor(null)
     setFormError(null)
     setIsModalOpen(true)
   }
@@ -237,6 +243,61 @@ export const AdminProducts: React.FC = () => {
       setHasVariants(false)
     } else {
       setStock(updated.reduce((acc, v) => acc + (Number(v.stock) || 0), 0))
+    }
+  }
+
+  const handleProductFilesAdded = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setIsUploadingImage(true)
+    setFormError(null)
+    try {
+      const compressedUrls = await processMultipleImages(files)
+      if (compressedUrls.length > 0) {
+        const currentUrls = imagesText
+          .split('\n')
+          .map((u) => u.trim())
+          .filter(Boolean)
+        const updated = [...currentUrls, ...compressedUrls]
+        setImagesText(updated.join('\n'))
+      }
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to process images. Please try again.')
+    } finally {
+      setIsUploadingImage(false)
+      if (cameraInputRef.current) cameraInputRef.current.value = ''
+      if (galleryInputRef.current) galleryInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    const urls = imagesText.split('\n').map((u) => u.trim()).filter(Boolean)
+    const updated = urls.filter((_, i) => i !== indexToRemove)
+    setImagesText(updated.join('\n'))
+  }
+
+  const handleSetMainCover = (indexToPromote: number) => {
+    const urls = imagesText.split('\n').map((u) => u.trim()).filter(Boolean)
+    if (indexToPromote <= 0 || indexToPromote >= urls.length) return
+    const promoted = urls[indexToPromote]
+    const remaining = urls.filter((_, i) => i !== indexToPromote)
+    setImagesText([promoted, ...remaining].join('\n'))
+  }
+
+  const handleColorImageUploaded = async (color: string, file: File | null) => {
+    if (!file) return
+    setUploadingColor(color)
+    try {
+      const compressed = await compressAndProcessImage(file)
+      setColorImagesMap((prev) => ({ ...prev, [color]: compressed }))
+      // Also add to general images if not present
+      const currentUrls = imagesText.split('\n').map((u) => u.trim()).filter(Boolean)
+      if (!currentUrls.includes(compressed)) {
+        setImagesText([...currentUrls, compressed].join('\n'))
+      }
+    } catch (err: any) {
+      setFormError(err.message || `Failed to process image for ${color}`)
+    } finally {
+      setUploadingColor(null)
     }
   }
 
