@@ -65,14 +65,18 @@ export const AdminProducts: React.FC = () => {
   const [defaultVariantStock, setDefaultVariantStock] = useState(10)
   const [colorImagesMap, setColorImagesMap] = useState<Record<string, string>>({})
 
-  // Filtered Products
-  const filtered = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase())
-    const matchesCat = selectedCat === 'all' || p.categoryId === selectedCat
-    return matchesSearch && matchesCat
-  })
+  // Memoized Filtered Products
+  const filtered = useMemo(() => {
+    const s = search.toLowerCase().trim()
+    return products.filter((p) => {
+      const matchesSearch =
+        !s ||
+        p.name.toLowerCase().includes(s) ||
+        p.sku.toLowerCase().includes(s)
+      const matchesCat = selectedCat === 'all' || p.categoryId === selectedCat
+      return matchesSearch && matchesCat
+    })
+  }, [products, search, selectedCat])
 
   const handleOpenAdd = () => {
     setEditingProduct(null)
