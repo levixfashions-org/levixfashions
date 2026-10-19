@@ -55,15 +55,23 @@ export const compressAndProcessImage = (
 
           // Output optimized JPEG data URL
           const compressed = canvas.toDataURL('image/jpeg', quality)
-          resolve(compressed)
+          uploadCompressedImage(compressed)
+            .then(resolve)
+            .catch(() => resolve(compressed))
         } catch (err) {
           console.warn('Canvas compression fallback to raw data URL:', err)
-          resolve(readerEvent.target?.result as string)
+          const fallback = readerEvent.target?.result as string
+          uploadCompressedImage(fallback)
+            .then(resolve)
+            .catch(() => resolve(fallback))
         }
       }
 
       img.onerror = () => {
-        resolve(readerEvent.target?.result as string)
+        const fallback = readerEvent.target?.result as string
+        uploadCompressedImage(fallback)
+          .then(resolve)
+          .catch(() => resolve(fallback))
       }
 
       img.src = readerEvent.target?.result as string
@@ -72,6 +80,38 @@ export const compressAndProcessImage = (
     reader.onerror = (error) => reject(error)
     reader.readAsDataURL(file)
   })
+}
+
+/**
+ * Uploads compressed base64 image data to the backend storage endpoint (/api/upload).
+ * Returns the permanent static file URL (/uploads/img-*.jpg) or falls back to base64 data URL.
+ */
+async function uploadCompressedImage(imageData: string): Promise<string> {
+  if (!imageData || !imageData.startsWith('data:image/')) {
+    return imageData
+  }
+
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': 'levix_admin_auth_sec_2026',
+      },
+      body: JSON.stringify({ image: imageData }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.url) {
+        return data.url
+      }
+    }
+  } catch (err) {
+    console.warn('API image upload offline or failed, falling back to compressed base64:', err)
+  }
+
+  return imageData
 }
 
 export const processMultipleImages = async (
