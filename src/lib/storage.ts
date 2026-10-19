@@ -8,7 +8,7 @@ import { INITIAL_SETTINGS } from '../data/initialSettings'
 const STORAGE_KEYS = {
   CART: 'levix_cart_v1',
   WISHLIST: 'levix_wishlist_v1',
-  PRODUCTS: 'levix_products_v1',
+  PRODUCTS: 'levix_products_v2',
   CATEGORIES: 'levix_categories_v1',
   SETTINGS: 'levix_settings_v1',
   ORDERS: 'levix_orders_v1',
@@ -46,38 +46,15 @@ export const localStore = {
 
   getProducts: (): Product[] => {
     try {
+      // Clean up any old cached demo products
+      localStorage.removeItem('levix_products_v1')
       const data = localStorage.getItem(STORAGE_KEYS.PRODUCTS)
       if (data) {
-        const stored: Product[] = JSON.parse(data)
-        const storedIds = new Set(stored.map((p) => p.id))
-        const missing = INITIAL_PRODUCTS.filter((p) => !storedIds.has(p.id))
-
-        let hasUpdates = missing.length > 0
-        const updatedStored = stored.map((p) => {
-          const init = INITIAL_PRODUCTS.find((ip) => ip.id === p.id)
-          if (init && init.colorImages && !p.colorImages) {
-            hasUpdates = true
-            return {
-              ...p,
-              colorImages: init.colorImages,
-              variants: init.variants || p.variants,
-              images: Array.from(new Set([...p.images, ...init.images])),
-            }
-          }
-          return p
-        })
-
-        if (hasUpdates) {
-          const merged = [...updatedStored, ...missing]
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(merged))
-          return merged
-        }
-        return stored
+        return JSON.parse(data)
       }
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS))
-      return INITIAL_PRODUCTS
+      return []
     } catch {
-      return INITIAL_PRODUCTS
+      return []
     }
   },
   setProducts: (products: Product[]) => {
