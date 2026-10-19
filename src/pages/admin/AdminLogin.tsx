@@ -74,7 +74,7 @@ export const AdminLogin: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@levix.in"
+                  placeholder="levixfashions@gmail.com"
                   required
                   className="form-input pl-10"
                 />
