@@ -200,7 +200,7 @@ export async function deleteProduct(id: string): Promise<void> {
   const existing = localStore.getProducts()
   localStore.setProducts(existing.filter((p) => p.id !== id))
 
-  fetch(`/api/products/${id}`, { method: 'DELETE' }).catch(() => {})
+  fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAdminHeaders() }).catch(() => {})
 
   if (isFirebaseConfigured && db) {
     const firestoreDelete = async () => {
@@ -261,7 +261,7 @@ export async function saveCategory(category: Category): Promise<Category> {
   // 2. Sync to Backend API in background
   fetch('/api/categories', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAdminHeaders(),
     body: JSON.stringify(category),
   }).catch(() => {})
 
@@ -324,7 +324,7 @@ export async function saveStoreSettings(settings: StoreSettings): Promise<StoreS
   // 2. Sync to Backend API in background
   fetch('/api/settings', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAdminHeaders(),
     body: JSON.stringify(settings),
   }).catch(() => {})
 
@@ -369,7 +369,28 @@ export async function getOrders(customerUid?: string): Promise<Order[]> {
   return customerUid ? local.filter((o) => o.customerUid === customerUid) : local
 }
 
-export async function getOrderById(id: string): Promise<Order | null> {
+export async function getOrderById(
+  id: string,
+  callerUid?: string,
+  callerEmail?: string
+): Promise<Order | null> {
+  // 1. Try Backend API with ownership verification
+  try {
+    const headers: Record<string, string> = {}
+    if (callerUid) headers['x-customer-uid'] = callerUid
+    if (callerEmail) headers['x-customer-email'] = callerEmail
+
+    const res = await Promise.race([
+      fetch(`/api/orders/${id}`, { headers }),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.order) return data.order
+    }
+  } catch {}
+
+  // 2. Try Firestore
   if (isFirebaseConfigured && db) {
     try {
       const docSnap = await getDoc(doc(db, ORDERS_COL, id))
@@ -380,6 +401,8 @@ export async function getOrderById(id: string): Promise<Order | null> {
       console.warn('Firestore getOrderById failed:', err)
     }
   }
+
+  // 3. Fallback to LocalStorage
   const local = localStore.getOrders()
   return local.find((o) => o.id === id || o.orderNumber === id) || null
 }
