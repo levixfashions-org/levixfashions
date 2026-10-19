@@ -122,12 +122,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch {}
           }
         } else {
-          // If no active Firebase user, check if admin auth was locally persisted
-          const isPersistedAdmin = localStorage.getItem('levix_admin_auth') === 'true'
-          if (!isPersistedAdmin) {
-            setUserProfile(null)
-            setIsAdmin(false)
-          }
+          // If no active Firebase user, clear profile and admin privileges
+          setUserProfile(null)
+          setIsAdmin(false)
+          try {
+            localStorage.removeItem('levix_admin_auth')
+          } catch {}
         }
       } catch (err) {
         console.warn('onAuthStateChanged error handled safely:', err)

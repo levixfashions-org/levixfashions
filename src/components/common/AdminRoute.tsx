@@ -8,7 +8,6 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
 
   const isLocallyAuthorized =
     isAdmin ||
-    (typeof window !== 'undefined' && localStorage.getItem('levix_admin_auth') === 'true') ||
     checkIsAdminEmail(currentUser?.email) ||
     checkIsAdminEmail(userProfile?.email)
 
