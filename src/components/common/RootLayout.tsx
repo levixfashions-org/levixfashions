@@ -4,6 +4,7 @@ import { AnnouncementBar } from './AnnouncementBar'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
+import { AdminQuickBar } from '../admin/AdminQuickBar'
 
 export const RootLayout: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ export const RootLayout: React.FC = () => {
       </main>
       <Footer />
       <PWAInstallPrompt />
+      <AdminQuickBar />
     </div>
   )
 }
