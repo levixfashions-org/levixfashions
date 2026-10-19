@@ -42,8 +42,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [isAdmin, setIsAdmin] = useState<boolean>(false)
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('levix_admin_auth') === 'true'
+    } catch {
+      return false
+    }
+  })
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
+    try {
+      if (localStorage.getItem('levix_admin_auth') === 'true') {
+        return {
+          uid: 'admin-owner',
+          email: 'levixfashions@gmail.com',
+          displayName: 'Levix Admin',
+          role: 'admin',
+          addresses: [],
+          createdAt: new Date().toISOString(),
+        }
+      }
+    } catch {}
+    return null
+  })
   const [loading, setLoading] = useState<boolean>(true)
   const isDemoAuth = Boolean(!isFirebaseConfigured)
 
@@ -54,45 +74,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user)
-      if (user) {
-        // Fetch or create profile
-        let profile = await getUserProfile(user.uid)
-        if (!profile) {
-          profile = {
-            uid: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || user.email?.split('@')[0] || 'Customer',
-            role: 'customer',
-            addresses: [],
-            createdAt: new Date().toISOString(),
+      try {
+        setCurrentUser(user)
+        if (user) {
+          const isAuthorizedAdmin = checkIsAdminEmail(user.email)
+
+          if (isAuthorizedAdmin) {
+            setIsAdmin(true)
+            try {
+              localStorage.setItem('levix_admin_auth', 'true')
+            } catch {}
           }
-          await saveUserProfile(profile)
-        }
 
-        // Check admin privilege: direct email check first, then fallback to token claims
-        const isAuthorizedAdmin = checkIsAdminEmail(user.email)
-        let isCustomClaimAdmin = false
-        try {
-          const tokenResult = await user.getIdTokenResult()
-          isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
-        } catch {
-          // Token fetch can fail on slow network, direct email check still grants admin
-        }
+          let profile: UserProfile | null = null
+          try {
+            profile = await getUserProfile(user.uid)
+          } catch (profileErr) {
+            console.warn('Profile fetch note:', profileErr)
+          }
 
-        const adminStatus = isAuthorizedAdmin || isCustomClaimAdmin || profile.role === 'admin'
-        setIsAdmin(adminStatus)
-        setUserProfile({ ...profile, role: adminStatus ? 'admin' : 'customer' })
+          if (!profile) {
+            profile = {
+              uid: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || user.email?.split('@')[0] || (isAuthorizedAdmin ? 'Levix Admin' : 'Customer'),
+              role: isAuthorizedAdmin ? 'admin' : 'customer',
+              addresses: [],
+              createdAt: new Date().toISOString(),
+            }
+            saveUserProfile(profile).catch(() => {})
+          }
 
-        // Persist admin role in Firestore profile if not yet written
-        if (adminStatus && profile.role !== 'admin') {
-          saveUserProfile({ ...profile, role: 'admin' }).catch(() => {})
+          let isCustomClaimAdmin = false
+          try {
+            const tokenResult = await user.getIdTokenResult()
+            isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
+          } catch {}
+
+          const adminStatus = isAuthorizedAdmin || isCustomClaimAdmin || profile.role === 'admin'
+          setIsAdmin(adminStatus)
+          setUserProfile({ ...profile, role: adminStatus ? 'admin' : 'customer' })
+
+          if (adminStatus) {
+            try {
+              localStorage.setItem('levix_admin_auth', 'true')
+            } catch {}
+          }
+        } else {
+          // If no active Firebase user, check if admin auth was locally persisted
+          const isPersistedAdmin = localStorage.getItem('levix_admin_auth') === 'true'
+          if (!isPersistedAdmin) {
+            setUserProfile(null)
+            setIsAdmin(false)
+          }
         }
-      } else {
-        setUserProfile(null)
-        setIsAdmin(false)
+      } catch (err) {
+        console.warn('onAuthStateChanged error handled safely:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
@@ -103,7 +143,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Firebase Authentication is not configured.')
     }
     const res = await signInWithEmailAndPassword(auth, email, pass)
-    return checkIsAdminEmail(res.user.email)
+    const isUserAdmin = checkIsAdminEmail(res.user.email)
+    if (isUserAdmin) {
+      setIsAdmin(true)
+      try {
+        localStorage.setItem('levix_admin_auth', 'true')
+      } catch {}
+    }
+    return isUserAdmin
   }
 
   const register = async (email: string, pass: string, displayName: string) => {
@@ -121,16 +168,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return
     }
     const res = await createUserWithEmailAndPassword(auth, email, pass)
+    const isUserAdmin = checkIsAdminEmail(res.user.email)
     const newProfile: UserProfile = {
       uid: res.user.uid,
       email,
       displayName,
-      role: 'customer',
+      role: isUserAdmin ? 'admin' : 'customer',
       addresses: [],
       createdAt: new Date().toISOString(),
     }
     await saveUserProfile(newProfile)
     setUserProfile(newProfile)
+    if (isUserAdmin) {
+      setIsAdmin(true)
+      try {
+        localStorage.setItem('levix_admin_auth', 'true')
+      } catch {}
+    }
   }
 
   const loginWithGoogle = async (): Promise<boolean> => {
@@ -138,13 +192,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Firebase Authentication is not configured.')
     }
     const res = await signInWithPopup(auth, googleProvider)
-    return checkIsAdminEmail(res.user.email)
+    const isUserAdmin = checkIsAdminEmail(res.user.email)
+    if (isUserAdmin) {
+      setIsAdmin(true)
+      try {
+        localStorage.setItem('levix_admin_auth', 'true')
+      } catch {}
+    }
+    return isUserAdmin
   }
 
   const logout = async () => {
-    localStorage.removeItem('levix_demo_user')
+    try {
+      localStorage.removeItem('levix_admin_auth')
+      localStorage.removeItem('levix_demo_user')
+    } catch {}
     if (auth && isFirebaseConfigured) {
-      await firebaseSignOut(auth)
+      try {
+        await firebaseSignOut(auth)
+      } catch {}
     }
     setCurrentUser(null)
     setUserProfile(null)
