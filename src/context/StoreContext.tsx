@@ -70,25 +70,111 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadData()
   }, [loadData])
 
+  // Real-time live synchronization across tabs and in background
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        channel = new BroadcastChannel('levix_store_sync')
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'PRODUCTS_UPDATED' && Array.isArray(event.data.products)) {
+            setProducts(event.data.products)
+          } else if (event.data?.type === 'CATEGORIES_UPDATED' && Array.isArray(event.data.categories)) {
+            setCategories(event.data.categories)
+          } else if (event.data?.type === 'SETTINGS_UPDATED' && event.data.settings) {
+            setSettings(event.data.settings)
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel setup note:', e)
+    }
+
+    // Auto-update whenever the user focuses or switches back to this browser tab
+    const handleFocus = () => {
+      loadData()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    // Storage event sync (backup for multi-tab updates)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'levix_products_v2') {
+        setProducts(localStore.getProducts())
+      } else if (e.key === 'levix_categories_v1') {
+        setCategories(localStore.getCategories())
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    // Periodic background silent sync every 12 seconds so visitors see updates without refreshing
+    const interval = setInterval(() => {
+      loadData()
+    }, 12000)
+
+    return () => {
+      if (channel) channel.close()
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('storage', handleStorage)
+      clearInterval(interval)
+    }
+  }, [loadData])
+
   const updateStoreSettings = async (newSettings: StoreSettings) => {
     const saved = await saveStoreSettings(newSettings)
     setSettings(saved)
+    try {
+      if ('BroadcastChannel' in window) {
+        const ch = new BroadcastChannel('levix_store_sync')
+        ch.postMessage({ type: 'SETTINGS_UPDATED', settings: saved })
+        ch.close()
+      }
+    } catch {}
   }
 
   const addProductOrUpdate = async (productData: Partial<Product> & { name: string }) => {
     const saved = await saveProduct(productData)
-    setProducts((prev) => [saved, ...prev.filter((p) => p.id !== saved.id)])
+    setProducts((prev) => {
+      const next = [saved, ...prev.filter((p) => p.id !== saved.id)]
+      try {
+        if ('BroadcastChannel' in window) {
+          const ch = new BroadcastChannel('levix_store_sync')
+          ch.postMessage({ type: 'PRODUCTS_UPDATED', products: next })
+          ch.close()
+        }
+      } catch {}
+      return next
+    })
     return saved
   }
 
   const removeProduct = async (id: string) => {
     await deleteProduct(id)
-    setProducts((prev) => prev.filter((p) => p.id !== id))
+    setProducts((prev) => {
+      const next = prev.filter((p) => p.id !== id)
+      try {
+        if ('BroadcastChannel' in window) {
+          const ch = new BroadcastChannel('levix_store_sync')
+          ch.postMessage({ type: 'PRODUCTS_UPDATED', products: next })
+          ch.close()
+        }
+      } catch {}
+      return next
+    })
   }
 
   const addCategoryOrUpdate = async (catData: Category) => {
     const saved = await saveCategory(catData)
-    setCategories((prev) => [saved, ...prev.filter((c) => c.id !== saved.id)])
+    setCategories((prev) => {
+      const next = [saved, ...prev.filter((c) => c.id !== saved.id)]
+      try {
+        if ('BroadcastChannel' in window) {
+          const ch = new BroadcastChannel('levix_store_sync')
+          ch.postMessage({ type: 'CATEGORIES_UPDATED', categories: next })
+          ch.close()
+        }
+      } catch {}
+      return next
+    })
     return saved
   }
 
