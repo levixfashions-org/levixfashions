@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Star, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { HeroBanner } from '../components/storefront/HeroBanner'
 import { CategoryGrid } from '../components/storefront/CategoryGrid'
