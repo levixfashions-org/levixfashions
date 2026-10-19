@@ -12,6 +12,11 @@ const __dirname = path.dirname(__filename)
 
 dotenv.config()
 
+import { initDatabase, getPool, isMySQLConnected } from './db.js'
+
+// Initialize Hostinger MySQL connection asynchronously
+initDatabase().catch((e) => console.warn('MySQL init notice:', e.message))
+
 const app = express()
 const PORT = process.env.PORT || 5000
 
