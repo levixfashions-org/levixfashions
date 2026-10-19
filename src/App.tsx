@@ -11,6 +11,7 @@ import { WishlistProvider } from './context/WishlistContext'
 import { RootLayout } from './components/common/RootLayout'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import { AdminRoute } from './components/common/AdminRoute'
+import { LevixDoorIntro } from './components/intro/LevixDoorIntro'
 
 // Core Pages (Eagerly loaded for instant first paint)
 import { Home } from './pages/Home'
