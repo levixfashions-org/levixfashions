@@ -162,11 +162,23 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
   localStore.setProducts(updated)
 
   // 2. Sync to Backend Server API for multi-device instant sharing
-  fetch('/api/products', {
-    method: 'POST',
-    headers: getAdminHeaders(),
-    body: JSON.stringify(fullProduct),
-  }).catch(() => {})
+  try {
+    const apiPromise = fetch('/api/products', {
+      method: 'POST',
+      headers: getAdminHeaders(),
+      body: JSON.stringify(fullProduct),
+    })
+    const timeoutPromise = new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('API save timeout')), 4000)
+    )
+    const res = await Promise.race([apiPromise, timeoutPromise])
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      console.warn('Backend API save warning:', errData.error || res.statusText)
+    }
+  } catch (apiErr) {
+    console.warn('Backend API save note:', apiErr)
+  }
 
   // 3. Sync to Firestore with a fast 2.5s race timeout in background so it never hangs
   if (isFirebaseConfigured && db) {
@@ -197,7 +209,11 @@ export async function deleteProduct(id: string): Promise<void> {
   const existing = localStore.getProducts()
   localStore.setProducts(existing.filter((p) => p.id !== id))
 
-  fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAdminHeaders() }).catch(() => {})
+  try {
+    await fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAdminHeaders() })
+  } catch (err) {
+    console.warn('Backend delete note:', err)
+  }
 
   if (isFirebaseConfigured && db) {
     const firestoreDelete = async () => {
@@ -221,8 +237,8 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function getCategories(): Promise<Category[]> {
   try {
     const res = await Promise.race([
-      fetch('/api/categories'),
-      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+      fetch(`/api/categories?_t=${Date.now()}`, { cache: 'no-store' }),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
       const data = await res.json()
@@ -255,12 +271,20 @@ export async function saveCategory(category: Category): Promise<Category> {
   const updated = [category, ...existing.filter((c) => c.id !== category.id)]
   localStore.setCategories(updated)
 
-  // 2. Sync to Backend API in background
-  fetch('/api/categories', {
-    method: 'POST',
-    headers: getAdminHeaders(),
-    body: JSON.stringify(category),
-  }).catch(() => {})
+  // 2. Sync to Backend API
+  try {
+    const apiPromise = fetch('/api/categories', {
+      method: 'POST',
+      headers: getAdminHeaders(),
+      body: JSON.stringify(category),
+    })
+    const timeoutPromise = new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('API category save timeout')), 4000)
+    )
+    await Promise.race([apiPromise, timeoutPromise])
+  } catch (err) {
+    console.warn('Backend category save note:', err)
+  }
 
   // 3. Sync to Firestore in background with safety timeout
   if (isFirebaseConfigured && db) {
@@ -287,8 +311,8 @@ export async function saveCategory(category: Category): Promise<Category> {
 export async function getStoreSettings(): Promise<StoreSettings> {
   try {
     const res = await Promise.race([
-      fetch('/api/settings'),
-      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+      fetch(`/api/settings?_t=${Date.now()}`, { cache: 'no-store' }),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
       const data = await res.json()
@@ -318,12 +342,20 @@ export async function saveStoreSettings(settings: StoreSettings): Promise<StoreS
   // 1. Immediately persist locally so changes apply in 0ms
   localStore.setSettings(settings)
 
-  // 2. Sync to Backend API in background
-  fetch('/api/settings', {
-    method: 'POST',
-    headers: getAdminHeaders(),
-    body: JSON.stringify(settings),
-  }).catch(() => {})
+  // 2. Sync to Backend API
+  try {
+    const apiPromise = fetch('/api/settings', {
+      method: 'POST',
+      headers: getAdminHeaders(),
+      body: JSON.stringify(settings),
+    })
+    const timeoutPromise = new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new Error('API settings save timeout')), 4000)
+    )
+    await Promise.race([apiPromise, timeoutPromise])
+  } catch (err) {
+    console.warn('Backend settings save note:', err)
+  }
 
   // 3. Sync to Firestore in background
   if (isFirebaseConfigured && db) {
