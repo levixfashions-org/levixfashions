@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="104" fill="#FFFFFF"/>
+  <rect x="24" y="24" width="464" height="464" rx="88" stroke="#EAEAEA" stroke-width="8" fill="none"/>
+  <!-- LEVIX Stylized Minimal L & X monogram -->
+  <g fill="#E87524">
+    <!-- Bold Minimalist L -->
+    <path d="M 120 120 L 176 120 L 176 336 L 272 336 L 272 392 L 120 392 Z" />
+    <!-- Dynamic Minimalist X Accent -->
+    <path d="M 288 120 L 344 120 L 392 208 L 392 208 L 344 208 Z" fill="#222222" opacity="0.9" />
+    <polygon points="296,256 376,392 432,392 344,240" fill="#E87524" />
+    <polygon points="352,120 408,120 432,160 380,160" fill="#E87524" />
+    <circle cx="396" cy="140" r="16" fill="#E87524" />
+  </g>
+</svg>
