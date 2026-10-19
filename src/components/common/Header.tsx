@@ -395,13 +395,6 @@ export const Header: React.FC = () => {
                       <Smartphone className="w-4 h-4 text-levix-orange" />
                       <span>Install App</span>
                     </button>
-                    <Link
-                      to="/admin/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="text-xs text-levix-secondary text-center block pt-2"
-                    >
-                      Admin Portal Login
-                    </Link>
                   </div>
                 )}
               </div>
