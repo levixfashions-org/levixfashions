@@ -81,27 +81,129 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-// Products Catalog API
-app.get('/api/products', (req, res) => {
+// Products Catalog API (Hostinger MySQL with automatic file fallback)
+app.get('/api/products', async (req, res) => {
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const [rows] = await pool.query('SELECT * FROM products ORDER BY created_at DESC')
+      const products = rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        description: r.description,
+        shortDescription: r.short_description,
+        sku: r.sku,
+        categoryId: r.category_id,
+        categoryName: r.category_name,
+        images: typeof r.images === 'string' ? JSON.parse(r.images || '[]') : r.images || [],
+        colorImages: typeof r.color_images === 'string' ? JSON.parse(r.color_images || '{}') : r.color_images || {},
+        price: Number(r.price),
+        salePrice: r.sale_price !== null ? Number(r.sale_price) : null,
+        stock: Number(r.stock),
+        hasVariants: Boolean(r.has_variants),
+        variants: typeof r.variants === 'string' ? JSON.parse(r.variants || '[]') : r.variants || [],
+        isPublished: Boolean(r.is_published),
+        isFeatured: Boolean(r.is_featured),
+        isNewArrival: Boolean(r.is_new_arrival),
+        isBestseller: Boolean(r.is_bestseller),
+        details: typeof r.details === 'string' ? JSON.parse(r.details || '{}') : r.details || {},
+        seoTitle: r.seo_title,
+        seoDescription: r.seo_description,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }))
+      return res.json({ success: true, source: 'mysql', products })
+    } catch (err) {
+      console.warn('MySQL query error, using file fallback:', err.message)
+    }
+  }
+
   const products = readStoredProducts()
-  res.json({ success: true, products })
+  res.json({ success: true, source: 'file', products })
 })
 
-app.post('/api/products', (req, res) => {
+app.post('/api/products', async (req, res) => {
   const product = req.body
   if (!product || !product.name) {
     return res.status(400).json({ error: 'Product name is required' })
   }
   const id = product.id || `prod-${Date.now()}`
+  const now = new Date().toISOString()
+  const updatedProduct = { ...product, id, updatedAt: now }
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      await pool.query(
+        `INSERT INTO products (
+          id, name, slug, description, short_description, sku, category_id, category_name,
+          images, color_images, price, sale_price, stock, has_variants, variants,
+          is_published, is_featured, is_new_arrival, is_bestseller, details,
+          seo_title, seo_description, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          name = VALUES(name), slug = VALUES(slug), description = VALUES(description),
+          short_description = VALUES(short_description), sku = VALUES(sku),
+          category_id = VALUES(category_id), category_name = VALUES(category_name),
+          images = VALUES(images), color_images = VALUES(color_images), price = VALUES(price),
+          sale_price = VALUES(sale_price), stock = VALUES(stock), has_variants = VALUES(has_variants),
+          variants = VALUES(variants), is_published = VALUES(is_published),
+          is_featured = VALUES(is_featured), is_new_arrival = VALUES(is_new_arrival),
+          is_bestseller = VALUES(is_bestseller), details = VALUES(details),
+          seo_title = VALUES(seo_title), seo_description = VALUES(seo_description),
+          updated_at = VALUES(updated_at)`,
+        [
+          id,
+          product.name,
+          product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          product.description || '',
+          product.shortDescription || '',
+          product.sku || `LVX-${Date.now().toString().slice(-4)}`,
+          product.categoryId || 'cat-t-shirts',
+          product.categoryName || 'T-Shirts',
+          JSON.stringify(product.images || []),
+          JSON.stringify(product.colorImages || {}),
+          Number(product.price) || 199900,
+          product.salePrice !== null && product.salePrice !== undefined ? Number(product.salePrice) : null,
+          Number(product.stock) || 10,
+          product.hasVariants ? 1 : 0,
+          JSON.stringify(product.variants || []),
+          product.isPublished !== false ? 1 : 0,
+          product.isFeatured !== false ? 1 : 0,
+          product.isNewArrival !== false ? 1 : 0,
+          product.isBestseller ? 1 : 0,
+          JSON.stringify(product.details || {}),
+          product.seoTitle || product.name,
+          product.seoDescription || product.description || '',
+          product.createdAt || now,
+          now,
+        ]
+      )
+    } catch (err) {
+      console.warn('MySQL insert error:', err.message)
+    }
+  }
+
+  // Also persist to JSON file
   const products = readStoredProducts()
-  const updatedProduct = { ...product, id, updatedAt: new Date().toISOString() }
   const updated = [updatedProduct, ...products.filter((p) => p.id !== id)]
   writeStoredProducts(updated)
+
   res.json({ success: true, product: updatedProduct })
 })
 
-app.delete('/api/products/:id', (req, res) => {
+app.delete('/api/products/:id', async (req, res) => {
   const { id } = req.params
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      await pool.query('DELETE FROM products WHERE id = ?', [id])
+    } catch (err) {
+      console.warn('MySQL delete error:', err.message)
+    }
+  }
+
   const products = readStoredProducts()
   const updated = products.filter((p) => p.id !== id)
   writeStoredProducts(updated)
