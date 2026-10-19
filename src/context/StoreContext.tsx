@@ -56,9 +56,33 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         timeoutPromise,
       ])
 
-      setProducts(fetchedProducts)
-      setCategories(fetchedCategories)
-      setSettings(fetchedSettings)
+      // Only trigger state updates if data actually changed to prevent re-render cascades
+      setProducts((prev) => {
+        if (
+          prev.length === fetchedProducts.length &&
+          JSON.stringify(prev) === JSON.stringify(fetchedProducts)
+        ) {
+          return prev
+        }
+        return fetchedProducts
+      })
+
+      setCategories((prev) => {
+        if (
+          prev.length === fetchedCategories.length &&
+          JSON.stringify(prev) === JSON.stringify(fetchedCategories)
+        ) {
+          return prev
+        }
+        return fetchedCategories
+      })
+
+      setSettings((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(fetchedSettings)) {
+          return prev
+        }
+        return fetchedSettings
+      })
       setError(null)
     } catch (err: any) {
       console.warn('Store data fetch background sync:', err?.message || err)
@@ -95,11 +119,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       loadData()
     }
     window.addEventListener('focus', handleActive)
-    document.addEventListener('visibilitychange', () => {
+    const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         loadData()
       }
-    })
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
 
     // Storage event sync (instant cross-tab update backup)
     const handleStorage = (e: StorageEvent) => {
@@ -113,14 +138,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     window.addEventListener('storage', handleStorage)
 
-    // Fast 5-second background heartbeat so any change by admin reflects everywhere automatically
+    // Responsive background heartbeat when tab is active
     const interval = setInterval(() => {
-      loadData()
-    }, 5000)
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadData()
+      }
+    }, 10000)
 
     return () => {
       if (channel) channel.close()
       window.removeEventListener('focus', handleActive)
+      document.removeEventListener('visibilitychange', handleVisibility)
       window.removeEventListener('storage', handleStorage)
       clearInterval(interval)
     }
