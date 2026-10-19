@@ -81,7 +81,8 @@ export const AdminProducts: React.FC = () => {
     setDescription('')
     setShortDescription('')
     setSku(`LVX-${Date.now().toString().slice(-4)}`)
-    setCategoryId(categories[0]?.id || '')
+    const tShirtCat = categories.find((c) => c.slug === 't-shirts') || categories[0]
+    setCategoryId(tShirtCat?.id || '')
     setImagesText('https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80')
     setPriceRupees(2499)
     setSalePriceRupees('')
@@ -93,7 +94,7 @@ export const AdminProducts: React.FC = () => {
     setDefaultVariantStock(10)
     setColorImagesMap({})
     setIsPublished(true)
-    setIsFeatured(false)
+    setIsFeatured(true)
     setIsNewArrival(true)
     setIsBestseller(false)
     setSeoTitle('')
@@ -659,7 +660,30 @@ export const AdminProducts: React.FC = () => {
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setName(val)
+                      if (!editingProduct) {
+                        setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
+                        const lower = val.toLowerCase()
+                        if (lower.includes('tee') || lower.includes('t-shirt') || lower.includes('tshirt')) {
+                          const match = categories.find((c) => c.slug === 't-shirts')
+                          if (match) setCategoryId(match.id)
+                        } else if (lower.includes('hoodie')) {
+                          const match = categories.find((c) => c.slug === 'hoodies')
+                          if (match) setCategoryId(match.id)
+                        } else if (lower.includes('pant') || lower.includes('trouser') || lower.includes('cargo') || lower.includes('jeans')) {
+                          const match = categories.find((c) => c.slug === 'pants')
+                          if (match) setCategoryId(match.id)
+                        } else if (lower.includes('jacket') || lower.includes('coat')) {
+                          const match = categories.find((c) => c.slug === 'jackets')
+                          if (match) setCategoryId(match.id)
+                        } else if (lower.includes('shirt')) {
+                          const match = categories.find((c) => c.slug === 'shirts')
+                          if (match) setCategoryId(match.id)
+                        }
+                      }
+                    }}
                     required
                     placeholder="e.g. Heavyweight Raw French Terry Hoodie"
                     className="form-input"
