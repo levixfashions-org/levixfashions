@@ -37,6 +37,34 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 // In-memory / persisted orders storage for standalone server runs
 const ordersDb = new Map()
 
+// Persistent disk storage for products & catalog
+const DATA_DIR = path.join(__dirname, 'data')
+const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json')
+
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true })
+}
+
+function readStoredProducts() {
+  try {
+    if (fs.existsSync(PRODUCTS_FILE)) {
+      const raw = fs.readFileSync(PRODUCTS_FILE, 'utf8')
+      return JSON.parse(raw)
+    }
+  } catch (err) {
+    console.warn('Error reading products.json:', err)
+  }
+  return []
+}
+
+function writeStoredProducts(products) {
+  try {
+    fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8')
+  } catch (err) {
+    console.warn('Error writing products.json:', err)
+  }
+}
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -46,6 +74,33 @@ app.get('/api/health', (req, res) => {
     razorpayConfigured: Boolean(process.env.RAZORPAY_KEY_ID),
     timestamp: new Date().toISOString(),
   })
+})
+
+// Products Catalog API
+app.get('/api/products', (req, res) => {
+  const products = readStoredProducts()
+  res.json({ success: true, products })
+})
+
+app.post('/api/products', (req, res) => {
+  const product = req.body
+  if (!product || !product.name) {
+    return res.status(400).json({ error: 'Product name is required' })
+  }
+  const id = product.id || `prod-${Date.now()}`
+  const products = readStoredProducts()
+  const updatedProduct = { ...product, id, updatedAt: new Date().toISOString() }
+  const updated = [updatedProduct, ...products.filter((p) => p.id !== id)]
+  writeStoredProducts(updated)
+  res.json({ success: true, product: updatedProduct })
+})
+
+app.delete('/api/products/:id', (req, res) => {
+  const { id } = req.params
+  const products = readStoredProducts()
+  const updated = products.filter((p) => p.id !== id)
+  writeStoredProducts(updated)
+  res.json({ success: true, message: 'Deleted' })
 })
 
 /**
