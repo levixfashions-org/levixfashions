@@ -60,7 +60,16 @@ export const localStore = {
   setProducts: (products: Product[]) => {
     try {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products))
-    } catch {}
+    } catch (e) {
+      console.warn('LocalStorage quota limit reached, clearing secondary caches:', e)
+      try {
+        localStorage.removeItem('levix_cart_v1')
+        localStorage.removeItem('levix_wishlist_v1')
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products))
+      } catch (err2) {
+        console.error('Failed to persist products to localStorage:', err2)
+      }
+    }
   },
 
   getCategories: (): Category[] => {
