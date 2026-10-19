@@ -256,15 +256,6 @@ export const Header: React.FC = () => {
                         >
                           Create Account
                         </Link>
-                        <div className="pt-2 border-t border-levix-border">
-                          <Link
-                            to="/admin/login"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="text-[11px] text-levix-secondary hover:text-levix-charcoal text-center block"
-                          >
-                            Admin Portal
-                          </Link>
-                        </div>
                       </div>
                     )}
                   </div>
