@@ -27,7 +27,7 @@ async function checkAndSync() {
     isSyncing = true
     const changedFiles = status
       .split('\n')
-      .map((l) => l.slice(3).trim())
+      .map((l) => l.replace(/^..\s*/, '').trim())
       .filter(Boolean)
 
     const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
