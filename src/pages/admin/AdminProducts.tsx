@@ -307,66 +307,88 @@ export const AdminProducts: React.FC = () => {
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) {
-      setFormError('Product title is required.')
+    setFormError(null)
+
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setFormError('Please enter a product title.')
       return
     }
 
-    const imagesArray = imagesText
+    let imagesArray = imagesText
       .split('\n')
       .map((url) => url.trim())
       .filter((url) => url.length > 0)
-
-    if (imagesArray.length === 0) {
-      setFormError('At least one valid image URL is required.')
-      return
-    }
-
-    const categoryObj = categories.find((c) => c.id === categoryId)
-
-    const totalStock =
-      hasVariants && variantsList.length > 0
-        ? variantsList.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
-        : Number(stock) || 0
-
-    // Ensure all variants receive their color image if available
-    const finalVariants = variantsList.map((v) => ({
-      ...v,
-      imageUrl: v.imageUrl || (v.color ? colorImagesMap[v.color] : undefined),
-    }))
 
     // Add any unique color images to imagesArray if not already present
     const extraColorImages = Object.values(colorImagesMap).filter(
       (url) => url && url.trim() && !imagesArray.includes(url.trim())
     )
-    const mergedImages = [...imagesArray, ...extraColorImages]
+    let mergedImages = [...imagesArray, ...extraColorImages]
+
+    if (mergedImages.length === 0) {
+      mergedImages = ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80']
+    }
+
+    const resolvedCategoryId = categoryId || categories[0]?.id || 'cat-essentials'
+    const categoryObj = categories.find((c) => c.id === resolvedCategoryId)
+
+    const totalStock =
+      hasVariants && variantsList.length > 0
+        ? variantsList.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
+        : Number(stock) || 10
+
+    // Ensure all variants receive their color image if available and have no undefined fields
+    const finalVariants = variantsList.map((v) => ({
+      id: v.id,
+      name: v.name || `${v.color || ''} / ${v.size || ''}`.trim() || 'Standard',
+      color: v.color || '',
+      size: v.size || '',
+      sku: v.sku || `${sku || 'LVX'}-${v.size || 'M'}`,
+      stock: Number(v.stock) || 0,
+      imageUrl: v.imageUrl || (v.color ? colorImagesMap[v.color] : '') || mergedImages[0] || '',
+    }))
+
+    const finalDescription = description.trim() || `${trimmedName} by LEVIX. Architectural luxury streetwear crafted from heavyweight natural fibers.`
+    const finalSku = sku.trim() || `LVX-${Date.now().toString().slice(-4)}`
+    const finalPrice = rupeesToPaise(Number(priceRupees) || 1999)
 
     const payload: Partial<Product> & { name: string } = {
       id: editingProduct?.id,
-      name: name.trim(),
-      slug: slug.trim() || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: description.trim(),
-      shortDescription: shortDescription.trim(),
-      sku: sku.trim(),
-      categoryId,
+      name: trimmedName,
+      slug: slug.trim() || trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      description: finalDescription,
+      shortDescription: shortDescription.trim() || finalDescription.slice(0, 120),
+      sku: finalSku,
+      categoryId: resolvedCategoryId,
       categoryName: categoryObj?.name || 'Collection',
       images: mergedImages,
-      colorImages: Object.keys(colorImagesMap).length > 0 ? colorImagesMap : undefined,
-      price: rupeesToPaise(Number(priceRupees) || 0),
-      salePrice: salePriceRupees !== '' ? rupeesToPaise(Number(salePriceRupees) || 0) : null,
+      colorImages: Object.keys(colorImagesMap).length > 0 ? colorImagesMap : {},
+      price: finalPrice,
+      salePrice: salePriceRupees !== '' && Number(salePriceRupees) > 0 ? rupeesToPaise(Number(salePriceRupees)) : null,
       stock: totalStock,
       hasVariants: Boolean(hasVariants && variantsList.length > 0),
-      variants: hasVariants && finalVariants.length > 0 ? finalVariants : undefined,
+      variants: hasVariants && finalVariants.length > 0 ? finalVariants : [],
       isPublished,
       isFeatured,
       isNewArrival,
       isBestseller,
-      seoTitle: seoTitle || name,
-      seoDescription: seoDescription || description.slice(0, 150),
+      seoTitle: seoTitle.trim() || trimmedName,
+      seoDescription: seoDescription.trim() || finalDescription.slice(0, 150),
     }
 
-    await addProductOrUpdate(payload)
-    setIsModalOpen(false)
+    try {
+      setIsSaving(true)
+      await addProductOrUpdate(payload)
+      setIsModalOpen(false)
+      setSaveSuccessMsg(`Product "${trimmedName}" was successfully saved and published!`)
+      setTimeout(() => setSaveSuccessMsg(null), 5000)
+    } catch (err: any) {
+      console.error('Failed to save product:', err)
+      setFormError(err?.message || 'Failed to save product. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleTogglePublished = async (p: Product) => {
