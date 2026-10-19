@@ -255,6 +255,18 @@ app.get('/api/orders/:id', (req, res) => {
   return res.json({ order })
 })
 
+// Serve production Vite frontend if dist folder exists
+const distPath = path.resolve(__dirname, '../dist')
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath))
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next()
+    }
+    res.sendFile(path.join(distPath, 'index.html'))
+  })
+}
+
 app.listen(PORT, () => {
   console.log(`LEVIX Backend Server running on http://localhost:${PORT}`)
 })
