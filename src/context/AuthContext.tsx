@@ -44,14 +44,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('levix_admin_auth') === 'true'
+      // Only permit initial local flag if Firebase is NOT configured (demo/offline dev mode)
+      return !isFirebaseConfigured && localStorage.getItem('levix_admin_auth') === 'true'
     } catch {
       return false
     }
   })
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
-      if (localStorage.getItem('levix_admin_auth') === 'true') {
+      if (!isFirebaseConfigured && localStorage.getItem('levix_admin_auth') === 'true') {
         return {
           uid: 'admin-owner',
           email: 'levixfashions@gmail.com',
