@@ -37,6 +37,8 @@ describe('LEVIX Concurrency & Throughput Benchmark', () => {
       // If server is not running during isolated test runner, mark test note
       console.log('  ⚠️ Server offline for live HTTP test, skipping local socket test:', err.message)
     }
+  })
+
   test('Admin-to-Storefront Workflow Benchmark (Image Upload, Price Edit, Instant Reflection)', async () => {
     const BASE = 'http://localhost:5000'
     const ADMIN_HEADERS = {
