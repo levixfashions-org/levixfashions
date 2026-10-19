@@ -176,6 +176,15 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+                  className="text-levix-orange hover:underline transition-colors font-medium text-left"
+                >
+                  Install Mobile App (iOS / Android)
+                </button>
+              </li>
+              <li>
                 <Link
                   to="/admin/login"
                   className="text-levix-secondary hover:text-levix-charcoal transition-colors font-medium"
