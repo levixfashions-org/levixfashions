@@ -30,6 +30,27 @@ const USERS_COL = 'users'
 
 // --- PRODUCTS ---
 export async function getProducts(onlyPublished = true): Promise<Product[]> {
+  // 1. Try to fetch from backend server (/api/products) for shared multi-device catalog
+  try {
+    const res = await Promise.race([
+      fetch('/api/products'),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && Array.isArray(data.products) && data.products.length > 0) {
+        const local = localStore.getProducts()
+        const ids = new Set(data.products.map((p: Product) => p.id))
+        const merged = [...data.products, ...local.filter((p) => !ids.has(p.id))]
+        localStore.setProducts(merged)
+        return onlyPublished ? merged.filter((p) => p.isPublished) : merged
+      }
+    }
+  } catch {
+    // Backend API offline or static client run; continue to Firestore & local
+  }
+
+  // 2. Try Cloud Firestore
   if (isFirebaseConfigured && db) {
     try {
       const colRef = collection(db, PRODUCTS_COL)
@@ -38,12 +59,16 @@ export async function getProducts(onlyPublished = true): Promise<Product[]> {
         : query(colRef, orderBy('createdAt', 'desc'))
       const snapshot = await getDocs(q)
       if (!snapshot.empty) {
-        return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as Product))
+        const firestoreList = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as Product))
+        localStore.setProducts(firestoreList)
+        return firestoreList
       }
     } catch (err) {
-      console.warn('Firestore getProducts failed, falling back to localStore:', err)
+      console.warn('Firestore getProducts note (using local cache):', err)
     }
   }
+
+  // 3. Fallback to LocalStorage
   const local = localStore.getProducts()
   return onlyPublished ? local.filter((p) => p.isPublished) : local
 }
@@ -132,7 +157,14 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
   const updated = [fullProduct, ...existing.filter((p) => p.id !== id)]
   localStore.setProducts(updated)
 
-  // 2. Sync to Firestore with a fast 2.5s race timeout in background so it never hangs
+  // 2. Sync to Backend Server API for multi-device instant sharing
+  fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullProduct),
+  }).catch(() => {})
+
+  // 3. Sync to Firestore with a fast 2.5s race timeout in background so it never hangs
   if (isFirebaseConfigured && db) {
     const firestoreWrite = async () => {
       try {
@@ -160,6 +192,8 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
 export async function deleteProduct(id: string): Promise<void> {
   const existing = localStore.getProducts()
   localStore.setProducts(existing.filter((p) => p.id !== id))
+
+  fetch(`/api/products/${id}`, { method: 'DELETE' }).catch(() => {})
 
   if (isFirebaseConfigured && db) {
     const firestoreDelete = async () => {
