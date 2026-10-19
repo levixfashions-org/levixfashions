@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Filter, X, SlidersHorizontal, ArrowUpDown, PackageOpen } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { Filter, X, SlidersHorizontal, ArrowUpDown, PackageOpen, Plus, ShieldCheck } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
+import { useAuth } from '../context/AuthContext'
 import { ProductCard } from '../components/storefront/ProductCard'
 import { SEO } from '../components/common/SEO'
 import type { SortOption } from '../types/product'
@@ -9,6 +10,7 @@ import { formatPrice } from '../lib/utils'
 
 export const Shop: React.FC = () => {
   const { products, categories, loading } = useStore()
+  const { isAdmin } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Read URL query params
