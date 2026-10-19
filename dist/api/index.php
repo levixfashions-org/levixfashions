@@ -219,9 +219,60 @@ $method = $_SERVER['REQUEST_METHOD'];
 $route = preg_replace('#^/api#', '', $uri);
 $route = trim($route, '/');
 
+// --- IMAGE UPLOAD API ---
+if ($route === 'upload' && $method === 'POST') {
+    if (!isAuthorizedAdmin($adminEmail, $adminSecret)) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Unauthorized: Administrator authentication required.']);
+        exit;
+    }
+
+    $uploadsDir = __DIR__ . '/../../uploads';
+    if (!is_dir($uploadsDir)) {
+        @mkdir($uploadsDir, 0755, true);
+    }
+
+    $body = json_decode(file_get_contents('php://input'), true);
+    $imageData = $body['image'] ?? '';
+
+    if (empty($imageData)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'No image data provided']);
+        exit;
+    }
+
+    $ext = 'jpg';
+    if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
+        $imageData = substr($imageData, strpos($imageData, ',') + 1);
+        $ext = strtolower($type[1]);
+        if ($ext === 'jpeg') $ext = 'jpg';
+    }
+
+    $imageData = base64_decode($imageData);
+    if ($imageData === false) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid base64 image data']);
+        exit;
+    }
+
+    $safeName = 'img-' . round(microtime(true) * 1000) . '-' . rand(1000, 9999) . '.' . $ext;
+    $filePath = $uploadsDir . '/' . $safeName;
+    file_put_contents($filePath, $imageData);
+
+    echo json_encode([
+        'success' => true,
+        'url' => '/uploads/' . $safeName,
+        'filename' => $safeName,
+    ]);
+    exit;
+}
+
 // --- PRODUCTS API ---
 if ($route === 'products' || strpos($route, 'products/') === 0) {
     if ($method === 'GET') {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
         if ($pdo) {
             $stmt = $pdo->query("SELECT * FROM products ORDER BY created_at DESC");
             $rows = $stmt->fetchAll();
