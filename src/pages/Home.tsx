@@ -1,7 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles, Plus, Camera, ShieldCheck } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
+import { useAuth } from '../context/AuthContext'
 import { HeroBanner } from '../components/storefront/HeroBanner'
 import { CategoryGrid } from '../components/storefront/CategoryGrid'
 import { ProductCard } from '../components/storefront/ProductCard'
@@ -9,6 +10,7 @@ import { SEO } from '../components/common/SEO'
 
 export const Home: React.FC = () => {
   const { products, loading } = useStore()
+  const { isAdmin } = useAuth()
 
   const featuredProducts = products.filter((p) => p.isPublished && p.isFeatured).slice(0, 4)
   const newArrivals = products.filter((p) => p.isPublished && p.isNewArrival).slice(0, 4)
@@ -19,6 +21,37 @@ export const Home: React.FC = () => {
         title="Contemporary Lifestyle & Apparel"
         description="Discover LEVIX — Minimal, premium, contemporary apparel and lifestyle essentials. Heavyweight natural textiles tailored with architectural precision."
       />
+
+      {/* Admin Quick Control Banner for Owner */}
+      {isAdmin && (
+        <div className="bg-levix-charcoal text-white border-b-2 border-levix-orange py-2.5 px-4 shadow-sm">
+          <div className="container-levix flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-bold uppercase tracking-wider text-levix-orange flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Store Owner Controls</span>
+              </span>
+              <span className="text-neutral-400 hidden sm:inline">• levixfashions@gmail.com</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/admin/products"
+                className="btn-primary py-1 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add / Manage Products</span>
+              </Link>
+              <Link
+                to="/admin"
+                className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider transition-colors border border-white/20"
+              >
+                Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <HeroBanner />
@@ -58,6 +91,32 @@ export const Home: React.FC = () => {
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+          ) : isAdmin ? (
+            <div className="py-14 text-center border-2 border-dashed border-levix-orange/60 bg-levix-soft-orange/20 p-8 max-w-xl mx-auto space-y-4 shadow-sm">
+              <div className="w-12 h-12 bg-levix-orange text-white rounded-full flex items-center justify-center mx-auto shadow-md">
+                <Camera className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest font-bold text-levix-orange mb-1">
+                  Administrator Quick Action
+                </p>
+                <h3 className="text-base sm:text-lg font-bold text-levix-charcoal uppercase tracking-wider">
+                  Ready to add your first product?
+                </h3>
+                <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
+                  Take photos with your phone camera or upload from gallery. Add sizes, colors, and prices to go live.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  to="/admin/products"
+                  className="btn-primary inline-flex items-center gap-2 text-xs uppercase tracking-wider px-6 py-3 shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Create Product Now (Camera / Gallery)</span>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="py-14 text-center border border-dashed border-levix-border bg-white p-6 max-w-xl mx-auto">

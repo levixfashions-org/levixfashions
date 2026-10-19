@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, PackageOpen } from 'lucide-react'
+import { ArrowLeft, PackageOpen, Plus } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
+import { useAuth } from '../context/AuthContext'
 import { ProductCard } from '../components/storefront/ProductCard'
 import { SEO } from '../components/common/SEO'
 
 export const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
   const { categories, products } = useStore()
+  const { isAdmin } = useAuth()
 
   const currentCategory = categories.find((c) => c.slug === slug)
 
