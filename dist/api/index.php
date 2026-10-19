@@ -227,7 +227,7 @@ if ($route === 'upload' && $method === 'POST') {
         exit;
     }
 
-    $uploadsDir = __DIR__ . '/../../uploads';
+    $uploadsDir = dirname(__DIR__) . '/uploads';
     if (!is_dir($uploadsDir)) {
         @mkdir($uploadsDir, 0755, true);
     }
