@@ -50,7 +50,24 @@ export const Shop: React.FC = () => {
     if (selectedCategory && selectedCategory !== 'all') {
       const matchedCat = categories.find((c) => c.slug === selectedCategory)
       if (matchedCat) {
-        result = result.filter((p) => p.categoryId === matchedCat.id)
+        result = result.filter((p) => {
+          if (p.categoryId === matchedCat.id || p.categoryId === matchedCat.slug) return true
+          if (p.categoryName?.trim().toLowerCase() === matchedCat.name.trim().toLowerCase()) return true
+          if (matchedCat.slug === 't-shirts') {
+            const cat = (p.categoryId || '').toLowerCase()
+            const name = (p.name || '').toLowerCase()
+            if (
+              cat.includes('t-shirt') ||
+              cat.includes('tee') ||
+              name.includes('t-shirt') ||
+              name.includes('tee') ||
+              name.includes('tshirt')
+            ) {
+              return true
+            }
+          }
+          return false
+        })
       }
     }
 
