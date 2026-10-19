@@ -1,0 +1,304 @@
+/* ==========================================================================
+   LEVIX Architectural Streetwear - Grand 3D Door-Opening Intro Styles
+   Palette:
+     - Matte Carbon & Deep Obsidian:   #09090B / #0B0B0E
+     - Brushed Titanium & Cyber Silver: #E4E4E7 / #A1A1AA
+     - Hyper White Glow:               #FFFFFF
+     - Precision Laser Seam:           rgba(228, 228, 231, 0.8)
+   ========================================================================== */
+
+/* Fullscreen Root Stage */
+.levix-intro-root {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #09090B;
+  z-index: 99999;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Once opened, allow clicking through to the revealed content */
+.levix-intro-root.is-opened {
+  pointer-events: none;
+  position: static;
+  overflow: visible;
+  height: auto;
+  min-height: 100vh;
+}
+
+/* Revealed Stage Behind Doors */
+.levix-revealed-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #09090B;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.levix-revealed-stage.is-interactive {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  pointer-events: auto;
+  user-select: auto;
+}
+
+/* 3D Door Perspective Chamber */
+.levix-doors-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 99998;
+  overflow: hidden;
+}
+
+/* Door Panels Base Styling */
+.levix-door-panel {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(145deg, #0d0d12 0%, #060608 100%);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, box-shadow;
+  transition-property: transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Subtle architectural panel texture overlay */
+.levix-door-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Left Door Panel: Outer vertical hinge is at the far left screen edge (x = 0) */
+.levix-door-left {
+  left: 0;
+  width: calc(50% + 1px);
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  box-shadow: inset -4px 0 24px rgba(0, 0, 0, 0.85);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Right Door Panel: Outer vertical hinge is at the far right screen edge (x = 100%) */
+.levix-door-right {
+  right: 0;
+  width: calc(50% + 1px);
+  transform-origin: right center;
+  transform: rotateY(0deg);
+  box-shadow: inset 4px 0 24px rgba(0, 0, 0, 0.85);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Door Edge Trims: Titanium silver accents on the meeting edges */
+.levix-door-inner-edge-left {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #FFFFFF 30%, #A1A1AA 70%, transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.levix-door-inner-edge-right {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #FFFFFF 30%, #A1A1AA 70%, transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+/* When opening: Reveal the door edges and swing symmetrically outward */
+.levix-door-panel.is-opening .levix-door-inner-edge-left,
+.levix-door-panel.is-opened .levix-door-inner-edge-left,
+.levix-door-panel.is-opening .levix-door-inner-edge-right,
+.levix-door-panel.is-opened .levix-door-inner-edge-right {
+  opacity: 0.95;
+}
+
+/* 3D Hinged Outward Rotation around outer vertical edges */
+.levix-door-left.is-opening,
+.levix-door-left.is-opened {
+  transform: rotateY(-112deg);
+  box-shadow: inset -1px 0 16px rgba(0, 0, 0, 0.6), 25px 0 60px rgba(0, 0, 0, 0.9);
+}
+
+.levix-door-right.is-opening,
+.levix-door-right.is-opened {
+  transform: rotateY(112deg);
+  box-shadow: inset 1px 0 16px rgba(0, 0, 0, 0.6), -25px 0 60px rgba(0, 0, 0, 0.9);
+}
+
+/* Mid-open state for inspection testing */
+.levix-door-left.is-mid-open {
+  transform: rotateY(-45deg) !important;
+  box-shadow: inset -2px 0 16px rgba(0, 0, 0, 0.7), 20px 0 45px rgba(0, 0, 0, 0.8) !important;
+}
+
+.levix-door-right.is-mid-open {
+  transform: rotateY(45deg) !important;
+  box-shadow: inset 2px 0 16px rgba(0, 0, 0, 0.7), -20px 0 45px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Center Seam: Thin vertical titanium line running from top to bottom */
+.levix-center-seam {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 20%, 
+    #FFFFFF 50%, 
+    rgba(255, 255, 255, 0.4) 80%, 
+    transparent 100%
+  );
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  z-index: 99999;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.levix-center-seam.is-faded {
+  opacity: 0;
+}
+
+/* Centered Logo Stage */
+.levix-logo-layer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  pointer-events: none;
+  will-change: opacity, transform;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.levix-logo-layer.is-faded {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+/* Monogram Hexagon Badge */
+.levix-emblem-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  background: radial-gradient(circle at top, #1E1E26 0%, #0D0D12 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.levix-emblem-badge::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%);
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Tap Hint */
+.levix-door-tap-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(228, 228, 231, 0.6);
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: levixTapHintPulse 2.4s infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.levix-door-tap-hint::before,
+.levix-door-tap-hint::after {
+  content: '';
+  width: 16px;
+  height: 1px;
+  background-color: rgba(228, 228, 231, 0.3);
+}
+
+@keyframes levixTapHintPulse {
+  0%, 100% { opacity: 0.35; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 0.85; transform: translateX(-50%) translateY(-3px); }
+}
+
+/* Responsive Scaling Adjustments for Mobile & Tablets */
+@media (max-width: 640px) {
+  .levix-doors-viewport {
+    perspective: 1000px;
+  }
+  .levix-emblem-badge {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+/* Reduced Motion Mode */
+@media (prefers-reduced-motion: reduce) {
+  .levix-door-panel {
+    transition-duration: 0.8s !important;
+  }
+  .levix-door-left.is-opening,
+  .levix-door-left.is-opened {
+    transform: none !important;
+    opacity: 0;
+  }
+  .levix-door-right.is-opening,
+  .levix-door-right.is-opened {
+    transform: none !important;
+    opacity: 0;
+  }
+}
