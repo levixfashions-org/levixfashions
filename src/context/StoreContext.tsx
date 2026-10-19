@@ -12,6 +12,7 @@ import {
   seedFirestoreDatabase,
 } from '../lib/firestore'
 import { INITIAL_SETTINGS } from '../data/initialSettings'
+import { localStore } from '../lib/storage'
 
 interface StoreContextType {
   products: Product[]
@@ -30,29 +31,38 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [settings, setSettings] = useState<StoreSettings>(INITIAL_SETTINGS)
-  const [loading, setLoading] = useState<boolean>(true)
+  // Synchronously initialize with local data for zero-latency instant rendering
+  const [products, setProducts] = useState<Product[]>(() => localStore.getProducts())
+  const [categories, setCategories] = useState<Category[]>(() => localStore.getCategories())
+  const [settings, setSettings] = useState<StoreSettings>(() => localStore.getSettings())
+  const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
     try {
-      setLoading(true)
-      const [fetchedProducts, fetchedCategories, fetchedSettings] = await Promise.all([
-        getProducts(false), // Fetch all products for admin/storefront
+      // Race fetch against a 3.5s timeout so mobile networks never freeze on Firestore
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), 3500)
+      )
+
+      const fetchPromise = Promise.all([
+        getProducts(false),
         getCategories(),
         getStoreSettings(),
       ])
+
+      const [fetchedProducts, fetchedCategories, fetchedSettings] = await Promise.race([
+        fetchPromise,
+        timeoutPromise,
+      ])
+
       setProducts(fetchedProducts)
       setCategories(fetchedCategories)
       setSettings(fetchedSettings)
       setError(null)
     } catch (err: any) {
-      console.error('Error loading store data:', err)
-      setError(err?.message || 'Failed to load store data')
-    } finally {
-      setLoading(false)
+      console.warn('Store data fetch background sync:', err?.message || err)
+      // Keep existing synchronous data, do not crash
     }
   }, [])
 
