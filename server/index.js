@@ -135,10 +135,20 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 const DATA_DIR = path.join(__dirname, 'data')
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json')
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json')
+const UPLOADS_DIR = path.join(__dirname, '../public/uploads')
+const DIST_UPLOADS_DIR = path.join(__dirname, '../dist/uploads')
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true })
 }
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true })
+}
+if (!fs.existsSync(DIST_UPLOADS_DIR)) {
+  fs.mkdirSync(DIST_UPLOADS_DIR, { recursive: true })
+}
+
+app.use('/uploads', express.static(UPLOADS_DIR))
 
 function readStoredProducts() {
   try {
