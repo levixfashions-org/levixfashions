@@ -136,9 +136,7 @@ function App() {
       <StoreProvider>
         <CartProvider>
           <WishlistProvider>
-            <LevixDoorIntro autoPlay={true} pauseDuration={900} openDuration={1700}>
-              <RouterProvider router={router} />
-            </LevixDoorIntro>
+            <RouterProvider router={router} />
           </WishlistProvider>
         </CartProvider>
       </StoreProvider>
