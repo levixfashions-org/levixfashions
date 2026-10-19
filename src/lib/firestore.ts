@@ -35,22 +35,19 @@ function getAdminHeaders(): Record<string, string> {
   }
 }
 
-// --- PRODUCTS ---
 export async function getProducts(onlyPublished = true): Promise<Product[]> {
   // 1. Try to fetch from backend server (/api/products) for shared multi-device catalog
   try {
     const res = await Promise.race([
-      fetch('/api/products'),
-      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+      fetch(`/api/products?_t=${Date.now()}`, { cache: 'no-store' }),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
       const data = await res.json()
-      if (data && Array.isArray(data.products) && data.products.length > 0) {
-        const local = localStore.getProducts()
-        const ids = new Set(data.products.map((p: Product) => p.id))
-        const merged = [...data.products, ...local.filter((p) => !ids.has(p.id))]
-        localStore.setProducts(merged)
-        return onlyPublished ? merged.filter((p) => p.isPublished) : merged
+      if (data && Array.isArray(data.products)) {
+        // Authoritative source: overwrite localStore so deleted products do not resurrect
+        localStore.setProducts(data.products)
+        return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
       }
     }
   } catch {
