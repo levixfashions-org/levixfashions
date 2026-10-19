@@ -210,6 +210,102 @@ app.delete('/api/products/:id', async (req, res) => {
   res.json({ success: true, message: 'Deleted' })
 })
 
+// Categories Catalog API
+app.get('/api/categories', async (req, res) => {
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const [rows] = await pool.query('SELECT * FROM categories ORDER BY display_order ASC')
+      if (rows.length > 0) {
+        const categories = rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          description: r.description,
+          imageUrl: r.image_url,
+          displayOrder: Number(r.display_order),
+          isPublished: Boolean(r.is_published),
+          isFeatured: Boolean(r.is_featured),
+        }))
+        return res.json({ success: true, source: 'mysql', categories })
+      }
+    } catch (err) {
+      console.warn('MySQL categories query error:', err.message)
+    }
+  }
+  res.json({ success: true, categories: [] })
+})
+
+app.post('/api/categories', async (req, res) => {
+  const cat = req.body
+  if (!cat || !cat.name) return res.status(400).json({ error: 'Category name is required' })
+  const id = cat.id || `cat-${Date.now()}`
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      await pool.query(
+        `INSERT INTO categories (id, name, slug, description, image_url, display_order, is_published, is_featured)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           name = VALUES(name), slug = VALUES(slug), description = VALUES(description),
+           image_url = VALUES(image_url), display_order = VALUES(display_order),
+           is_published = VALUES(is_published), is_featured = VALUES(is_featured)`,
+        [
+          id,
+          cat.name,
+          cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          cat.description || '',
+          cat.imageUrl || '',
+          Number(cat.displayOrder) || 1,
+          cat.isPublished !== false ? 1 : 0,
+          cat.isFeatured !== false ? 1 : 0,
+        ]
+      )
+    } catch (err) {
+      console.warn('MySQL category insert error:', err.message)
+    }
+  }
+  res.json({ success: true, category: { ...cat, id } })
+})
+
+// Store Settings API
+app.get('/api/settings', async (req, res) => {
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const [rows] = await pool.query('SELECT data FROM store_settings WHERE id = "general"')
+      if (rows.length > 0 && rows[0].data) {
+        const settings = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data
+        return res.json({ success: true, source: 'mysql', settings })
+      }
+    } catch (err) {
+      console.warn('MySQL settings query error:', err.message)
+    }
+  }
+  res.json({ success: true, settings: null })
+})
+
+app.post('/api/settings', async (req, res) => {
+  const settings = req.body
+  if (!settings) return res.status(400).json({ error: 'Settings payload is required' })
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      await pool.query(
+        `INSERT INTO store_settings (id, data, updated_at)
+         VALUES ('general', ?, ?)
+         ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = VALUES(updated_at)`,
+        [JSON.stringify(settings), new Date().toISOString()]
+      )
+    } catch (err) {
+      console.warn('MySQL settings save error:', err.message)
+    }
+  }
+  res.json({ success: true, settings })
+})
+
 /**
  * POST /api/orders/create
  * Validates cart items, prices, calculates totals in integer paise,
