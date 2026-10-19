@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ShieldCheck,
   LogOut,
+  Smartphone,
 } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
@@ -392,6 +393,17 @@ export const Header: React.FC = () => {
                     >
                       Register
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false)
+                        window.dispatchEvent(new CustomEvent('open-pwa-install'))
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-neutral-100 hover:bg-neutral-200 text-levix-charcoal text-xs font-semibold uppercase tracking-wider transition-colors border border-levix-border mt-3"
+                    >
+                      <Smartphone className="w-4 h-4 text-levix-orange" />
+                      <span>Install App</span>
+                    </button>
                     <Link
                       to="/admin/login"
                       onClick={() => setIsMobileMenuOpen(false)}
