@@ -379,7 +379,9 @@ export const AdminProducts: React.FC = () => {
 
     try {
       setIsSaving(true)
-      await addProductOrUpdate(payload)
+      const savePromise = addProductOrUpdate(payload)
+      const safetyTimeout = new Promise<void>((resolve) => setTimeout(resolve, 1500))
+      await Promise.race([savePromise, safetyTimeout])
       setIsModalOpen(false)
       setSaveSuccessMsg(`Product "${trimmedName}" was successfully saved and published!`)
       setTimeout(() => setSaveSuccessMsg(null), 5000)
