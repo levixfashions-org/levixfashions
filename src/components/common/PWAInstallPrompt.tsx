@@ -1,171 +1,291 @@
-import React, { useState, useEffect } from 'react'
-import { Download, X, Share, PlusSquare } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Download, X, Share, PlusSquare, ArrowDown, Smartphone } from 'lucide-react'
 
 export const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [isVisible, setIsVisible] = useState<boolean>(false)
   const [isIOS, setIsIOS] = useState<boolean>(false)
-  const [showIOSGuide, setShowIOSGuide] = useState<boolean>(false)
+  const [isIOSSafari, setIsIOSSafari] = useState<boolean>(false)
+  const [showGuideModal, setShowGuideModal] = useState<boolean>(false)
 
-  useEffect(() => {
-    // Check if already running as standalone PWA
+  const checkPlatformAndPrompt = useCallback(() => {
+    if (typeof window === 'undefined') return
+
+    // Check if already launched in standalone mode (already installed!)
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true
+      (window.navigator as any).standalone === true ||
+      document.referrer.includes('android-app://')
 
     if (isStandalone) {
       return
     }
 
-    // Check if user dismissed prompt recently
-    const dismissedTime = localStorage.getItem('levix_pwa_dismissed')
-    if (dismissedTime && Date.now() - parseInt(dismissedTime, 10) < 1000 * 60 * 60 * 24 * 7) {
-      return // Don't prompt for 7 days if dismissed
-    }
+    const ua = window.navigator.userAgent.toLowerCase()
+    const isIosDevice =
+      /iphone|ipad|ipod/.test(ua) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1)
 
-    // Check iOS Safari
-    const userAgent = window.navigator.userAgent.toLowerCase()
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent)
-    const isSafari = /safari/.test(userAgent) && !/chrome|crios|fxios/.test(userAgent)
-
-    if (isIosDevice && isSafari) {
+    if (isIosDevice) {
       setIsIOS(true)
-      setIsVisible(true)
+      const isSafari = /safari/.test(ua) && !/chrome|crios|fxios|optios|edgios/.test(ua)
+      setIsIOSSafari(isSafari)
+      
+      // Check session dismissal (resets on tab close so user isn't permanently locked out)
+      const dismissed = sessionStorage.getItem('levix_pwa_dismissed')
+      if (!dismissed) {
+        setIsVisible(true)
+      }
       return
     }
 
-    // Listen for beforeinstallprompt event on Chromium browsers
+    // Non-iOS: check session dismissal
+    const dismissed = sessionStorage.getItem('levix_pwa_dismissed')
+    if (dismissed) return
+
+    // Handled by beforeinstallprompt for Android/Desktop
+  }, [])
+
+  useEffect(() => {
+    checkPlatformAndPrompt()
+
+    // Listen for beforeinstallprompt event on Chromium/Android
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e)
+      const dismissed = sessionStorage.getItem('levix_pwa_dismissed')
+      if (!dismissed) {
+        setIsVisible(true)
+      }
+    }
+
+    // Global custom event listener to manually open prompt anytime from menu/footer
+    const handleManualOpen = () => {
       setIsVisible(true)
+      setShowGuideModal(true)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall)
+    window.addEventListener('open-pwa-install', handleManualOpen)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
+      window.removeEventListener('open-pwa-install', handleManualOpen)
     }
-  }, [])
+  }, [checkPlatformAndPrompt])
 
   const handleInstallClick = async () => {
     if (isIOS) {
-      setShowIOSGuide(true)
+      setShowGuideModal(true)
       return
     }
 
-    if (!deferredPrompt) return
-
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') {
-      setIsVisible(false)
+    if (!deferredPrompt) {
+      setShowGuideModal(true)
+      return
     }
-    setDeferredPrompt(null)
+
+    try {
+      deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') {
+        setIsVisible(false)
+      }
+      setDeferredPrompt(null)
+    } catch (_) {
+      setShowGuideModal(true)
+    }
   }
 
   const handleDismiss = () => {
     setIsVisible(false)
-    setShowIOSGuide(false)
-    localStorage.setItem('levix_pwa_dismissed', Date.now().toString())
+    setShowGuideModal(false)
+    try {
+      sessionStorage.setItem('levix_pwa_dismissed', 'true')
+    } catch (_) {}
   }
-
-  if (!isVisible) return null
 
   return (
     <>
-      {/* Subtle Bottom Floating Install Banner */}
-      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-40 bg-white border border-levix-border shadow-2xl p-4 animate-in slide-in-from-bottom-5 duration-300">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-levix-orange text-white font-black flex items-center justify-center shrink-0">
-            LX
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-bold text-levix-charcoal uppercase tracking-wider">
-              Install LEVIX App
-            </h4>
-            <p className="text-[11px] text-levix-secondary mt-0.5">
-              Instant mobile shopping, push updates & offline browsing.
-            </p>
-            <div className="flex items-center gap-2 mt-2.5">
-              <button
-                type="button"
-                onClick={handleInstallClick}
-                className="px-3.5 py-1.5 bg-levix-orange hover:bg-levix-orange-hover text-white text-xs font-semibold tracking-wider uppercase transition-colors flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>{isIOS ? 'Instructions' : 'Install'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleDismiss}
-                className="px-3 py-1.5 text-xs text-levix-secondary hover:text-levix-charcoal transition-colors"
-              >
-                Not Now
-              </button>
+      {/* Floating Bottom Prompt Banner (Visible on mobile/desktop until dismissed) */}
+      {isVisible && (
+        <aside
+          role="region"
+          aria-label="Install LEVIX App"
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[380px] z-50 bg-[#0C0C0E] text-white border border-neutral-800 shadow-2xl p-4 animate-in slide-in-from-bottom-5 duration-300 rounded-none"
+        >
+          <div className="flex items-start gap-3.5">
+            {/* App Icon */}
+            <img
+              src="/apple-touch-icon.png"
+              alt="LEVIX App Icon"
+              className="w-12 h-12 rounded-xl object-cover border border-neutral-700 shrink-0 shadow-md"
+            />
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+                  Install LEVIX App
+                </h4>
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  className="text-neutral-400 hover:text-white p-1 -mr-1 -mt-1 transition-colors"
+                  aria-label="Dismiss banner"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-[11px] text-neutral-300 mt-1 leading-snug">
+                {isIOS
+                  ? 'Add to your iPhone Home Screen for instant mobile shopping & fast checkout.'
+                  : 'Fast checkout, push drop alerts & seamless offline browsing.'}
+              </p>
+
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={handleInstallClick}
+                  className="px-3.5 py-1.5 bg-[#E87524] hover:bg-[#d6671a] text-white text-[11px] font-bold tracking-wider uppercase transition-colors flex items-center gap-1.5 shadow-sm"
+                >
+                  {isIOS ? (
+                    <>
+                      <Share className="w-3.5 h-3.5" />
+                      <span>How to Install</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Install App</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  className="px-2.5 py-1.5 text-[11px] text-neutral-400 hover:text-white transition-colors"
+                >
+                  Later
+                </button>
+              </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-levix-secondary hover:text-levix-charcoal p-1 -mr-1 -mt-1"
-            aria-label="Dismiss install banner"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
 
-      {/* iOS Safari Installation Guide Modal */}
-      {showIOSGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white max-w-sm w-full p-6 border border-levix-border shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-levix-border mb-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
-                Install LEVIX on iPhone / iPad
-              </h3>
+          {/* Quick iOS Safari bottom hint */}
+          {isIOS && isIOSSafari && (
+            <div className="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between text-[11px] text-[#E87524]">
+              <span className="flex items-center gap-1.5">
+                <span>Tap</span>
+                <Share className="w-3.5 h-3.5" />
+                <span>then &ldquo;Add to Home Screen&rdquo;</span>
+              </span>
+              <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
+            </div>
+          )}
+        </aside>
+      )}
+
+      {/* Comprehensive Guide Modal (Detailed step-by-step for iPhone & other browsers) */}
+      {showGuideModal && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#0C0C0E] text-white border border-neutral-800 w-full sm:max-w-md p-6 shadow-2xl rounded-t-2xl sm:rounded-none">
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-800 mb-5">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/apple-touch-icon.png"
+                  alt="LEVIX App"
+                  className="w-10 h-10 rounded-lg object-cover border border-neutral-700"
+                />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                    Install LEVIX on iPhone
+                  </h3>
+                  <p className="text-[11px] text-neutral-400">Official Mobile Web App</p>
+                </div>
+              </div>
               <button
-                onClick={() => setShowIOSGuide(false)}
-                className="text-levix-secondary hover:text-levix-charcoal"
-                aria-label="Close modal"
+                onClick={() => setShowGuideModal(false)}
+                className="text-neutral-400 hover:text-white p-1 transition-colors"
+                aria-label="Close installation instructions"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <ol className="space-y-4 text-xs text-levix-charcoal">
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 bg-levix-gray border border-levix-border flex items-center justify-center font-bold text-levix-orange shrink-0">
-                  1
-                </span>
-                <span>
-                  Tap the Safari <strong className="font-semibold">Share</strong> button{' '}
-                  <Share className="w-4 h-4 inline-block text-levix-orange mx-0.5" /> in the bottom toolbar.
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 bg-levix-gray border border-levix-border flex items-center justify-center font-bold text-levix-orange shrink-0">
-                  2
-                </span>
-                <span>
-                  Scroll down the share sheet and tap{' '}
-                  <strong className="font-semibold">Add to Home Screen</strong>{' '}
-                  <PlusSquare className="w-4 h-4 inline-block text-levix-orange mx-0.5" />.
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-6 h-6 bg-levix-gray border border-levix-border flex items-center justify-center font-bold text-levix-orange shrink-0">
-                  3
-                </span>
-                <span>
-                  Tap <strong className="font-semibold">Add</strong> in the top right to complete installation.
-                </span>
-              </li>
-            </ol>
+            {isIOS && !isIOSSafari ? (
+              /* Non-Safari on iOS (Chrome, Instagram in-app browser, etc.) */
+              <div className="space-y-4 text-xs text-neutral-300">
+                <div className="p-3 bg-neutral-900 border border-neutral-800 text-[#E87524] text-xs font-medium">
+                  Apple only allows PWA installation via the Safari browser.
+                </div>
+                <p>
+                  1. Tap the menu icon in your current browser and select{' '}
+                  <strong className="text-white">Open in Safari</strong>.
+                </p>
+                <p>
+                  2. Once in Safari, tap the <strong className="text-white">Share</strong> button{' '}
+                  <Share className="w-4 h-4 inline-block text-[#E87524] mx-1" />.
+                </p>
+                <p>
+                  3. Tap <strong className="text-white">Add to Home Screen</strong>{' '}
+                  <PlusSquare className="w-4 h-4 inline-block text-[#E87524] mx-1" />.
+                </p>
+              </div>
+            ) : (
+              /* Safari on iOS or General Guide */
+              <ol className="space-y-4 text-xs text-neutral-300">
+                <li className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <div>
+                    <p className="font-semibold text-white">
+                      Tap the Share button in Safari
+                    </p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      Look for the square icon with an arrow pointing up{' '}
+                      <Share className="w-3.5 h-3.5 inline-block text-[#E87524] mx-0.5" /> in the bottom toolbar.
+                    </p>
+                  </div>
+                </li>
+
+                <li className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <div>
+                    <p className="font-semibold text-white">
+                      Select &ldquo;Add to Home Screen&rdquo;
+                    </p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      Scroll down the share sheet and tap{' '}
+                      <PlusSquare className="w-3.5 h-3.5 inline-block text-[#E87524] mx-0.5" />{' '}
+                      <strong className="text-white">Add to Home Screen</strong>.
+                    </p>
+                  </div>
+                </li>
+
+                <li className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                    3
+                  </span>
+                  <div>
+                    <p className="font-semibold text-white">
+                      Tap &ldquo;Add&rdquo; in the top-right corner
+                    </p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      LEVIX will be installed onto your iPhone Home Screen just like a native App!
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            )}
 
             <button
-              onClick={() => setShowIOSGuide(false)}
-              className="w-full btn-primary mt-6 py-2.5 text-xs uppercase tracking-wider"
+              onClick={() => setShowGuideModal(false)}
+              className="w-full mt-6 py-3 bg-[#E87524] hover:bg-[#d6671a] text-white text-xs font-bold tracking-wider uppercase transition-colors"
             >
               Got It
             </button>
@@ -175,3 +295,5 @@ export const PWAInstallPrompt: React.FC = () => {
     </>
   )
 }
+
+export default PWAInstallPrompt
