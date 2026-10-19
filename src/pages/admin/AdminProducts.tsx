@@ -430,6 +430,14 @@ export const AdminProducts: React.FC = () => {
         </button>
       </div>
 
+      {/* Success Notification Banner */}
+      {saveSuccessMsg && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold flex items-center gap-2.5 shadow-xs animate-in fade-in duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{saveSuccessMsg}</span>
+        </div>
+      )}
+
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -1266,18 +1274,35 @@ export const AdminProducts: React.FC = () => {
                 />
               </div>
 
+              {/* Error display directly above buttons so user always sees it */}
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
               {/* Buttons */}
               <div className="pt-4 border-t border-levix-border flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 btn-primary py-3 text-xs uppercase tracking-wider"
+                  disabled={isSaving}
+                  className="flex-1 btn-primary py-3 text-xs uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  Save Product
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span>Saving Product...</span>
+                    </>
+                  ) : (
+                    <span>Save Product</span>
+                  )}
                 </button>
                 <button
                   type="button"
+                  disabled={isSaving}
                   onClick={() => setIsModalOpen(false)}
-                  className="btn-secondary py-3 px-6 text-xs uppercase tracking-wider"
+                  className="btn-secondary py-3 px-6 text-xs uppercase tracking-wider disabled:opacity-50"
                 >
                   Cancel
                 </button>
