@@ -28,6 +28,13 @@ const ORDERS_COL = 'orders'
 const SETTINGS_COL = 'storeSettings'
 const USERS_COL = 'users'
 
+function getAdminHeaders(): Record<string, string> {
+  return {
+    'Content-Type': 'application/json',
+    'x-admin-key': 'levix_admin_auth_sec_2026',
+  }
+}
+
 // --- PRODUCTS ---
 export async function getProducts(onlyPublished = true): Promise<Product[]> {
   // 1. Try to fetch from backend server (/api/products) for shared multi-device catalog
@@ -160,7 +167,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
   // 2. Sync to Backend Server API for multi-device instant sharing
   fetch('/api/products', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAdminHeaders(),
     body: JSON.stringify(fullProduct),
   }).catch(() => {})
 
