@@ -323,8 +323,43 @@ app.get('/api/health', (req, res) => {
   })
 })
 
+// Image Upload Endpoint (High-performance static file storage)
+app.post('/api/upload', requireAdmin, async (req, res) => {
+  try {
+    const { image } = req.body
+    if (!image) {
+      return res.status(400).json({ error: 'Image data is required' })
+    }
+
+    let ext = 'jpg'
+    let base64Data = image
+    const matches = image.match(/^data:image\/([a-zA-Z0-9-+]+);base64,(.+)$/)
+    if (matches) {
+      ext = matches[1] === 'jpeg' ? 'jpg' : matches[1]
+      base64Data = matches[2]
+    }
+
+    const safeName = `img-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}.${ext}`
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    fs.writeFileSync(path.join(UPLOADS_DIR, safeName), buffer)
+    if (fs.existsSync(DIST_UPLOADS_DIR)) {
+      fs.writeFileSync(path.join(DIST_UPLOADS_DIR, safeName), buffer)
+    }
+
+    return res.json({ success: true, url: `/uploads/${safeName}`, filename: safeName })
+  } catch (err) {
+    console.error('Upload error:', err)
+    return res.status(500).json({ error: 'Failed to process image upload' })
+  }
+})
+
 // Products Catalog API: Public GET
 app.get('/api/products', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+
   if (isMySQLConnected()) {
     try {
       const pool = getPool()
