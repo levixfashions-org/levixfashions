@@ -184,14 +184,6 @@ export const Footer: React.FC = () => {
                   Install Mobile App (iOS / Android)
                 </button>
               </li>
-              <li>
-                <Link
-                  to="/admin/login"
-                  className="text-levix-secondary hover:text-levix-charcoal transition-colors font-medium"
-                >
-                  Administrator Portal
-                </Link>
-              </li>
             </ul>
           </div>
 
