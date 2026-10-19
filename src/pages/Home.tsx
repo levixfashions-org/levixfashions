@@ -53,11 +53,23 @@ export const Home: React.FC = () => {
                 <div key={n} className="aspect-[3/4] bg-gray-200 animate-pulse" />
               ))}
             </div>
-          ) : (
+          ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
+            </div>
+          ) : (
+            <div className="py-14 text-center border border-dashed border-levix-border bg-white p-6 max-w-xl mx-auto">
+              <p className="text-xs uppercase tracking-widest font-bold text-levix-orange mb-1">
+                Studio Archive
+              </p>
+              <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
+                New Seasonal Run Curating Soon
+              </h3>
+              <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
+                Explore our silhouette categories above while new garments and accessories are being prepared.
+              </p>
             </div>
           )}
 
