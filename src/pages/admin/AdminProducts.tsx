@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   Plus,
   Edit2,
@@ -6,10 +6,16 @@ import {
   X,
   Search,
   Star,
+  Camera,
+  Image as ImageIcon,
+  Upload,
+  Loader2,
+  Link as LinkIcon,
 } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { formatPrice, paiseToRupees, rupeesToPaise } from '../../lib/utils'
 import type { Product, ProductVariant } from '../../types/product'
+import { compressAndProcessImage, processMultipleImages } from '../../lib/imageUpload'
 
 export const AdminProducts: React.FC = () => {
   const { products, categories, addProductOrUpdate, removeProduct } = useStore()
@@ -38,6 +44,13 @@ export const AdminProducts: React.FC = () => {
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDescription, setSeoDescription] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
+
+  // Camera & Gallery Upload States & Refs
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [uploadingColor, setUploadingColor] = useState<string | null>(null)
+  const [showUrlTextarea, setShowUrlTextarea] = useState(false)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // Variants State (Multiple Colors & Sizes)
   const [hasVariants, setHasVariants] = useState(false)
