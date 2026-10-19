@@ -52,6 +52,9 @@ export const LevixDoorIntro: React.FC<LevixDoorIntroProps> = ({
       if (stateParam === 'closed' || stateParam === 'opening') {
         return stateParam as AnimationState;
       }
+      if (sessionStorage.getItem('levix_door_opened') === 'true') {
+        return 'opened';
+      }
     }
     return 'closed';
   };
