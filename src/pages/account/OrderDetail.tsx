@@ -7,21 +7,42 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { getOrderById } from '../../lib/firestore'
+import { useAuth } from '../../context/AuthContext'
 import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order, OrderFulfillmentStatus } from '../../types/order'
 
 export const OrderDetail: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>()
+  const { currentUser, userProfile, isAdmin } = useAuth()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+  const [unauthorized, setUnauthorized] = useState(false)
 
   useEffect(() => {
     if (!orderId) return
-    getOrderById(orderId).then((res) => {
-      setOrder(res)
+    const callerUid = currentUser?.uid || userProfile?.uid
+    const callerEmail = currentUser?.email || userProfile?.email
+
+    getOrderById(orderId, callerUid, callerEmail).then((res) => {
+      if (res) {
+        const isOwner =
+          (callerUid && res.customerUid === callerUid) ||
+          (callerEmail && res.customerEmail?.toLowerCase() === callerEmail.toLowerCase()) ||
+          res.customerUid === 'guest'
+
+        if (isOwner || isAdmin) {
+          setOrder(res)
+          setUnauthorized(false)
+        } else {
+          setOrder(null)
+          setUnauthorized(true)
+        }
+      } else {
+        setOrder(null)
+      }
       setLoading(false)
     })
-  }, [orderId])
+  }, [orderId, currentUser, userProfile, isAdmin])
 
   if (loading) {
     return (
