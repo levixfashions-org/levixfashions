@@ -988,18 +988,192 @@ export const AdminProducts: React.FC = () => {
                 )}
               </div>
 
-              {/* Images */}
-              <div>
-                <label className="form-label">
-                  High-Resolution Image URLs (one URL per line) *
-                </label>
-                <textarea
-                  value={imagesText}
-                  onChange={(e) => setImagesText(e.target.value)}
-                  rows={3}
-                  placeholder="https://images.unsplash.com/..."
-                  className="form-input font-mono text-[11px]"
-                />
+              {/* Product Photography & Media */}
+              <div className="border border-levix-border bg-white p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-levix-border">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-levix-charcoal">
+                      Product Media & Photos *
+                    </label>
+                    <p className="text-[11px] text-levix-secondary">
+                      Snap live photos with your camera or select from your gallery. Automatically optimized.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Hidden Native File Inputs */}
+                    <input
+                      type="file"
+                      ref={cameraInputRef}
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => handleProductFilesAdded(e.target.files)}
+                      className="hidden"
+                    />
+                    <input
+                      type="file"
+                      ref={galleryInputRef}
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => handleProductFilesAdded(e.target.files)}
+                      className="hidden"
+                    />
+
+                    {/* Camera Button */}
+                    <button
+                      type="button"
+                      disabled={isUploadingImage}
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white hover:bg-black text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                      title="Take a photo with device camera"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-levix-orange" />
+                      <span>Camera</span>
+                    </button>
+
+                    {/* Gallery / Photos Button */}
+                    <button
+                      type="button"
+                      disabled={isUploadingImage}
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-gray hover:bg-levix-border text-levix-charcoal border border-levix-border text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                      title="Upload from device gallery or files"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5 text-levix-charcoal" />
+                      <span>Gallery</span>
+                    </button>
+
+                    {/* Toggle Manual URL link */}
+                    <button
+                      type="button"
+                      onClick={() => setShowUrlTextarea((prev) => !prev)}
+                      className={`p-1.5 border transition-colors cursor-pointer ${
+                        showUrlTextarea
+                          ? 'bg-levix-charcoal text-white border-levix-charcoal'
+                          : 'text-levix-secondary hover:text-levix-charcoal border-levix-border bg-white'
+                      }`}
+                      title="Toggle manual image URL input"
+                    >
+                      <LinkIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Upload Spinner Alert */}
+                {isUploadingImage && (
+                  <div className="flex items-center gap-2 p-2.5 bg-levix-soft-orange/30 border border-levix-orange/30 text-levix-charcoal text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                    <span className="font-semibold">Optimizing and compressing high-resolution photos...</span>
+                  </div>
+                )}
+
+                {/* Visual Image Grid Preview */}
+                {(() => {
+                  const images = imagesText
+                    .split('\n')
+                    .map((u) => u.trim())
+                    .filter(Boolean)
+
+                  if (images.length === 0) {
+                    return (
+                      <div className="border-2 border-dashed border-levix-border p-6 text-center bg-levix-gray/30 space-y-3">
+                        <Upload className="w-7 h-7 mx-auto text-levix-secondary/70" />
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
+                            No product images added yet
+                          </p>
+                          <p className="text-[11px] text-levix-secondary max-w-sm mx-auto mt-0.5">
+                            Tap <strong>Camera</strong> to snap a photo instantly, or tap <strong>Gallery</strong> to upload multiple product angles from your device.
+                          </p>
+                        </div>
+                        <div className="flex justify-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white text-[11px] font-bold uppercase tracking-wider"
+                          >
+                            <Camera className="w-3.5 h-3.5 text-levix-orange" />
+                            <span>Take Photo</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => galleryInputRef.current?.click()}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-levix-border text-levix-charcoal text-[11px] font-bold uppercase tracking-wider"
+                          >
+                            <ImageIcon className="w-3.5 h-3.5 text-levix-charcoal" />
+                            <span>Browse Gallery</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {images.map((imgUrl, idx) => (
+                        <div
+                          key={`${imgUrl.slice(0, 30)}-${idx}`}
+                          className="group relative border border-levix-border bg-levix-gray aspect-3/4 overflow-hidden shadow-xs"
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`Product preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              ;(e.target as HTMLElement).style.opacity = '0.3'
+                            }}
+                          />
+
+                          {/* Cover Badge / Button */}
+                          {idx === 0 ? (
+                            <span className="absolute top-1.5 left-1.5 bg-black text-levix-orange text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-sm">
+                              ★ Main Cover
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetMainCover(idx)}
+                              className="absolute top-1.5 left-1.5 bg-black/80 hover:bg-black text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-sm opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Set as main thumbnail"
+                            >
+                              Set as Cover
+                            </button>
+                          )}
+
+                          {/* Delete Action */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="absolute top-1.5 right-1.5 bg-red-600/90 hover:bg-red-700 text-white p-1 rounded-xs shadow-sm transition-opacity opacity-90 sm:opacity-0 group-hover:opacity-100"
+                            title="Remove image"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+
+                          {/* Index Indicator */}
+                          <span className="absolute bottom-1 right-1.5 text-[9px] font-mono text-white/80 bg-black/60 px-1 rounded-xs">
+                            #{idx + 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+
+                {/* Collapsible Direct URL Editor */}
+                {showUrlTextarea && (
+                  <div className="pt-2 border-t border-levix-border space-y-1">
+                    <label className="block text-[10px] uppercase font-bold text-levix-secondary">
+                      Manual Image URLs (one URL per line)
+                    </label>
+                    <textarea
+                      value={imagesText}
+                      onChange={(e) => setImagesText(e.target.value)}
+                      rows={3}
+                      placeholder="https://images.unsplash.com/..."
+                      className="form-input font-mono text-[11px] bg-levix-gray/30"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Toggles */}
