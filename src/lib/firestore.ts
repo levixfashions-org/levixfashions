@@ -215,25 +215,50 @@ export async function deleteProduct(id: string): Promise<void> {
 
 // --- CATEGORIES ---
 export async function getCategories(): Promise<Category[]> {
+  try {
+    const res = await Promise.race([
+      fetch('/api/categories'),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+        localStore.setCategories(data.categories)
+        return data.categories
+      }
+    }
+  } catch {}
+
   if (isFirebaseConfigured && db) {
     try {
       const q = query(collection(db, CATEGORIES_COL), orderBy('displayOrder', 'asc'))
       const snapshot = await getDocs(q)
       if (!snapshot.empty) {
-        return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as Category))
+        const list = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as Category))
+        localStore.setCategories(list)
+        return list
       }
     } catch (err) {
-      console.warn('Firestore getCategories failed, using fallback:', err)
+      console.warn('Firestore getCategories note:', err)
     }
   }
   return localStore.getCategories()
 }
 
 export async function saveCategory(category: Category): Promise<Category> {
+  // 1. Immediately persist locally in 0ms
   const existing = localStore.getCategories()
   const updated = [category, ...existing.filter((c) => c.id !== category.id)]
   localStore.setCategories(updated)
 
+  // 2. Sync to Backend API in background
+  fetch('/api/categories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(category),
+  }).catch(() => {})
+
+  // 3. Sync to Firestore in background with safety timeout
   if (isFirebaseConfigured && db) {
     const firestoreCat = async () => {
       try {
@@ -256,11 +281,27 @@ export async function saveCategory(category: Category): Promise<Category> {
 
 // --- STORE SETTINGS ---
 export async function getStoreSettings(): Promise<StoreSettings> {
+  try {
+    const res = await Promise.race([
+      fetch('/api/settings'),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.settings) {
+        localStore.setSettings(data.settings)
+        return data.settings
+      }
+    }
+  } catch {}
+
   if (isFirebaseConfigured && db) {
     try {
       const docSnap = await getDoc(doc(db, SETTINGS_COL, 'general'))
       if (docSnap.exists()) {
-        return docSnap.data() as StoreSettings
+        const settings = docSnap.data() as StoreSettings
+        localStore.setSettings(settings)
+        return settings
       }
     } catch (err) {
       console.warn('Firestore getStoreSettings failed:', err)
@@ -270,14 +311,34 @@ export async function getStoreSettings(): Promise<StoreSettings> {
 }
 
 export async function saveStoreSettings(settings: StoreSettings): Promise<StoreSettings> {
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, SETTINGS_COL, 'general'), settings)
-    } catch (err) {
-      console.error('Failed to save store settings to Firestore:', err)
-    }
-  }
+  // 1. Immediately persist locally so changes apply in 0ms
   localStore.setSettings(settings)
+
+  // 2. Sync to Backend API in background
+  fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  }).catch(() => {})
+
+  // 3. Sync to Firestore in background
+  if (isFirebaseConfigured && db) {
+    const firestoreSettings = async () => {
+      try {
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore timeout')), 2500)
+        )
+        await Promise.race([
+          setDoc(doc(db, SETTINGS_COL, 'general'), settings),
+          timeoutPromise,
+        ])
+      } catch (err) {
+        console.warn('Firestore saveStoreSettings note:', err)
+      }
+    }
+    firestoreSettings().catch(() => {})
+  }
+
   return settings
 }
 
@@ -317,17 +378,22 @@ export async function getOrderById(id: string): Promise<Order | null> {
 }
 
 export async function saveOrder(order: Order): Promise<Order> {
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, ORDERS_COL, order.id), {
-        ...order,
-        updatedAt: serverTimestamp(),
-      })
-    } catch (err) {
-      console.error('Failed to save order to Firestore:', err)
-    }
-  }
   localStore.saveOrder(order)
+
+  if (isFirebaseConfigured && db) {
+    const firestoreOrder = async () => {
+      try {
+        await setDoc(doc(db, ORDERS_COL, order.id), {
+          ...order,
+          updatedAt: serverTimestamp(),
+        })
+      } catch (err) {
+        console.warn('Firestore saveOrder note:', err)
+      }
+    }
+    firestoreOrder().catch(() => {})
+  }
+
   return order
 }
 
@@ -335,20 +401,41 @@ export async function updateOrderFulfillment(
   orderId: string,
   updates: Partial<Order>
 ): Promise<void> {
-  if (isFirebaseConfigured && db) {
-    try {
-      await updateDoc(doc(db, ORDERS_COL, orderId), {
-        ...updates,
-        updatedAt: serverTimestamp(),
-      })
-    } catch (err) {
-      console.error('Failed to update order in Firestore:', err)
-    }
-  }
+  // 1. Immediately update local store in 0ms
   const existing = localStore.getOrders()
   const order = existing.find((o) => o.id === orderId)
   if (order) {
     localStore.updateOrder({ ...order, ...updates, updatedAt: new Date().toISOString() })
+  }
+
+  // 2. Broadcast immediately to any open tabs
+  try {
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      const ch = new BroadcastChannel('levix_store_sync')
+      ch.postMessage({ type: 'ORDERS_UPDATED', orderId, updates })
+      ch.close()
+    }
+  } catch {}
+
+  // 3. Sync to Firestore in background
+  if (isFirebaseConfigured && db) {
+    const firestoreOrder = async () => {
+      try {
+        const timeoutPromise = new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Firestore timeout')), 2500)
+        )
+        await Promise.race([
+          updateDoc(doc(db, ORDERS_COL, orderId), {
+            ...updates,
+            updatedAt: serverTimestamp(),
+          }),
+          timeoutPromise,
+        ])
+      } catch (err) {
+        console.warn('Firestore updateOrder note:', err)
+      }
+    }
+    firestoreOrder().catch(() => {})
   }
 }
 
