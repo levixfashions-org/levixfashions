@@ -265,6 +265,102 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
     }
 }
 
+// --- CATEGORIES API ---
+if ($route === 'categories' || strpos($route, 'categories/') === 0) {
+    if ($method === 'GET') {
+        if ($pdo) {
+            $stmt = $pdo->query("SELECT * FROM categories ORDER BY display_order ASC");
+            $rows = $stmt->fetchAll();
+            $categories = array_map(function($r) {
+                return [
+                    'id' => $r['id'],
+                    'name' => $r['name'],
+                    'slug' => $r['slug'],
+                    'description' => $r['description'],
+                    'imageUrl' => $r['image_url'],
+                    'displayOrder' => (int)$r['display_order'],
+                    'isPublished' => (bool)$r['is_published'],
+                    'isFeatured' => (bool)$r['is_featured'],
+                ];
+            }, $rows);
+            echo json_encode(['success' => true, 'source' => 'mysql', 'categories' => $categories]);
+            exit;
+        }
+        echo json_encode(['success' => true, 'categories' => []]);
+        exit;
+    }
+
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        if (!$body || empty($body['name'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Category name is required']);
+            exit;
+        }
+        $id = !empty($body['id']) ? $body['id'] : 'cat-' . time();
+        if ($pdo) {
+            $stmt = $pdo->prepare("
+                INSERT INTO categories (id, name, slug, description, image_url, display_order, is_published, is_featured)
+                VALUES (:id, :name, :slug, :description, :image_url, :display_order, :is_published, :is_featured)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name), slug = VALUES(slug), description = VALUES(description),
+                    image_url = VALUES(image_url), display_order = VALUES(display_order),
+                    is_published = VALUES(is_published), is_featured = VALUES(is_featured)
+            ");
+            $stmt->execute([
+                ':id' => $id,
+                ':name' => $body['name'],
+                ':slug' => !empty($body['slug']) ? $body['slug'] : strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $body['name'])),
+                ':description' => $body['description'] ?? '',
+                ':image_url' => $body['imageUrl'] ?? '',
+                ':display_order' => (int)($body['displayOrder'] ?? 1),
+                ':is_published' => isset($body['isPublished']) ? ($body['isPublished'] ? 1 : 0) : 1,
+                ':is_featured' => isset($body['isFeatured']) ? ($body['isFeatured'] ? 1 : 0) : 1,
+            ]);
+            echo json_encode(['success' => true, 'category' => array_merge($body, ['id' => $id])]);
+            exit;
+        }
+        echo json_encode(['success' => true, 'category' => array_merge($body, ['id' => $id])]);
+        exit;
+    }
+}
+
+// --- SETTINGS API ---
+if ($route === 'settings' || strpos($route, 'settings/') === 0) {
+    if ($method === 'GET') {
+        if ($pdo) {
+            $stmt = $pdo->query("SELECT data FROM store_settings WHERE id = 'general'");
+            $row = $stmt->fetch();
+            if ($row && !empty($row['data'])) {
+                $settings = json_decode($row['data'], true);
+                echo json_encode(['success' => true, 'source' => 'mysql', 'settings' => $settings]);
+                exit;
+            }
+        }
+        echo json_encode(['success' => true, 'settings' => null]);
+        exit;
+    }
+
+    if ($method === 'POST') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        if ($pdo && $body) {
+            $stmt = $pdo->prepare("
+                INSERT INTO store_settings (id, data, updated_at)
+                VALUES ('general', :data, :updated_at)
+                ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = VALUES(updated_at)
+            ");
+            $stmt->execute([
+                ':data' => json_encode($body),
+                ':updated_at' => date('c'),
+            ]);
+            echo json_encode(['success' => true, 'settings' => $body]);
+            exit;
+        }
+        echo json_encode(['success' => true, 'settings' => $body]);
+        exit;
+    }
+}
+
 // Fallback Health
 echo json_encode([
     'status' => 'ok',
