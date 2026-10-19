@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "node --test tests/ecommerce.test.js",
     "server": "node server/index.js",
-    "server:dev": "node --watch server/index.js"
+    "server:dev": "node --watch server/index.js",
+    "git:sync": "node scripts/auto-sync.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
