@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $dbHost = getenv('MYSQL_HOST') ?: 'localhost';
 $dbName = getenv('MYSQL_DATABASE') ?: 'u214946046_levix';
 $dbUser = getenv('MYSQL_USER') ?: 'u214946046_levix77';
-$dbPass = getenv('MYSQL_PASSWORD') ?: '';
+$dbPass = getenv('MYSQL_PASSWORD') ?: 'Sainath2578';
 
 // Auto-read from .env if present
 $envFile = __DIR__ . '/../../.env';
