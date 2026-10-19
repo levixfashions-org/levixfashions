@@ -195,29 +195,6 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Demo Access Buttons */}
-          <div className="pt-4 border-t border-levix-border space-y-2">
-            <p className="text-[11px] uppercase font-bold text-levix-secondary text-center tracking-wider mb-2">
-              Instant One-Click Evaluation
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={handleDemoCustomer}
-                className="btn-secondary py-2 text-[11px] uppercase tracking-wider text-center"
-              >
-                Demo Customer
-              </button>
-              <button
-                type="button"
-                onClick={handleDemoAdmin}
-                className="btn-secondary py-2 text-[11px] uppercase tracking-wider text-center text-levix-orange border-levix-orange/40 hover:bg-levix-soft-orange"
-              >
-                Demo Admin
-              </button>
-            </div>
-          </div>
-
           <div className="pt-2 text-center text-xs text-levix-secondary">
             Don&apos;t have an account?{' '}
             <Link to="/register" className="text-levix-orange font-bold hover:underline">
