@@ -43,3 +43,17 @@
 
 # Prevent directory browsing
 Options -Indexes
+
+# Security Headers
+<IfModule mod_headers.c>
+  # Prevent Clickjacking
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # Prevent MIME Sniffing
+  Header always set X-Content-Type-Options "nosniff"
+  # Referrer Policy
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # Permissions Policy
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # Cross-Origin Opener Policy
+  Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+</IfModule>
