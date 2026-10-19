@@ -56,9 +56,13 @@ export const OrderDetail: React.FC = () => {
   if (!order) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-base font-bold text-levix-charcoal uppercase">Order Not Found</h3>
+        <h3 className="text-base font-bold text-levix-charcoal uppercase">
+          {unauthorized ? 'Access Restricted' : 'Order Not Found'}
+        </h3>
         <p className="text-xs text-levix-secondary mt-1 mb-4">
-          The requested order could not be located.
+          {unauthorized
+            ? 'You do not have permission to view details for this order.'
+            : 'The requested order could not be located.'}
         </p>
         <Link to="/account/orders" className="btn-primary text-xs uppercase tracking-wider">
           Return to Orders
