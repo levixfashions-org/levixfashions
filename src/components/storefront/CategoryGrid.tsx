@@ -69,7 +69,7 @@ export const CategoryGrid: React.FC = () => {
 
               <div className="absolute inset-x-0 bottom-0 p-4 text-white">
                 <p className="text-[10px] uppercase tracking-widest text-levix-orange font-semibold">
-                  {getProductCount(category.id)} Products
+                  {getProductCount(category)} Products
                 </p>
                 <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-white mt-0.5 group-hover:text-levix-soft-orange transition-colors">
                   {category.name}
