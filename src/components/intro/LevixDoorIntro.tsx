@@ -24,6 +24,16 @@ export const LevixDoorIntro: React.FC<LevixDoorIntroProps> = ({
 }) => {
   const getInitialState = (): boolean => {
     if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname
+      if (
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/register') ||
+        pathname.startsWith('/account') ||
+        pathname.startsWith('/checkout')
+      ) {
+        return true
+      }
       const params = new URLSearchParams(window.location.search)
       if (params.get('door') === 'opened') return true
       if (params.get('door') === 'closed') return false
