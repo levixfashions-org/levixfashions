@@ -70,14 +70,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await saveUserProfile(profile)
         }
 
-        // Check admin privilege: Custom Claim or explicit designated admin email
-        const tokenResult = await user.getIdTokenResult(true)
-        const isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
+        // Check admin privilege: direct email check first, then fallback to token claims
         const isAuthorizedAdmin = checkIsAdminEmail(user.email)
+        let isCustomClaimAdmin = false
+        try {
+          const tokenResult = await user.getIdTokenResult()
+          isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
+        } catch {
+          // Token fetch can fail on slow network, direct email check still grants admin
+        }
 
-        const adminStatus = isCustomClaimAdmin || isAuthorizedAdmin || profile.role === 'admin'
+        const adminStatus = isAuthorizedAdmin || isCustomClaimAdmin || profile.role === 'admin'
         setIsAdmin(adminStatus)
         setUserProfile({ ...profile, role: adminStatus ? 'admin' : 'customer' })
+
+        // Persist admin role in Firestore profile if not yet written
+        if (adminStatus && profile.role !== 'admin') {
+          saveUserProfile({ ...profile, role: 'admin' }).catch(() => {})
+        }
       } else {
         setUserProfile(null)
         setIsAdmin(false)
