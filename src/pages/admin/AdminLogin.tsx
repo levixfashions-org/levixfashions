@@ -112,21 +112,6 @@ export const AdminLogin: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Access for reviewers/clients */}
-          <div className="pt-4 border-t border-levix-border space-y-2">
-            <p className="text-[11px] uppercase font-bold text-levix-secondary text-center tracking-wider mb-2">
-              Instant Reviewer Evaluation
-            </p>
-            <button
-              type="button"
-              onClick={handleOneClickDemo}
-              className="w-full btn-secondary py-2.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-levix-orange text-levix-orange hover:bg-levix-soft-orange"
-            >
-              <span>Instant 1-Click Admin Access (Demo)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
     </div>
