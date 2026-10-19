@@ -6,6 +6,8 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
+  Plus,
+  Package,
 } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { getOrders } from '../../lib/firestore'
@@ -53,17 +55,52 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Overview Header */}
-      <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
-          Store Analytics
-        </p>
-        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
-          Executive Dashboard
-        </h1>
-        <p className="text-xs text-levix-secondary mt-1">
-          Real-time performance metrics, orders requiring action, and low inventory alerts.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+            Store Analytics
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
+            Executive Dashboard
+          </h1>
+          <p className="text-xs text-levix-secondary mt-1">
+            Real-time performance metrics, orders requiring action, and catalog inventory controls.
+          </p>
+        </div>
+        <Link
+          to="/admin/products"
+          className="btn-primary py-2 px-4 text-xs uppercase tracking-wider inline-flex items-center gap-2 self-start sm:self-auto shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          <span>+ Add Product</span>
+        </Link>
       </div>
+
+      {/* Zero Products Banner */}
+      {products.length === 0 && (
+        <div className="p-6 bg-levix-soft-orange/30 border-2 border-dashed border-levix-orange/70 rounded-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-levix-orange text-white rounded-full flex items-center justify-center shrink-0">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
+                Your Catalog is Ready for Products
+              </h2>
+              <p className="text-xs text-levix-secondary mt-0.5">
+                All 13 luxury categories are established. Capture or upload photos from your phone camera or gallery to launch your items.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/admin/products"
+            className="btn-primary py-2.5 px-5 text-xs uppercase tracking-wider inline-flex items-center gap-2 shrink-0 shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create First Product</span>
+          </Link>
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
