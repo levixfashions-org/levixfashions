@@ -76,17 +76,33 @@ export const CategoryPage: React.FC = () => {
 
         {/* Products Grid */}
         {categoryProducts.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-levix-border p-8">
-            <PackageOpen className="w-12 h-12 text-levix-secondary mx-auto mb-3 stroke-1" />
-            <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
-              No products found in this category
-            </h3>
-            <p className="text-xs text-levix-secondary mt-1 mb-6">
-              Check back soon for new seasonal additions.
-            </p>
-            <Link to="/shop" className="btn-primary text-xs uppercase tracking-wider">
-              Browse All Products
-            </Link>
+          <div className="text-center py-20 border border-dashed border-levix-border p-8 bg-white space-y-4">
+            <PackageOpen className="w-12 h-12 text-levix-secondary mx-auto mb-2 stroke-1" />
+            <div>
+              <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
+                No products found in this category
+              </h3>
+              <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
+                {isAdmin
+                  ? `You are logged in as admin. You can add the first product to ${currentCategory.name} right now.`
+                  : 'Check back soon for new seasonal additions.'}
+              </p>
+            </div>
+            {isAdmin ? (
+              <div className="pt-2">
+                <Link
+                  to="/admin/products"
+                  className="btn-primary text-xs uppercase tracking-wider inline-flex items-center gap-2 px-5 py-3 shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Add Product to {currentCategory.name}</span>
+                </Link>
+              </div>
+            ) : (
+              <Link to="/shop" className="btn-primary text-xs uppercase tracking-wider">
+                Browse All Products
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
