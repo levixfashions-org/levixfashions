@@ -15,7 +15,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const Login: React.FC = () => {
-  const { login, loginWithGoogle, loginDemoCustomer, loginDemoAdmin } = useAuth()
+  const { login, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as any)?.from?.pathname || '/account'
@@ -35,8 +35,12 @@ export const Login: React.FC = () => {
     try {
       setIsSubmitting(true)
       setAuthError(null)
-      await login(data.email, data.password)
-      navigate(from, { replace: true })
+      const isUserAdmin = await login(data.email, data.password)
+      if (isUserAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     } catch (err: any) {
       setAuthError(err.message || 'Failed to sign in. Please check your credentials.')
     } finally {
@@ -48,8 +52,12 @@ export const Login: React.FC = () => {
     try {
       setIsSubmitting(true)
       setAuthError(null)
-      await loginWithGoogle()
-      navigate(from, { replace: true })
+      const isUserAdmin = await loginWithGoogle()
+      if (isUserAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     } catch (err: any) {
       console.error('Google Sign-in error:', err)
       if (err.code === 'auth/popup-closed-by-user') {
@@ -71,16 +79,6 @@ export const Login: React.FC = () => {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleDemoCustomer = () => {
-    loginDemoCustomer()
-    navigate(from, { replace: true })
-  }
-
-  const handleDemoAdmin = () => {
-    loginDemoAdmin()
-    navigate('/admin', { replace: true })
   }
 
   return (
