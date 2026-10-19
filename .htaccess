@@ -10,6 +10,9 @@
   RewriteCond %{DOCUMENT_ROOT}/dist/$1 -d
   RewriteRule ^(.*)$ dist/$1 [L]
 
+  # Route API requests directly to Hostinger native API handler
+  RewriteRule ^api/(.*)$ dist/api/index.php [L,QSA]
+
   # Fallback all other client-side routes (e.g. /shop, /cart) to dist/index.html
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
