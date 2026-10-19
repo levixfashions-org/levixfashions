@@ -129,92 +129,81 @@ export const LevixDoorIntro: React.FC<LevixDoorIntroProps> = ({
   const isFullyOpened = animState === 'opened';
 
   return (
-    <div
-      className={`levix-intro-root ${isFullyOpened ? 'is-opened' : ''} ${className}`}
-      onClick={handleContainerClick}
-      role="region"
-      aria-label="LEVIX Architectural Streetwear Portal"
-      style={{ cursor: animState === 'closed' ? 'pointer' : undefined }}
-    >
-      {/* 1. Revealed Stage Behind the Doors */}
-      <div
-        className={`levix-revealed-stage ${isFullyOpened ? 'is-interactive' : ''}`}
-        aria-hidden={animState === 'closed'}
-      >
-        {children}
-      </div>
-
-      {/* 2. 3D Hinged Door Viewport */}
-      {!isFullyOpened && (
-        <div className="levix-doors-viewport" aria-hidden="true">
-          {/* Left Door Panel: Hinged at the outer left edge (x = 0) */}
-          <div
-            className={`levix-door-panel levix-door-left ${
-              isOpeningOrOpened ? 'is-opening' : ''
-            }`}
-            style={{
-              transitionDuration: `${openDuration}ms`,
-            }}
-          >
-            {/* Subtle titanium inner trim on meeting edge */}
-            <div className="levix-door-inner-edge-left" />
-          </div>
-
-          {/* Right Door Panel: Hinged at the outer right edge (x = 100%) */}
-          <div
-            className={`levix-door-panel levix-door-right ${
-              isOpeningOrOpened ? 'is-opening' : ''
-            }`}
-            style={{
-              transitionDuration: `${openDuration}ms`,
-            }}
-          >
-            {/* Subtle titanium inner trim on meeting edge */}
-            <div className="levix-door-inner-edge-right" />
-          </div>
-        </div>
-      )}
-
-      {/* 3. Center Laser Seam */}
+    <>
+      {children}
       {!isFullyOpened && (
         <div
-          className={`levix-center-seam ${isOpeningOrOpened ? 'is-faded' : ''}`}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* 4. Center Brand Monogram & Typography Layer */}
-      {!isFullyOpened && (
-        <div
-          className={`levix-logo-layer ${isOpeningOrOpened ? 'is-faded' : ''}`}
-          aria-hidden={isOpeningOrOpened}
+          className={`levix-intro-root ${className}`}
+          onClick={handleContainerClick}
+          role="region"
+          aria-label="LEVIX Architectural Streetwear Portal"
+          style={{ cursor: animState === 'closed' ? 'pointer' : undefined }}
         >
-          <div className="levix-emblem-badge">
-            <LevixLogo size={52} />
-          </div>
+          {/* 3D Hinged Door Viewport */}
+          <div className="levix-doors-viewport" aria-hidden="true">
+            {/* Left Door Panel: Hinged at the outer left edge (x = 0) */}
+            <div
+              className={`levix-door-panel levix-door-left ${
+                isOpeningOrOpened ? 'is-opening' : ''
+              }`}
+              style={{
+                transitionDuration: `${openDuration}ms`,
+              }}
+            >
+              <div className="levix-door-inner-edge-left" />
+            </div>
 
-          <div className="text-center space-y-2 px-4">
-            <h1 className="font-['Space_Grotesk'] text-3xl sm:text-5xl font-black tracking-[0.25em] text-white uppercase drop-shadow-[0_2px_15px_rgba(255,255,255,0.3)]">
-              L E V I X
-            </h1>
-            <p className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-neutral-400 uppercase">
-              Architectural Streetwear // Est. 2026
-            </p>
-            <div className="pt-2 flex items-center justify-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-              <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">
-                240 GSM DROP 04 ONLINE
-              </span>
+            {/* Right Door Panel: Hinged at the outer right edge (x = 100%) */}
+            <div
+              className={`levix-door-panel levix-door-right ${
+                isOpeningOrOpened ? 'is-opening' : ''
+              }`}
+              style={{
+                transitionDuration: `${openDuration}ms`,
+              }}
+            >
+              <div className="levix-door-inner-edge-right" />
             </div>
           </div>
 
-          {/* Tap / Click cue */}
-          <div className="levix-door-tap-hint">
-            <span>Tap to Enter</span>
+          {/* Center Laser Seam */}
+          <div
+            className={`levix-center-seam ${isOpeningOrOpened ? 'is-faded' : ''}`}
+            aria-hidden="true"
+          />
+
+          {/* Center Brand Monogram & Typography Layer */}
+          <div
+            className={`levix-logo-layer ${isOpeningOrOpened ? 'is-faded' : ''}`}
+            aria-hidden={isOpeningOrOpened}
+          >
+            <div className="levix-emblem-badge">
+              <LevixLogo size={52} />
+            </div>
+
+            <div className="text-center space-y-2 px-4">
+              <h1 className="font-['Space_Grotesk'] text-3xl sm:text-5xl font-black tracking-[0.25em] text-white uppercase drop-shadow-[0_2px_15px_rgba(255,255,255,0.3)]">
+                L E V I X
+              </h1>
+              <p className="font-mono text-[10px] sm:text-xs tracking-[0.35em] text-neutral-400 uppercase">
+                Architectural Streetwear // Est. 2026
+              </p>
+              <div className="pt-2 flex items-center justify-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">
+                  240 GSM DROP 04 ONLINE
+                </span>
+              </div>
+            </div>
+
+            {/* Tap / Click cue */}
+            <div className="levix-door-tap-hint">
+              <span>Tap to Enter</span>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
