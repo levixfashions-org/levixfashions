@@ -614,12 +614,12 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="form-label">SKU (Inventory Identifier) *</label>
+                  <label className="form-label">SKU (Inventory Identifier)</label>
                   <input
                     type="text"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    required
+                    placeholder="Auto-generated if blank"
                     className="form-input font-mono"
                   />
                 </div>
@@ -654,12 +654,12 @@ export const AdminProducts: React.FC = () => {
               </div>
 
               <div>
-                <label className="form-label">Full Editorial Description *</label>
+                <label className="form-label">Full Editorial Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  required
+                  placeholder="Tailoring notes, fiber composition, and fit details (optional)..."
                   className="form-input leading-relaxed"
                 />
               </div>
@@ -667,13 +667,13 @@ export const AdminProducts: React.FC = () => {
               {/* Pricing & Stock */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-levix-gray border border-levix-border">
                 <div>
-                  <label className="form-label">Regular Price (₹ INR) *</label>
+                  <label className="form-label">Regular Price (₹ INR)</label>
                   <input
                     type="number"
                     min="0"
                     value={priceRupees}
                     onChange={(e) => setPriceRupees(Number(e.target.value))}
-                    required
+                    placeholder="1999"
                     className="form-input"
                   />
                   <p className="text-[10px] text-levix-secondary mt-1">
@@ -699,13 +699,13 @@ export const AdminProducts: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="form-label">Available Stock *</label>
+                  <label className="form-label">Available Stock</label>
                   <input
                     type="number"
                     min="0"
                     value={stock}
                     onChange={(e) => setStock(Number(e.target.value))}
-                    required
+                    placeholder="10"
                     className="form-input"
                   />
                   {hasVariants && (
