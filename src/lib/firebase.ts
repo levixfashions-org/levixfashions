@@ -3,12 +3,12 @@ import { getAuth, GoogleAuthProvider, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBf7yXNESX0tM311-Ld5qG7Xrpp7RkK5ko',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'levix-fb261.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'levix-fb261',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'levix-fb261.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '50160210193',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:50160210193:web:2acc681095ea6b0b7b3cb0',
 }
 
 export const isFirebaseConfigured = Boolean(

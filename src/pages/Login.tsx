@@ -44,6 +44,35 @@ export const Login: React.FC = () => {
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsSubmitting(true)
+      setAuthError(null)
+      await loginWithGoogle()
+      navigate(from, { replace: true })
+    } catch (err: any) {
+      console.error('Google Sign-in error:', err)
+      if (err.code === 'auth/popup-closed-by-user') {
+        return
+      }
+      if (err.code === 'auth/unauthorized-domain') {
+        setAuthError(
+          `Domain not authorized in Firebase Console! Please go to Firebase Console > Authentication > Settings > Authorized Domains and add: "${window.location.hostname}"`
+        )
+        return
+      }
+      if (err.code === 'auth/operation-not-allowed') {
+        setAuthError(
+          'Google Sign-In is not enabled in Firebase. Go to Firebase Console > Authentication > Sign-in method and enable Google.'
+        )
+        return
+      }
+      setAuthError(err.message || 'Failed to sign in with Google.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleDemoCustomer = () => {
     loginDemoCustomer()
     navigate(from, { replace: true })
@@ -142,7 +171,8 @@ export const Login: React.FC = () => {
 
             <button
               type="button"
-              onClick={loginWithGoogle}
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
               className="w-full btn-secondary py-3 text-xs uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
