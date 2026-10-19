@@ -14,10 +14,10 @@ import type { UserProfile, SavedAddress } from '../types/user'
 
 export const checkIsAdminEmail = (email?: string | null): boolean => {
   if (!email) return false
-  const configured = (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim()
+  const configured = (import.meta.env.VITE_ADMIN_EMAIL || 'levixfashions@gmail.com').toLowerCase().trim()
   const lower = email.toLowerCase().trim()
   if (configured && lower === configured) return true
-  if (!configured && (lower === 'admin@levix.in' || lower.includes('admin'))) return true
+  if (lower === 'levixfashions@gmail.com') return true
   return false
 }
 
