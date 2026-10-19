@@ -12,72 +12,40 @@ import { auth, db, googleProvider, isFirebaseConfigured } from '../lib/firebase'
 import { getUserProfile, saveUserProfile } from '../lib/firestore'
 import type { UserProfile, SavedAddress } from '../types/user'
 
+export const checkIsAdminEmail = (email?: string | null): boolean => {
+  if (!email) return false
+  const configured = (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim()
+  const lower = email.toLowerCase().trim()
+  if (configured && lower === configured) return true
+  if (!configured && (lower === 'admin@levix.in' || lower.includes('admin'))) return true
+  return false
+}
+
 interface AuthContextType {
   currentUser: User | null
   userProfile: UserProfile | null
   isAdmin: boolean
   loading: boolean
   isDemoAuth: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<boolean>
   register: (email: string, password: string, displayName: string) => Promise<void>
-  loginWithGoogle: () => Promise<void>
+  loginWithGoogle: () => Promise<boolean>
   logout: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updateProfileData: (data: Partial<UserProfile>) => Promise<void>
   saveAddress: (address: Omit<SavedAddress, 'id'>, editId?: string) => Promise<void>
   deleteAddress: (id: string) => Promise<void>
   setDefaultAddress: (id: string) => Promise<void>
-  loginDemoAdmin: () => void
-  loginDemoCustomer: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const DEMO_ADMIN_PROFILE: UserProfile = {
-  uid: 'demo-admin-uid',
-  email: 'admin@levix.in',
-  displayName: 'LEVIX Administrator',
-  role: 'admin',
-  addresses: [],
-}
-
-const DEMO_CUSTOMER_PROFILE: UserProfile = {
-  uid: 'demo-customer-uid',
-  email: 'customer@levix.in',
-  displayName: 'Mohan Sharma',
-  phone: '+91 98765 43210',
-  role: 'customer',
-  addresses: [
-    {
-      id: 'addr-default-1',
-      fullName: 'Mohan Sharma',
-      email: 'customer@levix.in',
-      phone: '+91 98765 43210',
-      street: '42, Indiranagar 100ft Road',
-      apartment: 'Apt 4B',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      postalCode: '560038',
-      country: 'India',
-      isDefault: true,
-    },
-  ],
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    // Check if demo user was active
-    const savedDemo = localStorage.getItem('levix_demo_user')
-    if (savedDemo === 'admin') return DEMO_ADMIN_PROFILE
-    if (savedDemo === 'customer') return DEMO_CUSTOMER_PROFILE
-    return null
-  })
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem('levix_demo_user') === 'admin'
-  })
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(true)
-  const isDemoAuth = Boolean(!isFirebaseConfigured || userProfile?.uid.startsWith('demo-'))
+  const isDemoAuth = Boolean(!isFirebaseConfigured)
 
   useEffect(() => {
     if (!isFirebaseConfigured || !auth) {
@@ -102,27 +70,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await saveUserProfile(profile)
         }
 
-        // Check admin privilege: Custom Claim or admin email
+        // Check admin privilege: Custom Claim or explicit designated admin email
         const tokenResult = await user.getIdTokenResult(true)
         const isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
-        const isAdminEmail = user.email?.toLowerCase().includes('admin') || user.email === 'admin@levix.in'
+        const isAuthorizedAdmin = checkIsAdminEmail(user.email)
 
-        const adminStatus = isCustomClaimAdmin || isAdminEmail || profile.role === 'admin'
+        const adminStatus = isCustomClaimAdmin || isAuthorizedAdmin || profile.role === 'admin'
         setIsAdmin(adminStatus)
         setUserProfile({ ...profile, role: adminStatus ? 'admin' : 'customer' })
       } else {
-        // Check if demo session is active
-        const savedDemo = localStorage.getItem('levix_demo_user')
-        if (savedDemo === 'admin') {
-          setUserProfile(DEMO_ADMIN_PROFILE)
-          setIsAdmin(true)
-        } else if (savedDemo === 'customer') {
-          setUserProfile(DEMO_CUSTOMER_PROFILE)
-          setIsAdmin(false)
-        } else {
-          setUserProfile(null)
-          setIsAdmin(false)
-        }
+        setUserProfile(null)
+        setIsAdmin(false)
       }
       setLoading(false)
     })
@@ -130,16 +88,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe()
   }, [])
 
-  const login = async (email: string, pass: string) => {
-    if (email === 'admin@levix.in' || (!isFirebaseConfigured && email.includes('admin'))) {
-      loginDemoAdmin()
-      return
-    }
+  const login = async (email: string, pass: string): Promise<boolean> => {
     if (!isFirebaseConfigured || !auth) {
-      loginDemoCustomer()
-      return
+      throw new Error('Firebase Authentication is not configured.')
     }
-    await signInWithEmailAndPassword(auth, email, pass)
+    const res = await signInWithEmailAndPassword(auth, email, pass)
+    return checkIsAdminEmail(res.user.email)
   }
 
   const register = async (email: string, pass: string, displayName: string) => {
