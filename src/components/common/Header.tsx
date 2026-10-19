@@ -144,6 +144,16 @@ export const Header: React.FC = () => {
               >
                 Bestsellers
               </Link>
+
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-levix-orange hover:bg-levix-orange-hover text-white text-[10px] font-black uppercase tracking-widest rounded-xs shadow-xs"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
             </nav>
 
             {/* Right Action Icons */}
@@ -183,11 +193,14 @@ export const Header: React.FC = () => {
                 onMouseLeave={() => setIsUserMenuOpen(false)}
               >
                 <Link
-                  to={currentUser || userProfile ? '/account' : '/login'}
-                  className="p-1.5 text-levix-charcoal hover:text-levix-orange transition-colors block"
+                  to={isAdmin ? '/admin' : (currentUser || userProfile ? '/account' : '/login')}
+                  className={`p-1.5 transition-colors block ${
+                    isAdmin ? 'text-levix-orange bg-levix-soft-orange rounded-full' : 'text-levix-charcoal hover:text-levix-orange'
+                  }`}
                   aria-label="Account"
+                  title={isAdmin ? 'Admin Dashboard' : 'Account'}
                 >
-                  <User className="w-5 h-5" />
+                  {isAdmin ? <ShieldCheck className="w-5 h-5" /> : <User className="w-5 h-5" />}
                 </Link>
 
                 {isUserMenuOpen && (
