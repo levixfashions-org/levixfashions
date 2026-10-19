@@ -1,0 +1,20 @@
+{
+  "name": "LEVIX — Contemporary Lifestyle & Apparel",
+  "short_name": "LEVIX",
+  "description": "Minimal, premium, contemporary apparel and lifestyle essentials.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E87524",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle", "fashion"]
+}

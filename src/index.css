@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-orange: #E87524;
+    --color-orange-hover: #C85D16;
+    --color-charcoal: #222222;
+    --color-secondary: #777777;
+    --color-border: #EAEAEA;
+    --color-soft-orange: #FFF5ED;
+    --color-gray: #F8F8F8;
+    --color-white: #FFFFFF;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #FFFFFF;
+    color: #222222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F8F8F8;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #EAEAEA;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3.5 bg-levix-orange hover:bg-levix-orange-hover text-white text-sm font-semibold tracking-wide rounded-none transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-levix-orange focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3.5 bg-white hover:bg-levix-gray text-levix-charcoal text-sm font-semibold tracking-wide border border-levix-border rounded-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-levix-charcoal focus:ring-offset-2;
+  }
+
+  .btn-outline-orange {
+    @apply inline-flex items-center justify-center px-6 py-3.5 bg-transparent hover:bg-levix-soft-orange text-levix-orange text-sm font-semibold tracking-wide border border-levix-orange rounded-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none;
+  }
+
+  /* Form Inputs */
+  .form-input {
+    @apply w-full px-4 py-3 bg-white border border-levix-border text-sm text-levix-charcoal placeholder-levix-secondary rounded-none transition-colors duration-150 focus:outline-none focus:border-levix-orange focus:ring-1 focus:ring-levix-orange disabled:bg-levix-gray disabled:cursor-not-allowed;
+  }
+
+  .form-label {
+    @apply block text-xs font-semibold text-levix-charcoal uppercase tracking-wider mb-1.5;
+  }
+
+  /* Layout Containers */
+  .container-levix {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full;
+  }
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

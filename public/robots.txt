@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /category/
+Allow: /product/
+Allow: /wishlist
+Allow: /legal/
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /account/
+Disallow: /account/*
+Disallow: /checkout
+Disallow: /order-confirmation/
+Disallow: /api/
+Disallow: /api/*
+
+Sitemap: https://levix.in/sitemap.xml

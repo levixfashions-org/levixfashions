@@ -1,0 +1,220 @@
+import React, { useEffect, useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  DollarSign,
+  ShoppingBag,
+  Clock,
+  AlertTriangle,
+  ArrowRight,
+} from 'lucide-react'
+import { useStore } from '../../context/StoreContext'
+import { getOrders } from '../../lib/firestore'
+import { formatPrice, formatDate } from '../../lib/utils'
+import type { Order } from '../../types/order'
+
+export const AdminDashboard: React.FC = () => {
+  const { products } = useStore()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getOrders().then((data) => {
+      setOrders(data)
+      setLoading(false)
+    })
+  }, [])
+
+  // Real Metric Calculations
+  const totalOrders = orders.length
+
+  // Paid Revenue: sum of all orders where paymentStatus is 'Paid'
+  const paidRevenue = useMemo(() => {
+    return orders
+      .filter((o) => o.paymentStatus === 'Paid')
+      .reduce((sum, o) => sum + o.total, 0)
+  }, [orders])
+
+  // Orders requiring processing: fulfillment status is Pending or Confirmed
+  const pendingProcessing = useMemo(() => {
+    return orders.filter(
+      (o) => o.fulfillmentStatus === 'Pending' || o.fulfillmentStatus === 'Confirmed'
+    ).length
+  }, [orders])
+
+  // Low stock products: stock <= 5
+  const lowStockCount = useMemo(() => {
+    return products.filter((p) => p.stock <= 5).length
+  }, [products])
+
+  const recentOrders = useMemo(() => {
+    return [...orders].slice(0, 5)
+  }, [orders])
+
+  return (
+    <div className="space-y-8">
+      {/* Overview Header */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+          Store Analytics
+        </p>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
+          Executive Dashboard
+        </h1>
+        <p className="text-xs text-levix-secondary mt-1">
+          Real-time performance metrics, orders requiring action, and low inventory alerts.
+        </p>
+      </div>
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Paid Revenue */}
+        <div className="bg-white border border-levix-border p-6 shadow-subtle flex flex-col justify-between">
+          <div className="flex items-center justify-between text-levix-secondary">
+            <span className="text-xs font-bold uppercase tracking-wider">Paid Revenue</span>
+            <div className="w-8 h-8 bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl font-black text-levix-charcoal">
+              {formatPrice(paidRevenue)}
+            </span>
+            <p className="text-[11px] text-levix-secondary mt-1">Verified settled payments</p>
+          </div>
+        </div>
+
+        {/* Total Orders */}
+        <div className="bg-white border border-levix-border p-6 shadow-subtle flex flex-col justify-between">
+          <div className="flex items-center justify-between text-levix-secondary">
+            <span className="text-xs font-bold uppercase tracking-wider">Total Orders</span>
+            <div className="w-8 h-8 bg-blue-50 text-blue-600 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl font-black text-levix-charcoal">{totalOrders}</span>
+            <p className="text-[11px] text-levix-secondary mt-1">All historical purchases</p>
+          </div>
+        </div>
+
+        {/* Pending Fulfillment */}
+        <div className="bg-white border border-levix-border p-6 shadow-subtle flex flex-col justify-between">
+          <div className="flex items-center justify-between text-levix-secondary">
+            <span className="text-xs font-bold uppercase tracking-wider">Pending Dispatch</span>
+            <div className="w-8 h-8 bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl font-black text-amber-600">{pendingProcessing}</span>
+            <p className="text-[11px] text-levix-secondary mt-1">Requires fulfillment action</p>
+          </div>
+        </div>
+
+        {/* Low Stock Alerts */}
+        <div className="bg-white border border-levix-border p-6 shadow-subtle flex flex-col justify-between">
+          <div className="flex items-center justify-between text-levix-secondary">
+            <span className="text-xs font-bold uppercase tracking-wider">Low Stock SKUs</span>
+            <div className="w-8 h-8 bg-red-50 text-red-600 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <span className="text-2xl font-black text-red-600">{lowStockCount}</span>
+            <p className="text-[11px] text-levix-secondary mt-1">Stock ≤ 5 units remaining</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Orders Section */}
+      <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
+        <div className="flex items-center justify-between pb-4 border-b border-levix-border">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
+              Recent Orders
+            </h2>
+            <p className="text-xs text-levix-secondary mt-0.5">
+              Live customer transactions recorded in database.
+            </p>
+          </div>
+          <Link
+            to="/admin/orders"
+            className="text-xs font-bold uppercase tracking-wider text-levix-orange hover:underline flex items-center gap-1"
+          >
+            <span>View All Orders</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="py-8 text-center text-xs text-levix-secondary">Loading orders...</div>
+        ) : recentOrders.length === 0 ? (
+          <div className="py-8 text-center text-xs text-levix-secondary">
+            No customer orders placed yet. Place a test order from the storefront.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-levix-border bg-levix-gray text-levix-secondary uppercase tracking-wider">
+                  <th className="py-2.5 px-3">Order Number</th>
+                  <th className="py-2.5 px-3">Customer</th>
+                  <th className="py-2.5 px-3">Date</th>
+                  <th className="py-2.5 px-3">Amount</th>
+                  <th className="py-2.5 px-3">Payment</th>
+                  <th className="py-2.5 px-3">Fulfillment</th>
+                  <th className="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-levix-border">
+                {recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-levix-gray/30 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-levix-charcoal">
+                      {order.orderNumber}
+                    </td>
+                    <td className="py-3 px-3">
+                      <p className="font-semibold text-levix-charcoal">{order.shippingAddress.fullName}</p>
+                      <p className="text-[11px] text-levix-secondary truncate max-w-[140px]">
+                        {order.customerEmail}
+                      </p>
+                    </td>
+                    <td className="py-3 px-3 text-levix-secondary whitespace-nowrap">
+                      {formatDate(order.createdAt)}
+                    </td>
+                    <td className="py-3 px-3 font-bold text-levix-charcoal">
+                      {formatPrice(order.total)}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span
+                        className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                          order.paymentStatus === 'Paid'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}
+                      >
+                        {order.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-levix-soft-orange text-levix-orange border border-levix-orange/30">
+                        {order.fulfillmentStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <Link
+                        to={`/admin/orders?search=${order.orderNumber}`}
+                        className="text-xs font-semibold text-levix-orange hover:underline"
+                      >
+                        Manage
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

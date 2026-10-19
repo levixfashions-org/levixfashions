@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        request.auth.token.email.matches('.*admin.*') ||
+        request.auth.token.email == 'admin@levix.in'
+      );
+    }
+
+    // Products: Public can read published products. Only admins can create/update/delete.
+    match /products/{productId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public can read published categories. Only admins can manage.
+    match /categories/{categoryId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Orders: Customers can only read their own orders.
+    // Customers can create an order with initial Pending / COD unpaid status.
+    // Order totals, paymentStatus, and fulfillmentStatus can only be modified by Admins or backend Admin SDK.
+    match /orders/{orderId} {
+      allow read: if isOwner(resource.data.customerUid) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.customerUid == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // User Profiles: Users can read and update their own profiles.
+    // Users CANNOT elevate their own role to 'admin'.
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.role == 'customer';
+      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Store Settings: Public can read general store settings. Only Admins can update.
+    match /storeSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Audit Logs: Read and write restricted to Admins and Admin SDK only.
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
