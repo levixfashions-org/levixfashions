@@ -872,7 +872,17 @@ export const AdminProducts: React.FC = () => {
                             return (
                               <div
                                 key={color}
-                                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-levix-gray/40 p-2.5 border border-levix-border"
+                                onDragOver={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  const file = e.dataTransfer.files?.[0] || null
+                                  if (file) handleColorImageUploaded(color, file)
+                                }}
+                                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-levix-gray/40 hover:bg-levix-soft-orange/15 p-2.5 border border-levix-border transition-colors"
                               >
                                 <span className="w-24 text-xs font-bold uppercase tracking-wider text-levix-charcoal truncate shrink-0">
                                   {color}
@@ -1154,21 +1164,32 @@ export const AdminProducts: React.FC = () => {
 
                   if (images.length === 0) {
                     return (
-                      <div className="border-2 border-dashed border-levix-border p-6 text-center bg-levix-gray/30 space-y-3">
-                        <Upload className="w-7 h-7 mx-auto text-levix-secondary/70" />
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => galleryInputRef.current?.click()}
+                        className="border-2 border-dashed border-levix-orange/60 hover:border-levix-orange bg-levix-orange/5 hover:bg-levix-orange/10 p-7 text-center transition-all cursor-pointer group space-y-3"
+                      >
+                        <div className="w-12 h-12 mx-auto rounded-full bg-white border border-levix-orange/40 flex items-center justify-center text-levix-orange group-hover:scale-105 transition-transform shadow-xs">
+                          <Upload className="w-6 h-6 text-levix-orange" />
+                        </div>
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
-                            No product images added yet
+                          <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-levix-charcoal">
+                            Drag & Drop Product Images Directly Here
                           </p>
-                          <p className="text-[11px] text-levix-secondary max-w-sm mx-auto mt-0.5">
-                            Tap <strong>Camera</strong> to snap a photo instantly, or tap <strong>Gallery</strong> to upload multiple product angles from your device.
+                          <p className="text-[11px] text-levix-secondary max-w-md mx-auto mt-1">
+                            Drop images from your desktop/files to instantly optimize & attach, or click to browse.
                           </p>
                         </div>
-                        <div className="flex justify-center gap-2 pt-1">
+                        <div
+                          className="flex items-center justify-center gap-2 pt-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
                             onClick={() => cameraInputRef.current?.click()}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white text-[11px] font-bold uppercase tracking-wider"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white hover:bg-black text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
                           >
                             <Camera className="w-3.5 h-3.5 text-levix-orange" />
                             <span>Take Photo</span>
@@ -1176,64 +1197,115 @@ export const AdminProducts: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => galleryInputRef.current?.click()}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-levix-border text-levix-charcoal text-[11px] font-bold uppercase tracking-wider"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-levix-border hover:bg-levix-gray text-levix-charcoal text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
                           >
                             <ImageIcon className="w-3.5 h-3.5 text-levix-charcoal" />
                             <span>Browse Gallery</span>
                           </button>
                         </div>
+                        <p className="text-[10px] text-levix-secondary/70 uppercase tracking-widest font-mono">
+                          Auto-compressed & web-optimized • Multiple images supported
+                        </p>
                       </div>
                     )
                   }
 
                   return (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {images.map((imgUrl, idx) => (
-                        <div
-                          key={`${imgUrl.slice(0, 30)}-${idx}`}
-                          className="group relative border border-levix-border bg-levix-gray aspect-3/4 overflow-hidden shadow-xs"
-                        >
-                          <img
-                            src={imgUrl}
-                            alt={`Product preview ${idx + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              ;(e.target as HTMLElement).style.opacity = '0.3'
-                            }}
-                          />
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {images.map((imgUrl, idx) => (
+                          <div
+                            key={`${imgUrl.slice(0, 30)}-${idx}`}
+                            className="group relative border border-levix-border bg-levix-gray aspect-3/4 overflow-hidden shadow-xs"
+                          >
+                            <img
+                              src={imgUrl}
+                              alt={`Product preview ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                ;(e.target as HTMLElement).style.opacity = '0.3'
+                              }}
+                            />
 
-                          {/* Cover Badge / Button */}
-                          {idx === 0 ? (
-                            <span className="absolute top-1.5 left-1.5 bg-black text-levix-orange text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-sm">
-                              ★ Main Cover
-                            </span>
-                          ) : (
+                            {/* Cover Badge / Button */}
+                            {idx === 0 ? (
+                              <span className="absolute top-1.5 left-1.5 bg-black text-levix-orange text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-sm">
+                                ★ Main Cover
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleSetMainCover(idx)}
+                                className="absolute top-1.5 left-1.5 bg-black/80 hover:bg-black text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-sm opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Set as main thumbnail"
+                              >
+                                Set as Cover
+                              </button>
+                            )}
+
+                            {/* Delete Action */}
                             <button
                               type="button"
-                              onClick={() => handleSetMainCover(idx)}
-                              className="absolute top-1.5 left-1.5 bg-black/80 hover:bg-black text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 shadow-sm opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Set as main thumbnail"
+                              onClick={() => handleRemoveImage(idx)}
+                              className="absolute top-1.5 right-1.5 bg-red-600/90 hover:bg-red-700 text-white p-1 rounded-xs shadow-sm transition-opacity opacity-90 sm:opacity-0 group-hover:opacity-100"
+                              title="Remove image"
                             >
-                              Set as Cover
+                              <Trash2 className="w-3 h-3" />
                             </button>
-                          )}
 
-                          {/* Delete Action */}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx)}
-                            className="absolute top-1.5 right-1.5 bg-red-600/90 hover:bg-red-700 text-white p-1 rounded-xs shadow-sm transition-opacity opacity-90 sm:opacity-0 group-hover:opacity-100"
-                            title="Remove image"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                            {/* Index Indicator */}
+                            <span className="absolute bottom-1 right-1.5 text-[9px] font-mono text-white/80 bg-black/60 px-1 rounded-xs">
+                              #{idx + 1}
+                            </span>
+                          </div>
+                        ))}
 
-                          {/* Index Indicator */}
-                          <span className="absolute bottom-1 right-1.5 text-[9px] font-mono text-white/80 bg-black/60 px-1 rounded-xs">
-                            #{idx + 1}
+                        {/* Drag & Drop "+ Add More" Tile */}
+                        <div
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          onClick={() => galleryInputRef.current?.click()}
+                          className="border-2 border-dashed border-levix-border hover:border-levix-orange bg-levix-gray/40 hover:bg-levix-orange/5 aspect-3/4 flex flex-col items-center justify-center p-3 text-center cursor-pointer transition-all group/add"
+                          title="Drag and drop photos directly here or click to browse"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-white border border-levix-border flex items-center justify-center text-levix-charcoal group-hover/add:text-levix-orange group-hover/add:border-levix-orange transition-colors mb-1.5 shadow-xs">
+                            <Plus className="w-4 h-4" />
+                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-levix-charcoal group-hover/add:text-levix-orange">
+                            + Add More
+                          </span>
+                          <span className="text-[9px] text-levix-secondary leading-tight mt-0.5">
+                            Drag & drop or click
                           </span>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Bar beneath grid */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-levix-secondary pt-1 border-t border-levix-border">
+                        <span>
+                          {images.length} photo(s) attached • Drag & drop anywhere in this window to add more
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRef.current?.click()}
+                            className="text-levix-charcoal hover:text-levix-orange font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                          >
+                            <Camera className="w-3 h-3 text-levix-orange" />
+                            Camera
+                          </button>
+                          <span>•</span>
+                          <button
+                            type="button"
+                            onClick={() => galleryInputRef.current?.click()}
+                            className="text-levix-charcoal hover:text-levix-orange font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                          >
+                            <ImageIcon className="w-3 h-3 text-levix-charcoal" />
+                            Browse Files
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )
                 })()}
