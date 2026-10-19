@@ -123,12 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserProfile(newProfile)
   }
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (): Promise<boolean> => {
     if (!isFirebaseConfigured || !auth) {
-      loginDemoCustomer()
-      return
+      throw new Error('Firebase Authentication is not configured.')
     }
-    await signInWithPopup(auth, googleProvider)
+    const res = await signInWithPopup(auth, googleProvider)
+    return checkIsAdminEmail(res.user.email)
   }
 
   const logout = async () => {
@@ -198,18 +198,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await updateProfileData({ addresses: updated })
   }
 
-  const loginDemoAdmin = () => {
-    localStorage.setItem('levix_demo_user', 'admin')
-    setUserProfile(DEMO_ADMIN_PROFILE)
-    setIsAdmin(true)
-  }
-
-  const loginDemoCustomer = () => {
-    localStorage.setItem('levix_demo_user', 'customer')
-    setUserProfile(DEMO_CUSTOMER_PROFILE)
-    setIsAdmin(false)
-  }
-
   return (
     <AuthContext.Provider
       value={{
@@ -227,8 +215,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         saveAddress,
         deleteAddress,
         setDefaultAddress,
-        loginDemoAdmin,
-        loginDemoCustomer,
       }}
     >
       {children}
