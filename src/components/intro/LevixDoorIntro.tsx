@@ -80,6 +80,9 @@ export const LevixDoorIntro: React.FC<LevixDoorIntroProps> = ({
 
     completionTimerRef.current = window.setTimeout(() => {
       setAnimState('opened');
+      try {
+        sessionStorage.setItem('levix_door_opened', 'true');
+      } catch (_) {}
       onComplete?.();
     }, openDuration);
   }, [clearTimers, onComplete, openDuration]);
@@ -98,6 +101,9 @@ export const LevixDoorIntro: React.FC<LevixDoorIntroProps> = ({
 
       completionTimerRef.current = window.setTimeout(() => {
         setAnimState('opened');
+        try {
+          sessionStorage.setItem('levix_door_opened', 'true');
+        } catch (_) {}
         onComplete?.();
       }, openDuration);
     }, pauseDuration);
