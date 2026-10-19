@@ -18,7 +18,7 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #09090B;
+  background-color: transparent;
   z-index: 99999;
   user-select: none;
   -webkit-font-smoothing: antialiased;
@@ -27,11 +27,8 @@
 
 /* Once opened, allow clicking through to the revealed content */
 .levix-intro-root.is-opened {
+  display: none;
   pointer-events: none;
-  position: static;
-  overflow: visible;
-  height: auto;
-  min-height: 100vh;
 }
 
 /* Revealed Stage Behind Doors */
@@ -40,7 +37,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  background-color: #09090B;
+  background-color: transparent;
   z-index: 1;
   overflow: hidden;
 }
