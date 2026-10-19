@@ -53,6 +53,7 @@ export const AdminProducts: React.FC = () => {
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [uploadingColor, setUploadingColor] = useState<string | null>(null)
   const [showUrlTextarea, setShowUrlTextarea] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
 
@@ -270,6 +271,28 @@ export const AdminProducts: React.FC = () => {
       setIsUploadingImage(false)
       if (cameraInputRef.current) cameraInputRef.current.value = ''
       if (galleryInputRef.current) galleryInputRef.current.value = ''
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleProductFilesAdded(e.dataTransfer.files)
     }
   }
 
