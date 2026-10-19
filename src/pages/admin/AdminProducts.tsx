@@ -11,6 +11,8 @@ import {
   Upload,
   Loader2,
   Link as LinkIcon,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { formatPrice, paiseToRupees, rupeesToPaise } from '../../lib/utils'
@@ -25,6 +27,8 @@ export const AdminProducts: React.FC = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null)
 
   // Form Fields
   const [name, setName] = useState('')
