@@ -1,11 +1,13 @@
 {
   "name": "levix-pro",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "server/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "start": "node server/index.js",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "node --test tests/ecommerce.test.js",
