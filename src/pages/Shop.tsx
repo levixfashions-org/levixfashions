@@ -112,6 +112,23 @@ export const Shop: React.FC = () => {
 
       <div className="container-levix">
         {/* Header Bar */}
+        {isAdmin && (
+          <div className="mb-6 p-3 bg-levix-charcoal text-white border-l-4 border-levix-orange flex items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-2 text-xs">
+              <ShieldCheck className="w-4 h-4 text-levix-orange shrink-0" />
+              <span className="font-bold uppercase tracking-wider">Admin Catalog Controls</span>
+              <span className="text-[11px] text-neutral-400 hidden sm:inline">• You can add products directly from here</span>
+            </div>
+            <Link
+              to="/admin/products"
+              className="btn-primary py-1.5 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Create Product</span>
+            </Link>
+          </div>
+        )}
+
         <div className="border-b border-levix-border pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
@@ -268,21 +285,37 @@ export const Shop: React.FC = () => {
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-20 border border-dashed border-levix-border p-8">
-                <PackageOpen className="w-12 h-12 text-levix-secondary mx-auto mb-3 stroke-1" />
-                <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
-                  No products matched your filters
-                </h3>
-                <p className="text-xs text-levix-secondary mt-1 mb-6 max-w-sm mx-auto">
-                  Try adjusting your price range, clearing specific filters, or searching for broader terms.
-                </p>
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  className="btn-primary text-xs uppercase tracking-wider"
-                >
-                  Clear All Filters
-                </button>
+              <div className="text-center py-20 border border-dashed border-levix-border p-8 bg-white space-y-4">
+                <PackageOpen className="w-12 h-12 text-levix-secondary mx-auto mb-2 stroke-1" />
+                <div>
+                  <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
+                    Catalogue Being Curated
+                  </h3>
+                  <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
+                    {isAdmin
+                      ? 'You are logged in as the Administrator. Click below to take photos and create your first product.'
+                      : 'New garments are currently being prepared for this seasonal run. Check back shortly.'}
+                  </p>
+                </div>
+                {isAdmin ? (
+                  <div className="pt-2">
+                    <Link
+                      to="/admin/products"
+                      className="btn-primary text-xs uppercase tracking-wider inline-flex items-center gap-2 px-5 py-3 shadow-md"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Create First Product (Camera / Gallery)</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="btn-primary text-xs uppercase tracking-wider"
+                  >
+                    Clear All Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
