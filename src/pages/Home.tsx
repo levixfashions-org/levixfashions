@@ -12,8 +12,12 @@ export const Home: React.FC = () => {
   const { products, loading } = useStore()
   const { isAdmin } = useAuth()
 
-  const featuredProducts = products.filter((p) => p.isPublished && p.isFeatured).slice(0, 4)
-  const newArrivals = products.filter((p) => p.isPublished && p.isNewArrival).slice(0, 4)
+  const publishedProducts = products.filter((p) => p.isPublished)
+  const explicitlyFeatured = publishedProducts.filter((p) => p.isFeatured)
+  const featuredProducts = explicitlyFeatured.length > 0 ? explicitlyFeatured.slice(0, 8) : publishedProducts.slice(0, 8)
+
+  const explicitlyNew = publishedProducts.filter((p) => p.isNewArrival)
+  const newArrivals = explicitlyNew.length > 0 ? explicitlyNew.slice(0, 8) : publishedProducts.slice(0, 8)
 
   return (
     <div className="flex flex-col min-h-screen">

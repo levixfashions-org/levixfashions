@@ -15,7 +15,28 @@ export const CategoryPage: React.FC = () => {
 
   const categoryProducts = useMemo(() => {
     if (!currentCategory) return []
-    return products.filter((p) => p.categoryId === currentCategory.id && p.isPublished)
+    return products.filter((p) => {
+      if (!p.isPublished) return false
+      // Direct category ID or slug match
+      if (p.categoryId === currentCategory.id || p.categoryId === currentCategory.slug) return true
+      if (p.categoryName?.trim().toLowerCase() === currentCategory.name.trim().toLowerCase()) return true
+
+      // Intelligent T-Shirts matching: if user is browsing T-Shirts category, show all t-shirt products
+      if (currentCategory.slug === 't-shirts') {
+        const cat = (p.categoryId || '').toLowerCase()
+        const name = (p.name || '').toLowerCase()
+        if (
+          cat.includes('t-shirt') ||
+          cat.includes('tee') ||
+          name.includes('t-shirt') ||
+          name.includes('tee') ||
+          name.includes('tshirt')
+        ) {
+          return true
+        }
+      }
+      return false
+    })
   }, [currentCategory, products])
 
   if (!currentCategory) {
