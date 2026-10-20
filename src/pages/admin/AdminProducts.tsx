@@ -337,21 +337,31 @@ export const AdminProducts: React.FC = () => {
     setImagesText([promoted, ...remaining].join('\n'))
   }
 
-  const handleColorImageUploaded = async (color: string, file: File | null) => {
+  const handleColorImageUploaded = async (color: string, side: 'front' | 'back', file: File | null) => {
     if (!file) return
-    setUploadingColor(color)
+    const uploadKey = `${color}-${side}`
+    setUploadingColorSide(uploadKey)
     try {
       const compressed = await compressAndProcessImage(file)
-      setColorImagesMap((prev) => ({ ...prev, [color]: compressed }))
+      setColorImagesMap((prev) => {
+        const current = prev[color] || { front: '', back: '' }
+        return {
+          ...prev,
+          [color]: {
+            ...current,
+            [side]: compressed,
+          },
+        }
+      })
       // Also add to general images if not present
       const currentUrls = imagesText.split('\n').map((u) => u.trim()).filter(Boolean)
       if (!currentUrls.includes(compressed)) {
         setImagesText([...currentUrls, compressed].join('\n'))
       }
     } catch (err: any) {
-      setFormError(err.message || `Failed to process image for ${color}`)
+      setFormError(err.message || `Failed to process ${side} image for ${color}`)
     } finally {
-      setUploadingColor(null)
+      setUploadingColorSide(null)
     }
   }
 
@@ -370,10 +380,12 @@ export const AdminProducts: React.FC = () => {
       .map((url) => url.trim())
       .filter((url) => url.length > 0)
 
-    // Add any unique color images to imagesArray if not already present
-    const extraColorImages = Object.values(colorImagesMap).filter(
-      (url) => url && url.trim() && !imagesArray.includes(url.trim())
-    )
+    // Add any unique color images (both front and back) to imagesArray if not already present
+    const extraColorImages: string[] = []
+    Object.values(colorImagesMap).forEach(({ front, back }) => {
+      if (front && front.trim() && !imagesArray.includes(front.trim())) extraColorImages.push(front.trim())
+      if (back && back.trim() && !imagesArray.includes(back.trim())) extraColorImages.push(back.trim())
+    })
     let mergedImages = [...imagesArray, ...extraColorImages]
 
     if (mergedImages.length === 0) {
@@ -396,7 +408,7 @@ export const AdminProducts: React.FC = () => {
       size: v.size || '',
       sku: v.sku || `${sku || 'LVX'}-${v.size || 'M'}`,
       stock: Number(v.stock) || 0,
-      imageUrl: v.imageUrl || (v.color ? colorImagesMap[v.color] : '') || mergedImages[0] || '',
+      imageUrl: v.imageUrl || (v.color ? colorImagesMap[v.color]?.front : '') || mergedImages[0] || '',
     }))
 
     const finalDescription = description.trim() || DEFAULT_PRODUCT_BULLETS
