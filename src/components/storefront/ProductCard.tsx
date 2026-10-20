@@ -21,6 +21,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const inCart = items.some((i) => i.productId === product.id)
 
+  // Determine secondary image for hover (back of t-shirt or second gallery image)
+  const secondaryImage = useMemo(() => {
+    if (product.images[1]) return product.images[1]
+    if (product.colorImages) {
+      const firstColorVal = Object.values(product.colorImages)[0]
+      const { back } = normalizeColorImages(firstColorVal)
+      if (back) return back
+    }
+    return null
+  }, [product])
+
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
