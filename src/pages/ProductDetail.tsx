@@ -7,8 +7,6 @@ import {
   Truck,
   RotateCcw,
   ShieldCheck,
-  Check,
-  AlertCircle,
   Plus,
   Minus,
   Share2,
