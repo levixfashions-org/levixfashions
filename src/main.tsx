@@ -10,6 +10,16 @@ window.addEventListener('vite:preloadError', (event) => {
   window.location.reload()
 })
 
+// Active Service Worker updater: ensures browsers immediately query Hostinger for the latest deployment
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then((registration) => {
+    registration.update().catch(() => {})
+  })
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('[LEVIX] Service Worker updated to latest version')
+  })
+}
+
 window.addEventListener('error', (event) => {
   const msg = event?.message || ''
   if (
