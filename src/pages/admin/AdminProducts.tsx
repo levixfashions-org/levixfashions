@@ -74,7 +74,8 @@ export const AdminProducts: React.FC = () => {
   const [quickColors, setQuickColors] = useState('')
   const [quickSizes, setQuickSizes] = useState('S, M, L, XL')
   const [defaultVariantStock, setDefaultVariantStock] = useState(10)
-  const [colorImagesMap, setColorImagesMap] = useState<Record<string, string>>({})
+  const [colorImagesMap, setColorImagesMap] = useState<Record<string, { front: string; back: string }>>({})
+  const [uploadingColorSide, setUploadingColorSide] = useState<string | null>(null)
 
   // Memoized Filtered Products
   const filtered = useMemo(() => {
@@ -116,7 +117,7 @@ export const AdminProducts: React.FC = () => {
     setSeoDescription('')
     setShowUrlTextarea(false)
     setIsUploadingImage(false)
-    setUploadingColor(null)
+    setUploadingColorSide(null)
     setFormError(null)
     setIsModalOpen(true)
   }
@@ -139,12 +140,21 @@ export const AdminProducts: React.FC = () => {
     setQuickSizes('S, M, L, XL')
     setDefaultVariantStock(10)
 
-    // Load existing color image mappings
-    const initialColorMap: Record<string, string> = { ...(p.colorImages || {}) }
+    // Load existing color image mappings (supports both legacy single URL and modern front/back)
+    const initialColorMap: Record<string, { front: string; back: string }> = {}
+    if (p.colorImages) {
+      Object.entries(p.colorImages).forEach(([color, data]) => {
+        initialColorMap[color] = normalizeColorImages(data)
+      })
+    }
     if (p.variants) {
       p.variants.forEach((v) => {
-        if (v.color && v.imageUrl && !initialColorMap[v.color]) {
-          initialColorMap[v.color] = v.imageUrl
+        if (v.color && v.imageUrl) {
+          if (!initialColorMap[v.color]) {
+            initialColorMap[v.color] = { front: v.imageUrl, back: '' }
+          } else if (!initialColorMap[v.color].front) {
+            initialColorMap[v.color].front = v.imageUrl
+          }
         }
       })
     }
@@ -158,6 +168,7 @@ export const AdminProducts: React.FC = () => {
     setSeoDescription(p.seoDescription || '')
     setShowUrlTextarea(false)
     setIsUploadingImage(false)
+    setUploadingColorSide(null)
     setUploadingColor(null)
     setFormError(null)
     setIsModalOpen(true)
