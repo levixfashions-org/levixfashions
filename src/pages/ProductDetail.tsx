@@ -656,7 +656,7 @@ export const ProductDetail: React.FC = () => {
             </div>
 
             {/* Action Buttons: Add to Bag, Buy Now, Wishlist */}
-            <div ref={mainBuySectionRef} className="space-y-2.5 pt-4">
+            <div className="space-y-2.5 pt-4">
               <div className="flex gap-2">
                 <button
                   type="button"
