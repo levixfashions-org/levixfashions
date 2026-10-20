@@ -746,14 +746,45 @@ export const AdminProducts: React.FC = () => {
               </div>
 
               <div>
-                <label className="form-label">Full Editorial Description</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="form-label mb-0">Full Editorial Description (7-8 Bullet Points)</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDescription(DEFAULT_PRODUCT_BULLETS)}
+                      className="text-[11px] text-levix-orange hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      + Insert 8 Luxury Bullets
+                    </button>
+                    {description && !description.includes('•') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const lines = description
+                            .split(/(?<=\.)\s+|\n+/)
+                            .map((s) => s.trim())
+                            .filter((s) => s.length > 3)
+                          if (lines.length > 0) {
+                            setDescription(lines.map((l) => (l.startsWith('•') ? l : `• ${l}`)).join('\n'))
+                          }
+                        }}
+                        className="text-[11px] text-emerald-700 hover:underline font-bold cursor-pointer"
+                      >
+                        Convert to Bullets
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  placeholder="Tailoring notes, fiber composition, and fit details (optional)..."
-                  className="form-input leading-relaxed"
+                  rows={8}
+                  placeholder={`• 100% Premium Heavyweight Combed Cotton (240+ GSM)\n• Architectural relaxed boxy fit with dropped shoulders\n• High-density reinforced ribbed crewneck collar resists stretching\n• Pre-shrunk & bio-washed fabric for an ultra-soft luxury hand feel\n• Breathable, moisture-wicking all-day comfort for all seasons\n• Precision double-needle tonal edge stitching on cuffs and hem\n• Designed and crafted for minimalist daily luxury streetwear\n• Machine wash cold inside out, gentle cycle, dry flat`}
+                  className="form-input text-xs leading-relaxed font-sans"
                 />
+                <p className="text-[10px] text-levix-secondary mt-1">
+                  💡 Tip: Enter each feature on a new line or with &quot;•&quot; (7 to 8 points). They render as distinct luxury highlight bullets on the customer storefront.
+                </p>
               </div>
 
               {/* Pricing & Stock */}
