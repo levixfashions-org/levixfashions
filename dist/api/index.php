@@ -1170,8 +1170,8 @@ if ($route === 'orders/create' && $method === 'POST') {
 
         foreach ($validatedItems as $vItem) {
             if (!empty($vItem['variantId'])) {
-                $uVar = $pdo->prepare("UPDATE variants SET stock = stock - :qty WHERE id = :vid AND stock >= :qty");
-                $uVar->execute([':qty' => $vItem['quantity'], ':vid' => $vItem['variantId']]);
+                $uVar = $pdo->prepare("UPDATE variants SET stock = stock - :qty WHERE id = :vid AND stock >= :req_qty");
+                $uVar->execute([':qty' => $vItem['quantity'], ':req_qty' => $vItem['quantity'], ':vid' => $vItem['variantId']]);
                 if ($uVar->rowCount() === 0) {
                     $pdo->rollBack();
                     http_response_code(409);
@@ -1179,8 +1179,8 @@ if ($route === 'orders/create' && $method === 'POST') {
                     exit;
                 }
             }
-            $uProd = $pdo->prepare("UPDATE products SET stock = stock - :qty WHERE id = :pid AND stock >= :qty");
-            $uProd->execute([':qty' => $vItem['quantity'], ':pid' => $vItem['productId']]);
+            $uProd = $pdo->prepare("UPDATE products SET stock = stock - :qty WHERE id = :pid AND stock >= :req_qty");
+            $uProd->execute([':qty' => $vItem['quantity'], ':req_qty' => $vItem['quantity'], ':pid' => $vItem['productId']]);
             if ($uProd->rowCount() === 0) {
                 $pdo->rollBack();
                 http_response_code(409);
@@ -1236,7 +1236,7 @@ if ($route === 'orders/create' && $method === 'POST') {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log("Order placement error: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['error' => 'An error occurred while creating your order. Please try again.', 'debug' => $e->getMessage()]);
+        echo json_encode(['error' => 'An error occurred while creating your order. Please try again.']);
         exit;
     }
 
