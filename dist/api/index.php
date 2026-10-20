@@ -1236,7 +1236,7 @@ if ($route === 'orders/create' && $method === 'POST') {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log("Order placement error: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['error' => 'An error occurred while creating your order. Please try again.']);
+        echo json_encode(['error' => 'An error occurred while creating your order. Please try again.', 'debug' => $e->getMessage()]);
         exit;
     }
 
