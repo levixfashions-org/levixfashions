@@ -35,6 +35,22 @@ export const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1)
   const [copiedLink, setCopiedLink] = useState(false)
   const [activeTab, setActiveTab] = useState<'details' | 'shipping' | 'returns'>('details')
+  const [showFloatingBar, setShowFloatingBar] = useState(false)
+  const mainBuySectionRef = useRef<HTMLDivElement>(null)
+
+  // Scroll listener to toggle the floating sticky bottom bar when user scrolls past the main buy section
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!mainBuySectionRef.current) return
+      const rect = mainBuySectionRef.current.getBoundingClientRect()
+      // When the bottom of the main add to bag section passes above the screen
+      setShowFloatingBar(rect.bottom < 50)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Extract unique colors & sizes for clean multi-color selection
   const uniqueColors = useMemo(() => {
@@ -48,6 +64,13 @@ export const ProductDetail: React.FC = () => {
     const sizes = product.variants.map((v) => v.size?.trim()).filter(Boolean) as string[]
     return Array.from(new Set(sizes))
   }, [product?.variants])
+
+  // Active color's Front and Back image URLs
+  const activeColorImages = useMemo(() => {
+    if (!selectedVariant?.color || !product?.colorImages) return null
+    const raw = product.colorImages[selectedVariant.color]
+    return raw ? normalizeColorImages(raw) : null
+  }, [selectedVariant?.color, product?.colorImages])
 
   // Parse editorial description into clean luxury bullet points (7 to 8 separate lines)
   const descriptionBullets = useMemo(() => {
@@ -95,13 +118,15 @@ export const ProductDetail: React.FC = () => {
     return [raw]
   }, [product?.description])
 
-  // Extract all images including color-assigned images
+  // Extract all images including color-assigned images (both Front and Back)
   const allDisplayImages = useMemo(() => {
     if (!product) return []
     const list = [...product.images]
     if (product.colorImages) {
-      Object.values(product.colorImages).forEach((url) => {
-        if (url && !list.includes(url)) list.push(url)
+      Object.values(product.colorImages).forEach((raw) => {
+        const { front, back } = normalizeColorImages(raw)
+        if (front && !list.includes(front)) list.push(front)
+        if (back && !list.includes(back)) list.push(back)
       })
     }
     if (product.variants) {
@@ -125,11 +150,13 @@ export const ProductDetail: React.FC = () => {
     }
   }, [product])
 
-  // When selectedVariant changes, auto-switch image to the matching color image
+  // When selectedVariant changes, auto-switch image to the matching color front image
   useEffect(() => {
     const targetUrl =
-      selectedVariant?.imageUrl ||
-      (selectedVariant?.color && product?.colorImages?.[selectedVariant.color])
+      (selectedVariant?.color && product?.colorImages?.[selectedVariant.color]
+        ? normalizeColorImages(product.colorImages[selectedVariant.color]).front
+        : null) ||
+      selectedVariant?.imageUrl
     if (targetUrl) {
       const idx = allDisplayImages.indexOf(targetUrl)
       if (idx !== -1) {
@@ -159,8 +186,8 @@ export const ProductDetail: React.FC = () => {
   const isOutOfStock = currentStock <= 0
 
   const chosenImage =
+    activeColorImages?.front ||
     selectedVariant?.imageUrl ||
-    (selectedVariant?.color && product.colorImages?.[selectedVariant.color]) ||
     allDisplayImages[activeImageIndex] ||
     product.images[0]
 
