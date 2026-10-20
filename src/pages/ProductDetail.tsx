@@ -474,8 +474,9 @@ export const ProductDetail: React.FC = () => {
                       <div className="flex flex-wrap gap-2">
                         {uniqueColors.map((color) => {
                           const isColorSelected = selectedVariant?.color === color
+                          const colorObj = product.colorImages?.[color] ? normalizeColorImages(product.colorImages[color]) : null
                           const colorPhoto =
-                            product.colorImages?.[color] ||
+                            colorObj?.front ||
                             product.variants?.find((v) => v.color === color && v.imageUrl)?.imageUrl
 
                           return (
@@ -489,7 +490,7 @@ export const ProductDetail: React.FC = () => {
                                   product.variants?.find((v) => v.color === color)
                                 if (matching) {
                                   setSelectedVariant(matching)
-                                  const targetImg = matching.imageUrl || colorPhoto
+                                  const targetImg = colorObj?.front || matching.imageUrl || colorPhoto
                                   if (targetImg) {
                                     const idx = allDisplayImages.indexOf(targetImg)
                                     if (idx !== -1) setActiveImageIndex(idx)
