@@ -388,16 +388,9 @@ export const AdminProducts: React.FC = () => {
       imageUrl: v.imageUrl || (v.color ? colorImagesMap[v.color] : '') || mergedImages[0] || '',
     }))
 
-    const finalDescription = description.trim() || `${trimmedName} by LEVIX. Architectural luxury streetwear crafted from heavyweight natural fibers.`
-    const finalSku = sku.trim() || `LVX-${Date.now().toString().slice(-4)}`
-    const finalPrice = rupeesToPaise(Number(priceRupees) || 1999)
-
-    const payload: Partial<Product> & { name: string } = {
-      id: editingProduct?.id,
-      name: trimmedName,
-      slug: slug.trim() || trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: finalDescription,
-      shortDescription: shortDescription.trim() || finalDescription.slice(0, 120),
+    const finalDescription = description.trim() || DEFAULT_PRODUCT_BULLETS
+    const firstBullet = finalDescription.split('\n')[0]?.replace(/^[•\-\*\s]+/, '') || ''
+    const finalShortDescription = shortDescription.trim() || firstBullet || finalDescription.slice(0, 120)
       sku: finalSku,
       categoryId: resolvedCategoryId,
       categoryName: categoryObj?.name || 'Collection',
