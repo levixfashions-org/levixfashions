@@ -20,6 +20,17 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   })
 }
 
+// Safe migration: Purge legacy runtime caches from previous versions without affecting user auth or cart
+if (typeof window !== 'undefined' && 'caches' in window) {
+  caches.keys().then((names) => {
+    for (const name of names) {
+      if (name.includes('pages-cache') || name.includes('levix-old')) {
+        caches.delete(name).catch(() => {})
+      }
+    }
+  }).catch(() => {})
+}
+
 window.addEventListener('error', (event) => {
   const msg = event?.message || ''
   if (
