@@ -39,30 +39,30 @@ export async function getAdminHeaders(): Promise<Record<string, string>> {
     headers['X-Admin-Key'] = adminKey
   }
 
-  if (auth) {
-    if (typeof (auth as any).authStateReady === 'function') {
-      try {
-        await Promise.race([
-          (auth as any).authStateReady(),
-          new Promise((resolve) => setTimeout(resolve, 800)),
-        ])
-      } catch {}
-    }
-    if (auth.currentUser) {
-      try {
-        const token = await auth.currentUser.getIdToken()
+  if (auth?.currentUser) {
+    try {
+      // Non-blocking fast token retrieval with 250ms safety cap so requests never stall
+      const token = await Promise.race([
+        auth.currentUser.getIdToken(),
+        new Promise<string>((resolve) => setTimeout(() => resolve(''), 250)),
+      ])
+      if (token) {
         headers['Authorization'] = `Bearer ${token}`
         headers['X-Firebase-Token'] = token
-      } catch (e) {
-        console.warn('Failed to retrieve Firebase ID token:', e)
       }
+    } catch (e) {
+      console.warn('Failed to retrieve Firebase ID token:', e)
     }
   }
   return headers
 }
 
-// Authoritative In-Memory 60-Second Cache (H5: No stale localStorage data)
+// Authoritative In-Memory Short-Lived Cache (Deduplicates rapid concurrent paints, auto-invalidates on edit)
 let productsCache: { data: Product[]; expiresAt: number } | null = null
+
+export function invalidateProductsCache(): void {
+  productsCache = null
+}
 
 export async function getProducts(onlyPublished = true, forceRefresh = false): Promise<Product[]> {
   const now = Date.now()
@@ -73,12 +73,12 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
   try {
     const res = await Promise.race([
       fetch(`/api/products?_t=${now}`, { cache: 'no-store' }),
-      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('API products timeout')), 6000)),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('API products timeout')), 5000)),
     ])
     if (res.ok) {
       const data = await res.json()
       if (data && Array.isArray(data.products)) {
-        productsCache = { data: data.products, expiresAt: now + 60000 }
+        productsCache = { data: data.products, expiresAt: now + 2500 }
         return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
       }
     }
