@@ -10,6 +10,7 @@ import {
   saveCategory,
   saveStoreSettings,
   seedFirestoreDatabase,
+  invalidateProductsCache,
 } from '../lib/firestore'
 import { INITIAL_SETTINGS } from '../data/initialSettings'
 import { localStore } from '../lib/storage'
@@ -88,7 +89,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Targeted lightweight heartbeat to refresh only products (price & stock), cutting server load by 66%
   const refreshProductsOnly = useCallback(async () => {
     try {
-      const freshProducts = await getProducts(false)
+      const freshProducts = await getProducts(false, true)
       if (Array.isArray(freshProducts)) {
         setProducts((prev) => {
           if (

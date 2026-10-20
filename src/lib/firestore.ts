@@ -205,6 +205,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
 }
 
 export async function deleteProduct(id: string): Promise<void> {
+  productsCache = null
   const existing = localStore.getProducts()
   localStore.setProducts(existing.filter((p) => p.id !== id))
 
