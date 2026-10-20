@@ -63,3 +63,26 @@ export function generateOrderNumber(): string {
   const random = Math.floor(1000 + Math.random() * 9000)
   return `${prefix}-${dateStr}-${random}`
 }
+
+/**
+ * Normalizes any color image representation (string URL, array [front, back], or object { front, back })
+ * into a consistent { front: string, back: string } shape.
+ */
+export function normalizeColorImages(val: unknown): { front: string; back: string } {
+  if (!val) return { front: '', back: '' }
+  if (typeof val === 'string') return { front: val.trim(), back: '' }
+  if (Array.isArray(val)) {
+    return {
+      front: typeof val[0] === 'string' ? val[0].trim() : '',
+      back: typeof val[1] === 'string' ? val[1].trim() : '',
+    }
+  }
+  if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, any>
+    return {
+      front: typeof obj.front === 'string' ? obj.front.trim() : typeof obj.frontImage === 'string' ? obj.frontImage.trim() : typeof obj[0] === 'string' ? obj[0].trim() : '',
+      back: typeof obj.back === 'string' ? obj.back.trim() : typeof obj.backImage === 'string' ? obj.backImage.trim() : typeof obj[1] === 'string' ? obj[1].trim() : '',
+    }
+  }
+  return { front: '', back: '' }
+}
