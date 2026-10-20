@@ -946,134 +946,287 @@ export const AdminProducts: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Color-Specific Photo Assignments */}
+                    {/* Color-Specific Photo Assignments (Front & Back Views) */}
                     {Array.from(new Set(variantsList.map((v) => v.color?.trim()).filter(Boolean))).length > 0 && (
                       <div className="bg-white p-3.5 border border-levix-border space-y-3">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] font-bold uppercase tracking-wider text-levix-charcoal">
-                            🎨 Assign Photos For Each Color
-                          </p>
-                          <span className="text-[10px] text-levix-secondary">
-                            Customers will see this photo when they click this color!
+                          <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-levix-charcoal flex items-center gap-1.5">
+                              <span>🎨 Assign Front & Back Photos for Each Color</span>
+                            </p>
+                            <span className="text-[10px] text-levix-secondary">
+                              Add both Front and Back photos for every t-shirt color!
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono text-levix-orange font-bold">
+                            2 Views / Color
                           </span>
                         </div>
-                        <div className="space-y-2.5">
+                        <div className="space-y-3">
                           {Array.from(new Set(variantsList.map((v) => v.color?.trim()).filter(Boolean) as string[])).map((color) => {
-                            const isThisUploading = uploadingColor === color
-                            const hasImage = Boolean(colorImagesMap[color])
+                            const colorData = colorImagesMap[color] || { front: '', back: '' }
 
                             return (
                               <div
                                 key={color}
-                                onDragOver={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                }}
-                                onDrop={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  const file = e.dataTransfer.files?.[0] || null
-                                  if (file) handleColorImageUploaded(color, file)
-                                }}
-                                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-levix-gray/40 hover:bg-levix-soft-orange/15 p-2.5 border border-levix-border transition-colors"
+                                className="bg-levix-gray/30 p-3 border border-levix-border space-y-2.5 transition-colors"
                               >
-                                <span className="w-24 text-xs font-bold uppercase tracking-wider text-levix-charcoal truncate shrink-0">
-                                  {color}
-                                </span>
-
-                                {/* Preview Thumbnail */}
-                                <div className="w-10 h-10 border border-levix-border overflow-hidden shrink-0 bg-white shadow-xs flex items-center justify-center relative">
-                                  {isThisUploading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
-                                  ) : hasImage ? (
-                                    <img
-                                      src={colorImagesMap[color]}
-                                      alt={color}
-                                      className="w-full h-full object-cover"
-                                      onError={(e) => {
-                                        ;(e.target as HTMLElement).style.display = 'none'
-                                      }}
-                                    />
-                                  ) : (
-                                    <span className="text-[9px] text-levix-secondary text-center leading-tight">
-                                      No photo
+                                <div className="flex items-center justify-between border-b border-levix-border/40 pb-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-levix-orange" />
+                                    <span className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
+                                      {color}
                                     </span>
-                                  )}
+                                  </div>
+                                  <span className="text-[10px] text-levix-secondary font-mono">
+                                    {colorData.front && colorData.back
+                                      ? '✅ Front & Back Attached'
+                                      : colorData.front
+                                      ? '⚠️ Front Attached (Add Back)'
+                                      : 'No Photos Attached'}
+                                  </span>
                                 </div>
 
-                                {/* URL Input */}
-                                <input
-                                  type="text"
-                                  value={colorImagesMap[color] || ''}
-                                  onChange={(e) => {
-                                    const url = e.target.value
-                                    setColorImagesMap((prev) => ({ ...prev, [color]: url }))
-                                  }}
-                                  placeholder={`Image URL or upload for ${color}...`}
-                                  className="form-input text-xs flex-1 font-mono text-[11px] bg-white py-1.5"
-                                />
-
-                                {/* Camera / Gallery Actions for this specific color */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  {/* Hidden inputs per color */}
-                                  <input
-                                    type="file"
-                                    id={`cam-color-${color}`}
-                                    accept="image/*"
-                                    capture="environment"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0] || null
-                                      handleColorImageUploaded(color, file)
-                                      e.target.value = ''
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  {/* FRONT VIEW */}
+                                  <div
+                                    onDragOver={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
                                     }}
-                                  />
-                                  <input
-                                    type="file"
-                                    id={`gal-color-${color}`}
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0] || null
-                                      handleColorImageUploaded(color, file)
-                                      e.target.value = ''
+                                    onDrop={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      const file = e.dataTransfer.files?.[0] || null
+                                      if (file) handleColorImageUploaded(color, 'front', file)
                                     }}
-                                  />
-
-                                  <label
-                                    htmlFor={`cam-color-${color}`}
-                                    className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 bg-levix-charcoal text-white hover:bg-black text-[10px] font-bold uppercase tracking-wider transition-colors"
-                                    title={`Snap photo with camera for ${color}`}
+                                    className="bg-white p-2.5 border border-levix-border flex flex-col gap-2"
                                   >
-                                    <Camera className="w-3 h-3 text-levix-orange" />
-                                    <span className="hidden sm:inline">Camera</span>
-                                  </label>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-levix-orange">
+                                        Front View (Main)
+                                      </span>
+                                      {colorData.front && (
+                                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.5 border border-emerald-200">
+                                          Attached
+                                        </span>
+                                      )}
+                                    </div>
 
-                                  <label
-                                    htmlFor={`gal-color-${color}`}
-                                    className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-levix-border hover:bg-levix-gray text-levix-charcoal text-[10px] font-bold uppercase tracking-wider transition-colors"
-                                    title={`Choose from gallery for ${color}`}
+                                    <div className="flex items-center gap-2">
+                                      {/* Preview Thumbnail */}
+                                      <div className="w-11 h-13 border border-levix-border overflow-hidden shrink-0 bg-levix-gray/50 flex items-center justify-center relative">
+                                        {uploadingColorSide === `${color}-front` ? (
+                                          <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                                        ) : colorData.front ? (
+                                          <img
+                                            src={colorData.front}
+                                            alt={`${color} front`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              ;(e.target as HTMLElement).style.display = 'none'
+                                            }}
+                                          />
+                                        ) : (
+                                          <span className="text-[8px] text-levix-secondary text-center leading-tight">
+                                            Front
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* URL Input */}
+                                      <input
+                                        type="text"
+                                        value={colorData.front || ''}
+                                        onChange={(e) => {
+                                          const url = e.target.value
+                                          setColorImagesMap((prev) => ({
+                                            ...prev,
+                                            [color]: { ...prev[color], front: url },
+                                          }))
+                                        }}
+                                        placeholder={`Front photo URL for ${color}...`}
+                                        className="form-input text-xs flex-1 font-mono text-[10px] bg-white py-1.5"
+                                      />
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <input
+                                        type="file"
+                                        id={`cam-color-${color}-front`}
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null
+                                          handleColorImageUploaded(color, 'front', file)
+                                          e.target.value = ''
+                                        }}
+                                      />
+                                      <input
+                                        type="file"
+                                        id={`gal-color-${color}-front`}
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null
+                                          handleColorImageUploaded(color, 'front', file)
+                                          e.target.value = ''
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`cam-color-${color}-front`}
+                                        className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-levix-charcoal text-white hover:bg-black text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                        title={`Camera for ${color} front`}
+                                      >
+                                        <Camera className="w-2.5 h-2.5 text-levix-orange" />
+                                        <span>Camera</span>
+                                      </label>
+                                      <label
+                                        htmlFor={`gal-color-${color}-front`}
+                                        className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-white border border-levix-border hover:bg-levix-gray text-levix-charcoal text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                        title={`Gallery for ${color} front`}
+                                      >
+                                        <ImageIcon className="w-2.5 h-2.5 text-levix-charcoal" />
+                                        <span>Gallery</span>
+                                      </label>
+                                      {colorData.front && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setColorImagesMap((prev) => ({
+                                              ...prev,
+                                              [color]: { ...prev[color], front: '' },
+                                            }))
+                                          }}
+                                          className="p-1 text-levix-secondary hover:text-red-600 transition-colors"
+                                          title="Clear front photo"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* BACK VIEW */}
+                                  <div
+                                    onDragOver={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      const file = e.dataTransfer.files?.[0] || null
+                                      if (file) handleColorImageUploaded(color, 'back', file)
+                                    }}
+                                    className="bg-white p-2.5 border border-levix-border flex flex-col gap-2"
                                   >
-                                    <ImageIcon className="w-3 h-3 text-levix-charcoal" />
-                                    <span className="hidden sm:inline">Gallery</span>
-                                  </label>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-levix-charcoal">
+                                        Back View (Reverse)
+                                      </span>
+                                      {colorData.back && (
+                                        <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.5 border border-emerald-200">
+                                          Attached
+                                        </span>
+                                      )}
+                                    </div>
 
-                                  {hasImage && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setColorImagesMap((prev) => {
-                                          const copy = { ...prev }
-                                          delete copy[color]
-                                          return copy
-                                        })
-                                      }}
-                                      className="p-1.5 text-levix-secondary hover:text-red-600 transition-colors"
-                                      title="Clear color photo"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
+                                    <div className="flex items-center gap-2">
+                                      {/* Preview Thumbnail */}
+                                      <div className="w-11 h-13 border border-levix-border overflow-hidden shrink-0 bg-levix-gray/50 flex items-center justify-center relative">
+                                        {uploadingColorSide === `${color}-back` ? (
+                                          <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                                        ) : colorData.back ? (
+                                          <img
+                                            src={colorData.back}
+                                            alt={`${color} back`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              ;(e.target as HTMLElement).style.display = 'none'
+                                            }}
+                                          />
+                                        ) : (
+                                          <span className="text-[8px] text-levix-secondary text-center leading-tight">
+                                            Back
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {/* URL Input */}
+                                      <input
+                                        type="text"
+                                        value={colorData.back || ''}
+                                        onChange={(e) => {
+                                          const url = e.target.value
+                                          setColorImagesMap((prev) => ({
+                                            ...prev,
+                                            [color]: { ...prev[color], back: url },
+                                          }))
+                                        }}
+                                        placeholder={`Back photo URL for ${color}...`}
+                                        className="form-input text-xs flex-1 font-mono text-[10px] bg-white py-1.5"
+                                      />
+                                    </div>
+
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <input
+                                        type="file"
+                                        id={`cam-color-${color}-back`}
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null
+                                          handleColorImageUploaded(color, 'back', file)
+                                          e.target.value = ''
+                                        }}
+                                      />
+                                      <input
+                                        type="file"
+                                        id={`gal-color-${color}-back`}
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null
+                                          handleColorImageUploaded(color, 'back', file)
+                                          e.target.value = ''
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`cam-color-${color}-back`}
+                                        className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-levix-charcoal text-white hover:bg-black text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                        title={`Camera for ${color} back`}
+                                      >
+                                        <Camera className="w-2.5 h-2.5 text-levix-orange" />
+                                        <span>Camera</span>
+                                      </label>
+                                      <label
+                                        htmlFor={`gal-color-${color}-back`}
+                                        className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-white border border-levix-border hover:bg-levix-gray text-levix-charcoal text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                        title={`Gallery for ${color} back`}
+                                      >
+                                        <ImageIcon className="w-2.5 h-2.5 text-levix-charcoal" />
+                                        <span>Gallery</span>
+                                      </label>
+                                      {colorData.back && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setColorImagesMap((prev) => ({
+                                              ...prev,
+                                              [color]: { ...prev[color], back: '' },
+                                            }))
+                                          }}
+                                          className="p-1 text-levix-secondary hover:text-red-600 transition-colors"
+                                          title="Clear back photo"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             )
