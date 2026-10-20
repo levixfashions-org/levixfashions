@@ -711,6 +711,33 @@ export const ProductDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* Quick Named Variant Pills (for products with variants not based on S/M/L) */}
+              {product.hasVariants && uniqueSizes.length <= 1 && product.variants && product.variants.length > 1 && (
+                <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+                  {product.variants.map((v) => {
+                    const isSelected = selectedVariant?.id === v.id
+                    const isUnavailable = v.stock <= 0
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={isUnavailable}
+                        onClick={() => setSelectedVariant(v)}
+                        className={`min-w-8 h-8 px-2 text-[11px] font-bold uppercase border transition-all flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
+                            : isUnavailable
+                            ? 'border-levix-border bg-levix-gray text-levix-secondary/40 line-through cursor-not-allowed'
+                            : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
+                        }`}
+                      >
+                        {v.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
               {/* Quantity Stepper */}
               <div className="flex items-center border border-levix-border bg-white shrink-0 h-8">
                 <button
