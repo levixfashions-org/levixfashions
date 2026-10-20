@@ -40,53 +40,48 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const loadData = useCallback(async () => {
     try {
-      // Race fetch against a 3.5s timeout so mobile networks never freeze on Firestore
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Network timeout')), 3500)
-      )
-
-      const fetchPromise = Promise.all([
+      // Fetch products, categories, and settings with individual error isolation
+      const [prodResult, catResult, setResult] = await Promise.allSettled([
         getProducts(false),
         getCategories(),
         getStoreSettings(),
       ])
 
-      const [fetchedProducts, fetchedCategories, fetchedSettings] = await Promise.race([
-        fetchPromise,
-        timeoutPromise,
-      ])
+      if (prodResult.status === 'fulfilled' && Array.isArray(prodResult.value)) {
+        setProducts((prev) => {
+          if (
+            prev.length === prodResult.value.length &&
+            JSON.stringify(prev) === JSON.stringify(prodResult.value)
+          ) {
+            return prev
+          }
+          return prodResult.value
+        })
+      }
 
-      // Only trigger state updates if data actually changed to prevent re-render cascades
-      setProducts((prev) => {
-        if (
-          prev.length === fetchedProducts.length &&
-          JSON.stringify(prev) === JSON.stringify(fetchedProducts)
-        ) {
-          return prev
-        }
-        return fetchedProducts
-      })
+      if (catResult.status === 'fulfilled' && Array.isArray(catResult.value)) {
+        setCategories((prev) => {
+          if (
+            prev.length === catResult.value.length &&
+            JSON.stringify(prev) === JSON.stringify(catResult.value)
+          ) {
+            return prev
+          }
+          return catResult.value
+        })
+      }
 
-      setCategories((prev) => {
-        if (
-          prev.length === fetchedCategories.length &&
-          JSON.stringify(prev) === JSON.stringify(fetchedCategories)
-        ) {
-          return prev
-        }
-        return fetchedCategories
-      })
-
-      setSettings((prev) => {
-        if (JSON.stringify(prev) === JSON.stringify(fetchedSettings)) {
-          return prev
-        }
-        return fetchedSettings
-      })
+      if (setResult.status === 'fulfilled' && setResult.value) {
+        setSettings((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(setResult.value)) {
+            return prev
+          }
+          return setResult.value
+        })
+      }
       setError(null)
     } catch (err: any) {
       console.warn('Store data fetch background sync:', err?.message || err)
-      // Keep existing synchronous data, do not crash
     }
   }, [])
 
