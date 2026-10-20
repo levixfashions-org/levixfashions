@@ -279,13 +279,18 @@ export const ProductDetail: React.FC = () => {
         {/* Product Hero Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
           {/* Image Gallery Column (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
+          <div ref={heroImageSectionRef} className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
             {/* Thumbnail Strip */}
             {allDisplayImages.length > 1 && (
               <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[620px] scrollbar-none shrink-0">
                 {allDisplayImages.map((img, idx) => {
-                  const isFront = activeColorImages?.front === img
-                  const isBack = activeColorImages?.back === img
+                  const hasBothViews = Boolean(
+                    activeColorImages?.front &&
+                    activeColorImages?.back &&
+                    activeColorImages.front.trim() !== activeColorImages.back.trim()
+                  )
+                  const isFront = hasBothViews && activeColorImages?.front === img
+                  const isBack = hasBothViews && activeColorImages?.back === img
 
                   return (
                     <button
