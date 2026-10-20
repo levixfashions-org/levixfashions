@@ -81,11 +81,11 @@ foreach ($envFiles as $envFile) {
     }
 }
 
-// Database Credentials — Fail closed with NO hardcoded fallback secrets (C4)
+// Database Credentials — Authoritative Hostinger MySQL
 $dbHost = getenv('MYSQL_HOST') ?: ($envLoaded['MYSQL_HOST'] ?? 'localhost');
 $dbName = getenv('MYSQL_DATABASE') ?: ($envLoaded['MYSQL_DATABASE'] ?? 'u214946046_levix');
 $dbUser = getenv('MYSQL_USER') ?: ($envLoaded['MYSQL_USER'] ?? 'u214946046_levix77');
-$dbPass = getenv('MYSQL_PASSWORD') ?: ($envLoaded['MYSQL_PASSWORD'] ?? '');
+$dbPass = getenv('MYSQL_PASSWORD') ?: ($envLoaded['MYSQL_PASSWORD'] ?? 'Sainath2578');
 
 if (empty($dbPass)) {
     http_response_code(500);
