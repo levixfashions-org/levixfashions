@@ -739,12 +739,8 @@ export const ProductDetail: React.FC = () => {
         )}
       </div>
 
-      {/* Sticky Floating Add to Bag Drawer (Mobile & Desktop - Veirdo Style) */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-levix-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 transform ${
-          showFloatingBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'
-        }`}
-      >
+      {/* Sticky Bottom Action Drawer (Always Accessible, No Duplication) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-levix-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
         <div className="container-levix py-2.5 sm:py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
             {/* Left: Thumbnail + Title + Pricing */}
@@ -787,7 +783,7 @@ export const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: Size Pills + Quantity + Add to Bag Button */}
+            {/* Right: Size Pills + Quantity + Add to Bag + Wishlist (Love) */}
             <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
               {/* Quick Size Pills */}
               {uniqueSizes.length > 1 && (
@@ -855,6 +851,21 @@ export const ProductDetail: React.FC = () => {
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>{isOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
+              </button>
+
+              {/* Wishlist Love Button */}
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product.id)}
+                aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+                className="h-8 w-8 sm:h-9 sm:w-9 border border-levix-border hover:border-levix-orange text-levix-charcoal flex items-center justify-center transition-colors bg-white shrink-0"
+                title={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+              >
+                <Heart
+                  className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-colors ${
+                    wishlisted ? 'fill-levix-orange text-levix-orange' : 'text-levix-charcoal'
+                  }`}
+                />
               </button>
             </div>
           </div>
