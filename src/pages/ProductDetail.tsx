@@ -462,24 +462,28 @@ export const ProductDetail: React.FC = () => {
               )}
             </div>
 
-            {/* Color Selector (Shown on main page only when multiple colors exist so shoppers can preview photos) */}
-            {product.hasVariants && uniqueColors.length > 1 && (
-              <div className="space-y-3 pt-3 border-t border-levix-border">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
-                    Color: <span className="font-semibold text-levix-orange">{selectedVariant?.color || 'Choose Color'}</span>
-                  </span>
-                  <span className="text-[11px] text-levix-secondary">
-                    {uniqueColors.length} Colors Available
-                  </span>
+            {/* Color Selector (Reference Layout: COLOR - {COLOR} with rounded model/t-shirt thumbnail cards) */}
+            {product.hasVariants && uniqueColors.length > 0 && uniqueColors.some((c) => c && c.trim() !== '') && (
+              <div className="space-y-3 pt-4 border-t border-levix-border">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm sm:text-base font-extrabold uppercase tracking-tight text-levix-charcoal">
+                    COLOR - <span className="text-levix-charcoal font-black">{selectedVariant?.color || uniqueColors[0]}</span>
+                  </h3>
+                  {uniqueColors.length > 1 && (
+                    <span className="text-[11px] font-semibold text-levix-secondary">
+                      {uniqueColors.length} Colors
+                    </span>
+                  )}
                 </div>
-                <div className="flex flex-wrap gap-2">
+
+                <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto scrollbar-none py-1.5 -mx-1 px-1">
                   {uniqueColors.map((color) => {
-                    const isColorSelected = selectedVariant?.color === color
+                    const isColorSelected = (selectedVariant?.color || uniqueColors[0]) === color
                     const colorObj = product.colorImages?.[color] ? normalizeColorImages(product.colorImages[color]) : null
                     const colorPhoto =
                       colorObj?.front ||
-                      product.variants?.find((v) => v.color === color && v.imageUrl)?.imageUrl
+                      product.variants?.find((v) => v.color === color && v.imageUrl)?.imageUrl ||
+                      product.images[0]
 
                     return (
                       <button
@@ -499,20 +503,26 @@ export const ProductDetail: React.FC = () => {
                             }
                           }
                         }}
-                        className={`py-2 px-3 text-xs font-semibold uppercase tracking-wider border transition-all flex items-center gap-2 ${
+                        className={`group relative w-16 h-20 sm:w-20 sm:h-26 rounded-xl overflow-hidden shrink-0 transition-all duration-200 cursor-pointer ${
                           isColorSelected
-                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
-                            : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
+                            ? 'ring-2 ring-levix-orange ring-offset-2 scale-[1.03] shadow-md border-transparent'
+                            : 'border border-levix-border/70 hover:border-levix-charcoal/60 opacity-90 hover:opacity-100 hover:scale-[1.01]'
                         }`}
+                        title={color}
+                        aria-label={`Select color ${color}`}
                       >
-                        {colorPhoto && (
+                        {colorPhoto ? (
                           <img
                             src={colorPhoto}
-                            alt={color}
-                            className="w-4 h-4 rounded-full object-cover border border-levix-border shrink-0"
+                            alt={`${product.name} in ${color}`}
+                            className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                           />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-levix-gray text-[10px] font-bold uppercase text-levix-charcoal p-1 text-center">
+                            <span>{color}</span>
+                          </div>
                         )}
-                        <span>{color}</span>
+                        <span className="sr-only">{color}</span>
                       </button>
                     )
                   })}
