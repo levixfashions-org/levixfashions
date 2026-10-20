@@ -49,40 +49,40 @@ export const ProductDetail: React.FC = () => {
     return Array.from(new Set(sizes))
   }, [product?.variants])
 
-  // Parse editorial description into clean luxury bullet points (7 to 8 points)
+  // Parse editorial description into clean luxury bullet points (7 to 8 separate lines)
   const descriptionBullets = useMemo(() => {
     if (!product?.description) return []
     const raw = product.description.trim()
 
-    // 1. If line breaks exist (one bullet per line)
-    const lines = raw
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-
-    if (lines.length > 1) {
-      return lines.map((line) => line.replace(/^[•\-*–—\d.)\]]+\s*/, '').trim()).filter(Boolean)
-    }
-
-    // 2. If bullet symbol (•) is used as separator within a single line
+    // 1. If bullet symbol (•) is present anywhere in the text
     if (raw.includes('•')) {
       const parts = raw
-        .split('•')
-        .map((p) => p.trim())
-        .filter(Boolean)
+        .split(/[•\r?\n]+/)
+        .map((p) => p.replace(/^[•\-*–—\d.)\]]+\s*/, '').trim())
+        .filter((p) => p.length > 2)
       if (parts.length > 1) return parts
+    }
+
+    // 2. If line breaks exist (one bullet per line)
+    const lines = raw
+      .split(/\r?\n+/)
+      .map((line) => line.replace(/^[•\-*–—\d.)\]]+\s*/, '').trim())
+      .filter((line) => line.length > 2)
+
+    if (lines.length > 1) {
+      return lines
     }
 
     // 3. If hyphen or asterisk is used as bullet separator
-    if (raw.includes(' - ')) {
+    if (raw.includes('\n-') || raw.includes(' - ') || raw.includes('\n*')) {
       const parts = raw
-        .split(/\s+-\s+/)
-        .map((p) => p.trim())
-        .filter(Boolean)
+        .split(/(?:\r?\n\s*[-*]|\s+-\s+)/)
+        .map((p) => p.replace(/^[•\-*–—\d.)\]]+\s*/, '').trim())
+        .filter((p) => p.length > 2)
       if (parts.length > 1) return parts
     }
 
-    // 4. If long continuous paragraph, split by full sentences to create clean points
+    // 4. If long continuous paragraph, split by full sentences to create clean separate lines
     const sentences = raw
       .split(/(?<=[.!?])\s+/)
       .map((s) => s.trim())
