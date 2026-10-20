@@ -349,29 +349,38 @@ export const ProductDetail: React.FC = () => {
               </p>
             </div>
 
-            {/* Short Description / Editorial Bullet Points */}
-            {descriptionBullets.length > 1 ? (
-              <div className="space-y-2.5 py-1">
-                <div className="flex items-center gap-2">
+            {/* Editorial Description / Specifications (Individual Separate Lines) */}
+            <div className="py-3 border-y border-levix-border/60 my-2 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-levix-orange font-bold flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-levix-orange" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-levix-orange font-bold">
-                    Garment Highlights & Fit Specs
+                  Product Specifications & Fit
+                </span>
+                {descriptionBullets.length > 1 && (
+                  <span className="text-[10px] text-levix-secondary font-mono">
+                    {descriptionBullets.length} Points
                   </span>
-                </div>
-                <ul className="space-y-2 text-xs sm:text-sm text-levix-charcoal/90 leading-relaxed">
+                )}
+              </div>
+
+              {descriptionBullets.length > 1 ? (
+                <ul className="space-y-1 pt-0.5">
                   {descriptionBullets.map((bullet, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5">
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2.5 py-1.5 border-b border-levix-border/25 last:border-b-0 text-xs sm:text-sm text-levix-charcoal/90 leading-relaxed"
+                    >
                       <span className="w-1.5 h-1.5 rounded-full bg-levix-orange mt-1.5 shrink-0" />
-                      <span>{bullet}</span>
+                      <span className="flex-1 block font-normal">{bullet}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            ) : (
-              <p className="text-xs sm:text-sm text-levix-charcoal/80 leading-relaxed">
-                {product?.description}
-              </p>
-            )}
+              ) : (
+                <p className="text-xs sm:text-sm text-levix-charcoal/85 leading-relaxed whitespace-pre-line py-1">
+                  {product?.description}
+                </p>
+              )}
+            </div>
 
             {/* Variant Selectors (Size / Color) */}
             {product.hasVariants && product.variants && product.variants.length > 0 && (
