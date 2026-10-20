@@ -40,7 +40,7 @@ export async function getProducts(onlyPublished = true): Promise<Product[]> {
   try {
     const res = await Promise.race([
       fetch(`/api/products?_t=${Date.now()}`, { cache: 'no-store' }),
-      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 6000)),
     ])
     if (res.ok) {
       const data = await res.json()
@@ -78,6 +78,19 @@ export async function getProducts(onlyPublished = true): Promise<Product[]> {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
+  // 1. Check localStore first for instant response
+  const local = localStore.getProducts()
+  const foundLocal = local.find((p) => p.slug === slug)
+  if (foundLocal) return foundLocal
+
+  // 2. Fetch fresh catalog from backend API if not in localStore
+  try {
+    const products = await getProducts(false)
+    const foundApi = products.find((p) => p.slug === slug)
+    if (foundApi) return foundApi
+  } catch {}
+
+  // 3. Fallback to Cloud Firestore
   if (isFirebaseConfigured && db) {
     try {
       const q = query(collection(db, PRODUCTS_COL), where('slug', '==', slug))
@@ -90,11 +103,23 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       console.warn('Firestore getProductBySlug failed:', err)
     }
   }
-  const local = localStore.getProducts()
-  return local.find((p) => p.slug === slug) || null
+  return null
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  // 1. Check localStore first
+  const local = localStore.getProducts()
+  const foundLocal = local.find((p) => p.id === id)
+  if (foundLocal) return foundLocal
+
+  // 2. Fetch fresh catalog from backend API
+  try {
+    const products = await getProducts(false)
+    const foundApi = products.find((p) => p.id === id)
+    if (foundApi) return foundApi
+  } catch {}
+
+  // 3. Fallback to Cloud Firestore
   if (isFirebaseConfigured && db) {
     try {
       const docSnap = await getDoc(doc(db, PRODUCTS_COL, id))
@@ -105,8 +130,7 @@ export async function getProductById(id: string): Promise<Product | null> {
       console.warn('Firestore getProductById failed:', err)
     }
   }
-  const local = localStore.getProducts()
-  return local.find((p) => p.id === id) || null
+  return null
 }
 
 function cleanData<T extends Record<string, any>>(obj: T): T {
