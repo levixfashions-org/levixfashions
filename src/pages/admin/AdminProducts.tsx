@@ -15,7 +15,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
-import { formatPrice, paiseToRupees, rupeesToPaise } from '../../lib/utils'
+import { formatPrice, paiseToRupees, rupeesToPaise, normalizeColorImages } from '../../lib/utils'
 import type { Product, ProductVariant } from '../../types/product'
 import { compressAndProcessImage, processMultipleImages } from '../../lib/imageUpload'
 
