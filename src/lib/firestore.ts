@@ -152,6 +152,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
   }
 
   // 1. Immediately persist locally so the product is saved in 0ms with zero lag
+  productsCache = null
   const existing = localStore.getProducts()
   const updated = [fullProduct, ...existing.filter((p) => p.id !== id)]
   localStore.setProducts(updated)
