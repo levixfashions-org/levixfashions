@@ -462,167 +462,63 @@ export const ProductDetail: React.FC = () => {
               )}
             </div>
 
-            {/* Variant Selectors (Size / Color) */}
-            {product.hasVariants && product.variants && product.variants.length > 0 && (
-              <div className="space-y-4 pt-2 border-t border-levix-border">
-                {uniqueColors.length > 1 ? (
-                  <>
-                    {/* Color Selector */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
-                          Color: <span className="font-semibold text-levix-orange">{selectedVariant?.color || 'Choose Color'}</span>
-                        </span>
-                        <span className="text-[11px] text-levix-secondary">
-                          {uniqueColors.length} Colors Available
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {uniqueColors.map((color) => {
-                          const isColorSelected = selectedVariant?.color === color
-                          const colorObj = product.colorImages?.[color] ? normalizeColorImages(product.colorImages[color]) : null
-                          const colorPhoto =
-                            colorObj?.front ||
-                            product.variants?.find((v) => v.color === color && v.imageUrl)?.imageUrl
+            {/* Color Selector (Shown on main page only when multiple colors exist so shoppers can preview photos) */}
+            {product.hasVariants && uniqueColors.length > 1 && (
+              <div className="space-y-3 pt-3 border-t border-levix-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
+                    Color: <span className="font-semibold text-levix-orange">{selectedVariant?.color || 'Choose Color'}</span>
+                  </span>
+                  <span className="text-[11px] text-levix-secondary">
+                    {uniqueColors.length} Colors Available
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueColors.map((color) => {
+                    const isColorSelected = selectedVariant?.color === color
+                    const colorObj = product.colorImages?.[color] ? normalizeColorImages(product.colorImages[color]) : null
+                    const colorPhoto =
+                      colorObj?.front ||
+                      product.variants?.find((v) => v.color === color && v.imageUrl)?.imageUrl
 
-                          return (
-                            <button
-                              key={color}
-                              type="button"
-                              onClick={() => {
-                                const currentSize = selectedVariant?.size
-                                const matching =
-                                  product.variants?.find((v) => v.color === color && v.size === currentSize) ||
-                                  product.variants?.find((v) => v.color === color)
-                                if (matching) {
-                                  setSelectedVariant(matching)
-                                  const targetImg = colorObj?.front || matching.imageUrl || colorPhoto
-                                  if (targetImg) {
-                                    const idx = allDisplayImages.indexOf(targetImg)
-                                    if (idx !== -1) setActiveImageIndex(idx)
-                                  }
-                                }
-                              }}
-                              className={`py-2 px-3 text-xs font-semibold uppercase tracking-wider border transition-all flex items-center gap-2 ${
-                                isColorSelected
-                                  ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
-                                  : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
-                              }`}
-                            >
-                              {colorPhoto && (
-                                <img
-                                  src={colorPhoto}
-                                  alt={color}
-                                  className="w-4 h-4 rounded-full object-cover border border-levix-border shrink-0"
-                                />
-                              )}
-                              <span>{color}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Size Selector */}
-                    <div className="space-y-2 pt-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
-                          Size: <span className="font-semibold text-levix-charcoal">{selectedVariant?.size || 'Choose Size'}</span>
-                        </span>
-                        {selectedVariant && selectedVariant.stock <= 5 && selectedVariant.stock > 0 && (
-                          <span className="text-[11px] text-amber-600 font-semibold">
-                            Only {selectedVariant.stock} left in stock!
-                          </span>
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => {
+                          const currentSize = selectedVariant?.size
+                          const matching =
+                            product.variants?.find((v) => v.color === color && v.size === currentSize) ||
+                            product.variants?.find((v) => v.color === color)
+                          if (matching) {
+                            setSelectedVariant(matching)
+                            const targetImg = colorObj?.front || matching.imageUrl || colorPhoto
+                            if (targetImg) {
+                              const idx = allDisplayImages.indexOf(targetImg)
+                              if (idx !== -1) setActiveImageIndex(idx)
+                            }
+                          }
+                        }}
+                        className={`py-2 px-3 text-xs font-semibold uppercase tracking-wider border transition-all flex items-center gap-2 ${
+                          isColorSelected
+                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
+                            : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
+                        }`}
+                      >
+                        {colorPhoto && (
+                          <img
+                            src={colorPhoto}
+                            alt={color}
+                            className="w-4 h-4 rounded-full object-cover border border-levix-border shrink-0"
+                          />
                         )}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {uniqueSizes.map((size) => {
-                          const matchingForSize = product.variants?.find(
-                            (v) => v.color === selectedVariant?.color && v.size === size
-                          )
-                          const isSizeSelected = selectedVariant?.size === size
-                          const isUnavailable = !matchingForSize || matchingForSize.stock <= 0
-                          return (
-                            <button
-                              key={size}
-                              type="button"
-                              disabled={isUnavailable}
-                              onClick={() => {
-                                if (matchingForSize) setSelectedVariant(matchingForSize)
-                              }}
-                              className={`min-w-[48px] py-2 px-3 text-xs font-semibold uppercase tracking-wider border transition-all text-center ${
-                                isSizeSelected
-                                  ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
-                                  : isUnavailable
-                                  ? 'border-levix-border bg-levix-gray text-levix-secondary/40 line-through cursor-not-allowed'
-                                  : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
-                              }`}
-                            >
-                              {size}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
-                        Select Variant: <span className="font-normal text-levix-secondary">{selectedVariant?.name}</span>
-                      </span>
-                      {selectedVariant && selectedVariant.stock <= 5 && selectedVariant.stock > 0 && (
-                        <span className="text-[11px] text-amber-600 font-semibold">
-                          Only {selectedVariant.stock} left in stock!
-                        </span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {product.variants.map((v) => {
-                        const isSelected = selectedVariant?.id === v.id
-                        const isUnavailable = v.stock <= 0
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            disabled={isUnavailable}
-                            onClick={() => setSelectedVariant(v)}
-                            className={`py-2.5 px-3 text-xs font-semibold uppercase tracking-wider border transition-all text-center ${
-                              isSelected
-                                ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
-                                : isUnavailable
-                                ? 'border-levix-border bg-levix-gray text-levix-secondary/50 line-through cursor-not-allowed'
-                                : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal'
-                            }`}
-                          >
-                            {v.name}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
+                        <span>{color}</span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )}
-
-            {/* Live Stock Indicator */}
-            <div className="pt-2">
-              <div className="text-xs">
-                {isOutOfStock ? (
-                  <span className="text-red-600 font-semibold flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
-                  </span>
-                ) : currentStock <= 5 ? (
-                  <span className="text-amber-600 font-semibold">
-                    Low Stock ({currentStock} available)
-                  </span>
-                ) : (
-                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" /> In Stock & Ready to Ship
-                  </span>
-                )}
-              </div>
-            </div>
 
             {/* Trust Features Bar */}
             <div className="grid grid-cols-3 gap-2 py-4 border-y border-levix-border text-[11px] text-levix-charcoal text-center">
