@@ -36,15 +36,18 @@ export const ProductDetail: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false)
   const [activeTab, setActiveTab] = useState<'details' | 'shipping' | 'returns'>('details')
   const [showFloatingBar, setShowFloatingBar] = useState(false)
-  const mainBuySectionRef = useRef<HTMLDivElement>(null)
+  const heroImageSectionRef = useRef<HTMLDivElement>(null)
 
-  // Scroll listener to toggle the floating sticky bottom bar when user scrolls past the main buy section
+  // Scroll listener: activates the floating bar immediately after scrolling past the t-shirt image hero section
   useEffect(() => {
     const handleScroll = () => {
-      if (!mainBuySectionRef.current) return
-      const rect = mainBuySectionRef.current.getBoundingClientRect()
-      // When the bottom of the main add to bag section passes above the screen
-      setShowFloatingBar(rect.bottom < 50)
+      if (heroImageSectionRef.current) {
+        const rect = heroImageSectionRef.current.getBoundingClientRect()
+        // When the bottom of the main t-shirt image & thumbnails crosses above the viewport
+        setShowFloatingBar(rect.bottom < 80)
+      } else {
+        setShowFloatingBar(window.scrollY > 400)
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
