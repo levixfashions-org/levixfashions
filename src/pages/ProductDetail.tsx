@@ -798,6 +798,103 @@ export const ProductDetail: React.FC = () => {
           </section>
         )}
       </div>
+
+      {/* Sticky Floating Add to Bag Drawer (Mobile & Desktop - Veirdo Style) */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-levix-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 transform ${
+          showFloatingBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="container-levix py-2.5 sm:py-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
+            {/* Left: Thumbnail + Title + Pricing */}
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-14 sm:w-14 sm:h-16 bg-levix-gray border border-levix-border overflow-hidden shrink-0 shadow-xs">
+                <img
+                  src={chosenImage}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs sm:text-sm font-bold uppercase tracking-tight text-levix-charcoal truncate">
+                  {product.name}
+                </h4>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-sm sm:text-base font-bold text-levix-charcoal">
+                    {formatPrice(currentPrice)}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-xs text-levix-secondary line-through">
+                      {formatPrice(product.price)}
+                    </span>
+                  )}
+                  {hasDiscount && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 border border-emerald-200">
+                      Save {Math.round(((product.price - (product.salePrice || 0)) / product.price) * 100)}%
+                    </span>
+                  )}
+                </div>
+                {selectedVariant && (
+                  <p className="text-[10px] text-levix-secondary truncate mt-0.5">
+                    {selectedVariant.color && (
+                      <span className="text-levix-orange font-semibold">{selectedVariant.color}</span>
+                    )}
+                    {selectedVariant.color && selectedVariant.size && ' • '}
+                    {selectedVariant.size && <span>Size {selectedVariant.size}</span>}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Size Pills + Add to Bag Button */}
+            <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3">
+              {/* Quick Size Pills */}
+              {uniqueSizes.length > 1 && (
+                <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+                  {uniqueSizes.map((size) => {
+                    const currentColor = selectedVariant?.color
+                    const matchingVar =
+                      product.variants?.find((v) => v.size === size && v.color === currentColor) ||
+                      product.variants?.find((v) => v.size === size)
+                    const isSelected = selectedVariant?.size === size
+                    const isUnavailable = matchingVar ? matchingVar.stock <= 0 : false
+
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        disabled={isUnavailable}
+                        onClick={() => matchingVar && setSelectedVariant(matchingVar)}
+                        className={`min-w-8 h-8 px-2 text-[11px] font-bold uppercase border transition-all flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
+                            : isUnavailable
+                            ? 'border-levix-border bg-levix-gray text-levix-secondary/40 line-through cursor-not-allowed'
+                            : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Add to Bag Action Button */}
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={handleAddToCart}
+                className="flex-1 sm:flex-initial btn-primary py-2.5 sm:py-3 px-5 sm:px-8 text-xs uppercase tracking-wider flex items-center justify-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>{isOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
