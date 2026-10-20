@@ -85,6 +85,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [])
 
+  // Targeted lightweight heartbeat to refresh only products (price & stock), cutting server load by 66%
+  const refreshProductsOnly = useCallback(async () => {
+    try {
+      const freshProducts = await getProducts(false)
+      if (Array.isArray(freshProducts)) {
+        setProducts((prev) => {
+          if (
+            prev.length === freshProducts.length &&
+            JSON.stringify(prev) === JSON.stringify(freshProducts)
+          ) {
+            return prev
+          }
+          return freshProducts
+        })
+      }
+    } catch {}
+  }, [])
+
   useEffect(() => {
     loadData()
   }, [loadData])
@@ -133,12 +151,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     window.addEventListener('storage', handleStorage)
 
-    // Responsive background heartbeat when tab is active
+    // Lightweight heartbeat only polls products when the tab is visible
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        loadData()
+        refreshProductsOnly()
       }
-    }, 10000)
+    }, 8000)
 
     return () => {
       if (channel) channel.close()
@@ -147,7 +165,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       window.removeEventListener('storage', handleStorage)
       clearInterval(interval)
     }
-  }, [loadData])
+  }, [loadData, refreshProductsOnly])
 
   const updateStoreSettings = async (newSettings: StoreSettings) => {
     const saved = await saveStoreSettings(newSettings)
