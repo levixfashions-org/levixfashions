@@ -391,6 +391,15 @@ export const AdminProducts: React.FC = () => {
     const finalDescription = description.trim() || DEFAULT_PRODUCT_BULLETS
     const firstBullet = finalDescription.split('\n')[0]?.replace(/^[•\-\*\s]+/, '') || ''
     const finalShortDescription = shortDescription.trim() || firstBullet || finalDescription.slice(0, 120)
+    const finalSku = sku.trim() || `LVX-${Date.now().toString().slice(-4)}`
+    const finalPrice = rupeesToPaise(Number(priceRupees) || 1999)
+
+    const payload: Partial<Product> & { name: string } = {
+      id: editingProduct?.id,
+      name: trimmedName,
+      slug: slug.trim() || trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      description: finalDescription,
+      shortDescription: finalShortDescription,
       sku: finalSku,
       categoryId: resolvedCategoryId,
       categoryName: categoryObj?.name || 'Collection',
