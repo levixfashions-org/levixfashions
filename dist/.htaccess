@@ -23,22 +23,35 @@
 </IfModule>
 
 # Strict Anti-Caching for Dynamic Entry & Service Worker Files
+<FilesMatch "(sw\.js|registerSW\.js|index\.html|manifest\.webmanifest)$">
+  <IfModule mod_expires.c>
+    ExpiresActive Off
+  </IfModule>
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header unset Expires
+    Header always set Cache-Control "no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </IfModule>
+</FilesMatch>
+
+# Never cache dynamic PHP API endpoints
+<FilesMatch "^(index\.php)$">
+  <IfModule mod_expires.c>
+    ExpiresActive Off
+  </IfModule>
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header unset Expires
+    Header always set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </IfModule>
+</FilesMatch>
+
+# Safe long-term caching for hashed build assets
 <IfModule mod_headers.c>
-  # 1. CRITICAL: Never cache Service Worker, register script, manifest, or HTML shell
-  <FilesMatch "(sw\.js|registerSW\.js|index\.html|manifest\.webmanifest)$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
-  </FilesMatch>
-
-  # 2. Never cache dynamic PHP API endpoints
-  <FilesMatch "^(index\.php)$">
-    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
-    Header set Pragma "no-cache"
-    Header set Expires "0"
-  </FilesMatch>
-
-  # 3. Safe long-term caching for hashed build assets
   <FilesMatch "\.(css|svg|woff2)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
