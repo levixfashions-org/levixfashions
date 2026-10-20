@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Heart,
@@ -18,7 +18,7 @@ import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { ProductCard } from '../components/storefront/ProductCard'
 import { SEO } from '../components/common/SEO'
-import { formatPrice } from '../lib/utils'
+import { formatPrice, normalizeColorImages } from '../lib/utils'
 import type { ProductVariant } from '../types/product'
 
 export const ProductDetail: React.FC = () => {
