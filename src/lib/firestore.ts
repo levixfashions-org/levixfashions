@@ -199,9 +199,11 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))
       console.warn('Backend API save warning:', errData.error || res.statusText)
+      throw new Error(errData.error || `Server error (${res.status}): Failed to save product to database.`)
     }
-  } catch (apiErr) {
-    console.warn('Backend API save note:', apiErr)
+  } catch (apiErr: any) {
+    console.error('Backend API save error:', apiErr)
+    throw new Error(apiErr.message || 'Could not connect to production server to save product.')
   }
 
   // 3. Sync to Firestore with a fast 2.5s race timeout in background so it never hangs
@@ -234,9 +236,14 @@ export async function deleteProduct(id: string): Promise<void> {
   localStore.setProducts(existing.filter((p) => p.id !== id))
 
   try {
-    await fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAdminHeaders() })
-  } catch (err) {
-    console.warn('Backend delete note:', err)
+    const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAdminHeaders() })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.error || `Server failed to delete product (${res.status})`)
+    }
+  } catch (err: any) {
+    console.error('Backend delete error:', err)
+    throw err
   }
 
   if (isFirebaseConfigured && db) {
@@ -305,9 +312,14 @@ export async function saveCategory(category: Category): Promise<Category> {
     const timeoutPromise = new Promise<Response>((_, reject) =>
       setTimeout(() => reject(new Error('API category save timeout')), 4000)
     )
-    await Promise.race([apiPromise, timeoutPromise])
-  } catch (err) {
-    console.warn('Backend category save note:', err)
+    const res = await Promise.race([apiPromise, timeoutPromise])
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.error || `Failed to save category (${res.status})`)
+    }
+  } catch (err: any) {
+    console.error('Backend category save error:', err)
+    throw err
   }
 
   // 3. Sync to Firestore in background with safety timeout
