@@ -7,6 +7,11 @@
  */
 
 header('Content-Type: application/json; charset=UTF-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+header('X-LiteSpeed-Cache-Control: no-cache');
+header('X-Accel-Expires: 0');
 
 // 1. CORS Configuration
 $allowedOrigins = [

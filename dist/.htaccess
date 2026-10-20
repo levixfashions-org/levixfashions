@@ -22,18 +22,43 @@
   AddType application/javascript .js
 </IfModule>
 
+# Strict Anti-Caching for Dynamic Entry & Service Worker Files
+<IfModule mod_headers.c>
+  # 1. CRITICAL: Never cache Service Worker, register script, manifest, or HTML shell
+  <FilesMatch "(sw\.js|registerSW\.js|index\.html|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # 2. Never cache dynamic PHP API endpoints
+  <FilesMatch "^(index\.php)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # 3. Safe long-term caching for hashed build assets
+  <FilesMatch "\.(css|svg|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
 # Caching Headers
 <IfModule mod_expires.c>
   ExpiresActive On
 
-  # Service Worker and Manifest: do not cache aggressively
+  # Dynamic Entry: Instant revalidation
+  ExpiresByType text/html "access plus 0 seconds"
   ExpiresByType application/manifest+json "access plus 0 seconds"
-  ExpiresByType application/javascript "access plus 1 month"
+
+  # Static assets
   ExpiresByType text/css "access plus 1 month"
   ExpiresByType image/svg+xml "access plus 1 month"
   ExpiresByType image/webp "access plus 1 month"
   ExpiresByType image/jpeg "access plus 1 month"
   ExpiresByType image/png "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>
 
 # Prevent direct directory browsing
