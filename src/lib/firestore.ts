@@ -388,9 +388,14 @@ export async function saveStoreSettings(settings: StoreSettings): Promise<StoreS
     const timeoutPromise = new Promise<Response>((_, reject) =>
       setTimeout(() => reject(new Error('API settings save timeout')), 4000)
     )
-    await Promise.race([apiPromise, timeoutPromise])
-  } catch (err) {
-    console.warn('Backend settings save note:', err)
+    const res = await Promise.race([apiPromise, timeoutPromise])
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.error || `Failed to save store settings (${res.status})`)
+    }
+  } catch (err: any) {
+    console.error('Backend settings save error:', err)
+    throw err
   }
 
   // 3. Sync to Firestore in background
