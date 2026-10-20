@@ -280,29 +280,42 @@ export const ProductDetail: React.FC = () => {
             {/* Thumbnail Strip */}
             {allDisplayImages.length > 1 && (
               <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[620px] scrollbar-none shrink-0">
-                {allDisplayImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setActiveImageIndex(idx)
-                      if (product.colorImages) {
-                        const matchColor = Object.entries(product.colorImages).find(([_, u]) => u === img)?.[0]
-                        if (matchColor) {
-                          const matchingVar = product.variants?.find((v) => v.color === matchColor)
-                          if (matchingVar) setSelectedVariant(matchingVar)
+                {allDisplayImages.map((img, idx) => {
+                  const isFront = activeColorImages?.front === img
+                  const isBack = activeColorImages?.back === img
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setActiveImageIndex(idx)
+                        if (product.colorImages) {
+                          const matchColor = Object.entries(product.colorImages).find(([_, u]) => {
+                            const { front, back } = normalizeColorImages(u)
+                            return front === img || back === img
+                          })?.[0]
+                          if (matchColor) {
+                            const matchingVar = product.variants?.find((v) => v.color === matchColor)
+                            if (matchingVar) setSelectedVariant(matchingVar)
+                          }
                         }
-                      }
-                    }}
-                    className={`relative w-16 h-20 sm:w-20 sm:h-24 bg-levix-gray border overflow-hidden shrink-0 transition-all ${
-                      activeImageIndex === idx
-                        ? 'border-levix-orange ring-1 ring-levix-orange'
-                        : 'border-levix-border hover:border-levix-charcoal'
-                    }`}
-                  >
-                    <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
+                      }}
+                      className={`relative w-16 h-20 sm:w-20 sm:h-24 bg-levix-gray border overflow-hidden shrink-0 transition-all ${
+                        activeImageIndex === idx
+                          ? 'border-levix-orange ring-1 ring-levix-orange'
+                          : 'border-levix-border hover:border-levix-charcoal'
+                      }`}
+                    >
+                      <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      {(isFront || isBack) && (
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.2 bg-black/85 text-white text-[8px] font-mono uppercase tracking-wider font-bold whitespace-nowrap">
+                          {isFront ? 'Front' : 'Back'}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             )}
 
@@ -313,6 +326,40 @@ export const ProductDetail: React.FC = () => {
                 alt={product.name}
                 className="w-full h-full object-cover object-center transition-all duration-300"
               />
+
+              {/* Front / Back View Switcher Toggle for Active Color */}
+              {activeColorImages?.front && activeColorImages?.back && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center bg-white/95 backdrop-blur-xs border border-levix-border shadow-md p-1 gap-1 z-10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = allDisplayImages.indexOf(activeColorImages.front)
+                      if (idx !== -1) setActiveImageIndex(idx)
+                    }}
+                    className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                      allDisplayImages[activeImageIndex] === activeColorImages.front
+                        ? 'bg-levix-charcoal text-white'
+                        : 'text-levix-charcoal hover:bg-levix-gray'
+                    }`}
+                  >
+                    Front View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = allDisplayImages.indexOf(activeColorImages.back)
+                      if (idx !== -1) setActiveImageIndex(idx)
+                    }}
+                    className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                      allDisplayImages[activeImageIndex] === activeColorImages.back
+                        ? 'bg-levix-charcoal text-white'
+                        : 'text-levix-charcoal hover:bg-levix-gray'
+                    }`}
+                  >
+                    Back View
+                  </button>
+                </div>
+              )}
 
               {/* Status Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
