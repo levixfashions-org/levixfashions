@@ -19,6 +19,17 @@ import { formatPrice, paiseToRupees, rupeesToPaise } from '../../lib/utils'
 import type { Product, ProductVariant } from '../../types/product'
 import { compressAndProcessImage, processMultipleImages } from '../../lib/imageUpload'
 
+export const DEFAULT_PRODUCT_BULLETS = [
+  '• 100% Premium Heavyweight Combed Cotton (240+ GSM)',
+  '• Architectural relaxed boxy fit with dropped shoulders',
+  '• High-density reinforced ribbed crewneck collar resists stretching',
+  '• Pre-shrunk & bio-washed fabric for an ultra-soft luxury hand feel',
+  '• Breathable, moisture-wicking all-day comfort for all seasons',
+  '• Precision double-needle tonal edge stitching on cuffs and hem',
+  '• Designed and crafted for minimalist daily luxury streetwear',
+  '• Machine wash cold inside out, gentle cycle, dry flat',
+].join('\n')
+
 export const AdminProducts: React.FC = () => {
   const { products, categories, addProductOrUpdate, removeProduct } = useStore()
   const [search, setSearch] = useState('')
@@ -82,8 +93,8 @@ export const AdminProducts: React.FC = () => {
     setEditingProduct(null)
     setName('')
     setSlug('')
-    setDescription('')
-    setShortDescription('')
+    setDescription(DEFAULT_PRODUCT_BULLETS)
+    setShortDescription('100% Premium Heavyweight Combed Cotton (240+ GSM)')
     setSku(`LVX-${Date.now().toString().slice(-4)}`)
     const tShirtCat = categories.find((c) => c.slug === 't-shirts') || categories[0]
     setCategoryId(tShirtCat?.id || '')
