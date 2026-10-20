@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, Plus, Check } from 'lucide-react'
 import type { Product } from '../../types/product'
-import { formatPrice } from '../../lib/utils'
+import { formatPrice, normalizeColorImages } from '../../lib/utils'
 import { useWishlist } from '../../context/WishlistContext'
 import { useCart } from '../../context/CartContext'
 
