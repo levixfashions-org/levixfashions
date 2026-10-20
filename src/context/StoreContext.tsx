@@ -116,6 +116,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         channel = new BroadcastChannel('levix_store_sync')
         channel.onmessage = (event) => {
           if (event.data?.type === 'PRODUCTS_UPDATED' && Array.isArray(event.data.products)) {
+            invalidateProductsCache()
             setProducts(event.data.products)
           } else if (event.data?.type === 'CATEGORIES_UPDATED' && Array.isArray(event.data.categories)) {
             setCategories(event.data.categories)
@@ -181,9 +182,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }
 
   const addProductOrUpdate = async (productData: Partial<Product> & { name: string }) => {
-    const saved = await saveProduct(productData)
+    // 1. Optimistic instant local update in 0ms so price/cost changes reflect without lag
+    const tempId = productData.id || `prod-${Date.now()}`
     setProducts((prev) => {
-      const next = [saved, ...prev.filter((p) => p.id !== saved.id)]
+      const exists = prev.some((p) => p.id === tempId)
+      const next = exists
+        ? prev.map((p) => (p.id === tempId ? ({ ...p, ...productData } as Product) : p))
+        : [{ ...productData, id: tempId } as Product, ...prev]
       try {
         if ('BroadcastChannel' in window) {
           const ch = new BroadcastChannel('levix_store_sync')
@@ -193,11 +198,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch {}
       return next
     })
+
+    // 2. Persist to authoritative backend API
+    const saved = await saveProduct(productData)
+    setProducts((prev) => {
+      const next = [saved, ...prev.filter((p) => p.id !== saved.id)]
+      return next
+    })
     return saved
   }
 
   const removeProduct = async (id: string) => {
-    await deleteProduct(id)
+    // 1. Optimistic removal in 0ms
     setProducts((prev) => {
       const next = prev.filter((p) => p.id !== id)
       try {
@@ -209,6 +221,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch {}
       return next
     })
+
+    // 2. Persist removal to backend
+    await deleteProduct(id)
   }
 
   const addCategoryOrUpdate = async (catData: Category) => {
