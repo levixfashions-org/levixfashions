@@ -855,8 +855,8 @@ export const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: Size Pills + Add to Bag Button */}
-            <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3">
+            {/* Right: Size Pills + Quantity + Add to Bag Button */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
               {/* Quick Size Pills */}
               {uniqueSizes.length > 1 && (
                 <div className="flex items-center gap-1 overflow-x-auto py-0.5">
@@ -888,6 +888,31 @@ export const ProductDetail: React.FC = () => {
                   })}
                 </div>
               )}
+
+              {/* Quantity Stepper */}
+              <div className="flex items-center border border-levix-border bg-white shrink-0 h-8">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  disabled={quantity <= 1 || isOutOfStock}
+                  className="px-2.5 h-full hover:bg-levix-gray text-levix-charcoal disabled:opacity-40 flex items-center justify-center transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+                <span className="w-7 text-center text-xs font-bold text-levix-charcoal select-none">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(currentStock, q + 1))}
+                  disabled={quantity >= currentStock || isOutOfStock}
+                  className="px-2.5 h-full hover:bg-levix-gray text-levix-charcoal disabled:opacity-40 flex items-center justify-center transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
 
               {/* Add to Bag Action Button */}
               <button
