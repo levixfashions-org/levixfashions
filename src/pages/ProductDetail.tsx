@@ -49,6 +49,52 @@ export const ProductDetail: React.FC = () => {
     return Array.from(new Set(sizes))
   }, [product?.variants])
 
+  // Parse editorial description into clean luxury bullet points (7 to 8 points)
+  const descriptionBullets = useMemo(() => {
+    if (!product?.description) return []
+    const raw = product.description.trim()
+
+    // 1. If line breaks exist (one bullet per line)
+    const lines = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+
+    if (lines.length > 1) {
+      return lines.map((line) => line.replace(/^[•\-*–—\d.)\]]+\s*/, '').trim()).filter(Boolean)
+    }
+
+    // 2. If bullet symbol (•) is used as separator within a single line
+    if (raw.includes('•')) {
+      const parts = raw
+        .split('•')
+        .map((p) => p.trim())
+        .filter(Boolean)
+      if (parts.length > 1) return parts
+    }
+
+    // 3. If hyphen or asterisk is used as bullet separator
+    if (raw.includes(' - ')) {
+      const parts = raw
+        .split(/\s+-\s+/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+      if (parts.length > 1) return parts
+    }
+
+    // 4. If long continuous paragraph, split by full sentences to create clean points
+    const sentences = raw
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 8)
+
+    if (sentences.length >= 2) {
+      return sentences
+    }
+
+    return [raw]
+  }, [product?.description])
+
   // Extract all images including color-assigned images
   const allDisplayImages = useMemo(() => {
     if (!product) return []
@@ -303,10 +349,29 @@ export const ProductDetail: React.FC = () => {
               </p>
             </div>
 
-            {/* Short Description */}
-            <p className="text-xs sm:text-sm text-levix-charcoal/80 leading-relaxed">
-              {product.description}
-            </p>
+            {/* Short Description / Editorial Bullet Points */}
+            {descriptionBullets.length > 1 ? (
+              <div className="space-y-2.5 py-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-levix-orange" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-levix-orange font-bold">
+                    Garment Highlights & Fit Specs
+                  </span>
+                </div>
+                <ul className="space-y-2 text-xs sm:text-sm text-levix-charcoal/90 leading-relaxed">
+                  {descriptionBullets.map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-levix-orange mt-1.5 shrink-0" />
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-xs sm:text-sm text-levix-charcoal/80 leading-relaxed">
+                {product?.description}
+              </p>
+            )}
 
             {/* Variant Selectors (Size / Color) */}
             {product.hasVariants && product.variants && product.variants.length > 0 && (
