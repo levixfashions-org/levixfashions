@@ -9,6 +9,11 @@ export interface ProductVariant {
   imageUrl?: string // color or variant specific photo
 }
 
+export interface ColorImages {
+  front?: string
+  back?: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -19,7 +24,7 @@ export interface Product {
   categoryId: string
   categoryName: string
   images: string[]
-  colorImages?: Record<string, string> // maps color name to image URL
+  colorImages?: Record<string, string | string[] | ColorImages> // maps color name to front/back image URLs
   price: number // in integer paise (e.g. 299900 = ₹2,999)
   salePrice?: number | null // in integer paise
   stock: number
