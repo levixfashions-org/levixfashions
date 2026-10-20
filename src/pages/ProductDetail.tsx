@@ -253,7 +253,7 @@ export const ProductDetail: React.FC = () => {
     .slice(0, 4)
 
   return (
-    <div className="bg-white min-h-screen py-8 sm:py-14">
+    <div className="bg-white min-h-screen pt-8 sm:pt-14 pb-28 sm:pb-32">
       <SEO
         title={product.seoTitle || product.name}
         description={product.seoDescription || product.shortDescription}
