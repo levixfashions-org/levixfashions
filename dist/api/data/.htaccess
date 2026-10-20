@@ -1,0 +1,2 @@
+# Block all direct web access to data directory
+Require all denied

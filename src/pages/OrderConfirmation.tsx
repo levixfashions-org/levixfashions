@@ -85,9 +85,17 @@ export const OrderConfirmation: React.FC = () => {
               </p>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-levix-gray border border-levix-border text-xs font-mono font-bold text-levix-charcoal">
-              <span>Order Number:</span>
-              <span className="text-levix-orange">{order.orderNumber}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-levix-gray border border-levix-border text-xs font-mono font-bold text-levix-charcoal">
+                <span>Order Number:</span>
+                <span className="text-levix-orange">{order.orderNumber}</span>
+              </div>
+              {order.trackingToken && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-levix-gray border border-levix-border text-xs font-mono font-bold text-levix-charcoal" title="Save this private tracking token to look up your order as a guest.">
+                  <span>Tracking Token:</span>
+                  <span className="text-levix-charcoal font-normal select-all">{order.trackingToken}</span>
+                </div>
+              )}
             </div>
           </div>
 

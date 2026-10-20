@@ -75,39 +75,108 @@ app.use(rateLimiter(120, 60000))
 // 3. Admin Authentication & Authorization Middleware
 const ADMIN_EMAIL = (process.env.VITE_ADMIN_EMAIL || 'levixfashions@gmail.com').toLowerCase().trim()
 const ADMIN_SECRET = process.env.ADMIN_SECRET_KEY || 'levix_admin_auth_sec_2026'
+const ADMIN_UIDS = (process.env.ADMIN_UIDS || '').split(',').map((u) => u.trim()).filter(Boolean)
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'levix-fb261'
 
-function verifyAdminCaller(req) {
-  const authHeader = req.headers['authorization'] || ''
-  const adminKey = req.headers['x-admin-key'] || ''
+let cachedGoogleCerts = null
+let cachedGoogleCertsTime = 0
 
-  if (adminKey && (adminKey === ADMIN_SECRET || adminKey === 'levix_admin_auth_sec_2026')) {
+async function getGooglePublicCerts() {
+  if (cachedGoogleCerts && Date.now() - cachedGoogleCertsTime < 3600000) {
+    return cachedGoogleCerts
+  }
+  try {
+    const res = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
+    if (res.ok) {
+      cachedGoogleCerts = await res.json()
+      cachedGoogleCertsTime = Date.now()
+      return cachedGoogleCerts
+    }
+  } catch (err) {
+    console.warn('Could not fetch Google public certs:', err.message)
+  }
+  return cachedGoogleCerts || {}
+}
+
+async function verifyFirebaseTokenNode(token) {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'))
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
+
+    if (header.alg !== 'RS256' || !header.kid) return null
+
+    const certs = await getGooglePublicCerts()
+    const cert = certs[header.kid]
+    if (!cert) return null
+
+    const verifier = crypto.createVerify('RSA-SHA256')
+    verifier.update(`${parts[0]}.${parts[1]}`)
+    const sigBuf = Buffer.from(parts[2], 'base64url')
+    const isValid = verifier.verify(cert, sigBuf)
+    if (!isValid) return null
+
+    const now = Math.floor(Date.now() / 1000)
+    if (!payload.exp || payload.exp <= now) return null
+    if (payload.iat && payload.iat > now + 300) return null
+    if (PROJECT_ID) {
+      if (payload.aud !== PROJECT_ID) return null
+      if (payload.iss !== `https://securetoken.google.com/${PROJECT_ID}`) return null
+    }
+    if (!payload.sub) return null
+
+    return payload
+  } catch {
+    return null
+  }
+}
+
+async function verifyAdminCaller(req) {
+  const secretKey = process.env.ADMIN_SECRET_KEY || 'levix_admin_auth_sec_2026'
+
+  // 1. Direct X-Admin-Key header check
+  const adminKeyHeader = req.headers['x-admin-key']
+  if (adminKeyHeader && adminKeyHeader === secretKey) {
     return true
   }
 
+  // 2. Token extraction from Authorization or X-Firebase-Token
+  const authHeader = req.headers['authorization'] || ''
+  let token = ''
   if (authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice(7).trim()
-    if (token === ADMIN_SECRET || token === 'levix_admin_auth_sec_2026') {
+    token = authHeader.slice(7).trim()
+  } else if (req.headers['x-firebase-token']) {
+    token = String(req.headers['x-firebase-token']).trim()
+  }
+
+  if (!token) return false
+
+  // Secure configured server secret
+  if (secretKey && token === secretKey) {
+    return true
+  }
+
+  // Cryptographically verify token
+  const payload = await verifyFirebaseTokenNode(token)
+  if (!payload) return false
+
+  if (payload.admin === true) return true
+  if (ADMIN_UIDS.length > 0 && ADMIN_UIDS.includes(payload.sub)) return true
+  if (payload.email) {
+    const email = payload.email.toLowerCase().trim()
+    const allowed = ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    allowed.push('levixfashions@gmail.com')
+    if (allowed.includes(email)) {
       return true
     }
-    // Attempt decoding Firebase JWT payload
-    try {
-      const parts = token.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'))
-        if (
-          (payload.email && payload.email.toLowerCase() === ADMIN_EMAIL) ||
-          payload.admin === true
-        ) {
-          return true
-        }
-      }
-    } catch {}
   }
+
   return false
 }
 
-function requireAdmin(req, res, next) {
-  if (verifyAdminCaller(req)) {
+async function requireAdmin(req, res, next) {
+  if (await verifyAdminCaller(req)) {
     return next()
   }
   return res.status(401).json({
@@ -153,7 +222,9 @@ app.use('/uploads', express.static(UPLOADS_DIR))
 function readStoredProducts() {
   try {
     if (fs.existsSync(PRODUCTS_FILE)) {
-      return JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'))
+      const parsed = JSON.parse(fs.readFileSync(PRODUCTS_FILE, 'utf8'))
+      if (Array.isArray(parsed)) return parsed
+      if (parsed && typeof parsed === 'object') return [parsed]
     }
   } catch (err) {
     console.warn('Error reading products.json:', err)
@@ -172,7 +243,9 @@ function writeStoredProducts(products) {
 function readStoredOrders() {
   try {
     if (fs.existsSync(ORDERS_FILE)) {
-      return JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'))
+      const parsed = JSON.parse(fs.readFileSync(ORDERS_FILE, 'utf8'))
+      if (Array.isArray(parsed)) return parsed
+      if (parsed && typeof parsed === 'object') return [parsed]
     }
   } catch (err) {
     console.warn('Error reading orders.json:', err)
@@ -615,7 +688,8 @@ app.post('/api/orders/create', rateLimiter(20, 60000), async (req, res) => {
       return res.status(400).json({ error: 'Valid shipping address is required.' })
     }
 
-    if (!customerEmail || !customerEmail.includes('@')) {
+    const effectiveEmail = customerEmail || shippingAddress.email
+    if (!effectiveEmail || !effectiveEmail.includes('@')) {
       return res.status(400).json({ error: 'Valid customer email is required.' })
     }
 
@@ -675,7 +749,18 @@ app.post('/api/orders/create', rateLimiter(20, 60000), async (req, res) => {
     const FREE_SHIPPING_THRESHOLD = 199900
     const STANDARD_SHIPPING_FEE = 14900
     const shippingFee = calculatedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE
-    const total = calculatedSubtotal + shippingFee
+
+    // Coupon calculation
+    const couponCode = (req.body.couponCode || '').toString().trim().toUpperCase()
+    let discount = 0
+    if (couponCode) {
+      if (couponCode === 'LEVIX10' || couponCode === 'WELCOME10') {
+        discount = Math.round((calculatedSubtotal * 10) / 100)
+      } else if (couponCode === 'LEVIX15') {
+        discount = Math.round((calculatedSubtotal * 15) / 100)
+      }
+    }
+    const total = Math.max(0, calculatedSubtotal + shippingFee - discount)
 
     // Generate unique order number
     const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '')
@@ -704,19 +789,35 @@ app.post('/api/orders/create', rateLimiter(20, 60000), async (req, res) => {
       }
     }
 
+    // Cryptographic user binding or guest tracking
+    let finalCustomerUid = 'guest'
+    let finalCustomerEmail = customerEmail
+    const authHeader = req.headers['authorization'] || ''
+    if (authHeader.startsWith('Bearer ')) {
+      const verified = await verifyFirebaseTokenNode(authHeader.slice(7).trim())
+      if (verified && verified.sub) {
+        finalCustomerUid = verified.sub
+        if (verified.email) finalCustomerEmail = verified.email
+      }
+    }
+
+    const trackingToken = crypto.randomBytes(16).toString('hex')
+
     // Construct order record
     const orderRecord = {
       id: orderId,
       orderNumber,
-      customerUid: customerUid || 'guest',
-      customerEmail,
+      customerUid: finalCustomerUid,
+      trackingToken,
+      customerEmail: finalCustomerEmail,
       customerName: customerName || shippingAddress.fullName,
       items: validatedItems,
       shippingAddress,
       subtotal: calculatedSubtotal,
       shippingFee,
-      discount: 0,
+      discount,
       total,
+      couponCode: couponCode || null,
       paymentMethod,
       paymentStatus: paymentMethod === 'cod' ? 'COD unpaid' : 'Pending',
       fulfillmentStatus: paymentMethod === 'cod' ? 'Confirmed' : 'Pending',
@@ -736,6 +837,7 @@ app.post('/api/orders/create', rateLimiter(20, 60000), async (req, res) => {
     return res.status(201).json({
       success: true,
       order: orderRecord,
+      trackingToken,
       razorpayOrderId,
       amount: total,
       currency: 'INR',
@@ -864,33 +966,61 @@ app.get('/api/orders/:id', async (req, res) => {
     return res.status(404).json({ error: 'Order not found' })
   }
 
-  // IDOR & Privacy Protection:
-  const callerUid = req.headers['x-customer-uid']
-  const callerEmail = req.headers['x-customer-email']
-  const isAdmin = verifyAdminCaller(req)
+  // Strict IDOR & Privacy Protection:
+  const isAdmin = await verifyAdminCaller(req)
+  let verifiedCallerUid = null
+  const authHeader = req.headers['authorization'] || ''
+  if (authHeader.startsWith('Bearer ')) {
+    const verified = await verifyFirebaseTokenNode(authHeader.slice(7).trim())
+    if (verified && verified.sub) {
+      verifiedCallerUid = verified.sub
+    }
+  }
 
-  const isOwner =
-    (callerUid && callerUid === order.customerUid) ||
-    (callerEmail && callerEmail.toString().toLowerCase() === order.customerEmail?.toLowerCase())
+  const isOwner = Boolean(verifiedCallerUid && order.customerUid && verifiedCallerUid === order.customerUid)
+  const trackingTokenHeader = req.headers['x-tracking-token'] || req.query.token
+  const hasValidTrackingToken = Boolean(
+    order.trackingToken &&
+    trackingTokenHeader &&
+    trackingTokenHeader === order.trackingToken
+  )
 
-  // Allow guest confirmation page right after placement or authenticated owner or admin
-  if (!isOwner && !isAdmin && order.customerUid !== 'guest') {
+  if (!isOwner && !isAdmin && !hasValidTrackingToken) {
     return res.status(403).json({ error: 'Unauthorized: You do not have permission to view this order.' })
   }
 
   return res.json({ success: true, order })
 })
 
-// Protected Admin: List all orders
-app.get('/api/orders', requireAdmin, async (req, res) => {
+// Customer's own order history: GET /api/orders/mine (H1 & Appendix D)
+app.get('/api/orders/mine', async (req, res) => {
+  const authHeader = req.headers['authorization'] || ''
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' })
+  }
+
+  const verified = await verifyFirebaseTokenNode(authHeader.slice(7).trim())
+  if (!verified || !verified.sub) {
+    return res.status(401).json({ error: 'Invalid authentication session' })
+  }
+
+  const userUid = verified.sub
+  const page = Math.max(1, parseInt(req.query.page) || 1)
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20))
+  const offset = (page - 1) * limit
+
   if (isMySQLConnected()) {
     try {
       const pool = getPool()
-      const [rows] = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 100')
+      const [rows] = await pool.query(
+        'SELECT * FROM orders WHERE customer_uid = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [userUid, limit, offset]
+      )
       const orders = rows.map((r) => ({
         id: r.id,
         orderNumber: r.order_number,
         customerUid: r.customer_uid,
+        trackingToken: r.tracking_token,
         customerEmail: r.customer_email,
         customerName: r.customer_name,
         items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items,
@@ -902,17 +1032,220 @@ app.get('/api/orders', requireAdmin, async (req, res) => {
         paymentMethod: r.payment_method,
         paymentStatus: r.payment_status,
         fulfillmentStatus: r.fulfillment_status,
-        razorpayOrderId: r.razorpay_order_id,
+        courier: r.courier,
+        awb: r.awb,
         createdAt: r.created_at,
         updatedAt: r.updated_at,
       }))
+      return res.json({ success: true, orders })
+    } catch (err) {
+      console.warn('MySQL get customer orders error:', err.message)
+    }
+  }
+
+  const stored = Array.from(ordersDb.values())
+  const filtered = stored.filter((o) => o.customerUid === userUid)
+  res.json({ success: true, orders: filtered.slice(offset, offset + limit) })
+})
+
+// Admin order status update: PUT /api/orders/:id (H1 & Appendix D: State Machine)
+app.put('/api/orders/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params
+  let order = ordersDb.get(id)
+  if (!order) {
+    order = Array.from(ordersDb.values()).find((o) => o.id === id || o.orderNumber === id)
+  }
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const [rows] = await pool.query('SELECT * FROM orders WHERE id = ? OR order_number = ? LIMIT 1', [id, id])
+      if (rows.length > 0) order = rows[0]
+    } catch (e) {}
+  }
+
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' })
+  }
+
+  const cur = order.fulfillment_status || order.fulfillmentStatus
+  const flow = {
+    Pending: ['Confirmed', 'Cancelled'],
+    Confirmed: ['Processing', 'Cancelled'],
+    Processing: ['Shipped', 'Cancelled'],
+    Shipped: ['Delivered', 'Returned'],
+    Delivered: ['Returned'],
+    Cancelled: [],
+    Returned: [],
+  }
+
+  const newFulfillment = req.body.fulfillmentStatus || cur
+  if (req.body.fulfillmentStatus && req.body.fulfillmentStatus !== cur) {
+    const allowed = flow[cur] || []
+    if (!allowed.includes(req.body.fulfillmentStatus)) {
+      return res.status(409).json({ error: `Cannot transition from '${cur}' to '${req.body.fulfillmentStatus}'` })
+    }
+  }
+
+  const newPayment = req.body.paymentStatus || order.payment_status || order.paymentStatus
+  const newCourier = req.body.courier || req.body.tracking?.courierName || order.courier || null
+  const newAwb = req.body.awb || req.body.tracking?.trackingNumber || order.awb || null
+  const newNote = req.body.adminNote || req.body.internalNotes || order.admin_note || null
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      await pool.query(
+        'UPDATE orders SET fulfillment_status = ?, payment_status = ?, courier = ?, awb = ?, admin_note = ?, updated_at = NOW() WHERE id = ?',
+        [newFulfillment, newPayment, newCourier, newAwb, newNote, order.id]
+      )
+    } catch (e) {
+      console.warn('MySQL update order error:', e.message)
+    }
+  }
+
+  const cached = ordersDb.get(order.id) || order
+  cached.fulfillmentStatus = newFulfillment
+  cached.paymentStatus = newPayment
+  cached.courier = newCourier
+  cached.awb = newAwb
+  cached.adminNote = newNote
+  cached.updatedAt = new Date().toISOString()
+  await saveOrderRecord(cached)
+
+  res.json({
+    success: true,
+    orderId: order.id,
+    fulfillmentStatus: newFulfillment,
+    paymentStatus: newPayment,
+  })
+})
+
+// Cancel order: POST /api/orders/:id/cancel (H1 & Appendix D)
+app.post('/api/orders/:id/cancel', async (req, res) => {
+  const { id } = req.params
+  let order = ordersDb.get(id)
+
+  if (!order) {
+    return res.status(404).json({ error: 'Order not found' })
+  }
+
+  if (order.fulfillmentStatus === 'Cancelled') {
+    return res.json({ success: true, message: 'Order already cancelled' })
+  }
+
+  order.fulfillmentStatus = 'Cancelled'
+  order.paymentStatus = 'Cancelled'
+  order.updatedAt = new Date().toISOString()
+
+  res.json({ success: true, message: 'Order cancelled successfully' })
+})
+
+// User profile & addresses: GET & PUT /api/me (H1 & Appendix D)
+const userProfilesDb = new Map()
+
+app.get('/api/me', async (req, res) => {
+  const authHeader = req.headers['authorization'] || ''
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' })
+  }
+
+  const verified = await verifyFirebaseTokenNode(authHeader.slice(7).trim())
+  if (!verified || !verified.sub) {
+    return res.status(401).json({ error: 'Invalid authentication session' })
+  }
+
+  const profile = userProfilesDb.get(verified.sub) || {
+    uid: verified.sub,
+    email: verified.email || '',
+    displayName: verified.name || '',
+    phone: '',
+    addresses: [],
+    createdAt: new Date().toISOString(),
+  }
+
+  res.json({ success: true, profile })
+})
+
+app.put('/api/me', async (req, res) => {
+  const authHeader = req.headers['authorization'] || ''
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' })
+  }
+
+  const verified = await verifyFirebaseTokenNode(authHeader.slice(7).trim())
+  if (!verified || !verified.sub) {
+    return res.status(401).json({ error: 'Invalid authentication session' })
+  }
+
+  const existing = userProfilesDb.get(verified.sub) || { uid: verified.sub, email: verified.email || '' }
+  const updated = {
+    ...existing,
+    displayName: req.body.displayName || existing.displayName,
+    phone: req.body.phone !== undefined ? req.body.phone : existing.phone,
+    addresses: req.body.addresses || existing.addresses || [],
+    updatedAt: new Date().toISOString(),
+  }
+  userProfilesDb.set(verified.sub, updated)
+
+  res.json({ success: true, profile: updated })
+})
+
+// Protected Admin: List all orders
+app.get('/api/orders', requireAdmin, async (req, res) => {
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const [rows] = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 100')
+      const orders = rows.map((r) => {
+        const shipping = typeof r.shipping_address === 'string' ? JSON.parse(r.shipping_address) : (r.shipping_address || {})
+        const items = typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || [])
+        return {
+          id: r.id,
+          orderNumber: r.order_number,
+          customerUid: r.customer_uid,
+          trackingToken: r.tracking_token || '',
+          customerEmail: r.customer_email || (shipping.email || ''),
+          customerName: r.customer_name || (shipping.fullName || 'Customer'),
+          items,
+          shippingAddress: shipping,
+          subtotal: Number(r.subtotal),
+          shippingFee: Number(r.shipping_fee),
+          discount: Number(r.discount),
+          total: Number(r.total),
+          couponCode: r.coupon_code || null,
+          paymentMethod: r.payment_method,
+          paymentStatus: r.payment_status,
+          fulfillmentStatus: r.fulfillment_status,
+          tracking: {
+            courierName: r.courier || '',
+            trackingNumber: r.awb || '',
+            trackingUrl: r.awb ? `https://track.example.com/${r.awb}` : '',
+          },
+          internalNotes: r.admin_note || '',
+          courier: r.courier || null,
+          awb: r.awb || null,
+          adminNote: r.admin_note || null,
+          razorpayOrderId: r.razorpay_order_id,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }
+      })
       return res.json({ success: true, orders })
     } catch (err) {
       console.warn('MySQL get all orders error:', err.message)
     }
   }
 
-  const stored = readStoredOrders()
+  const stored = Array.from(ordersDb.values()).map((r) => ({
+    ...r,
+    tracking: r.tracking || {
+      courierName: r.courier || '',
+      trackingNumber: r.awb || '',
+      trackingUrl: r.awb ? `https://track.example.com/${r.awb}` : '',
+    },
+    internalNotes: r.internalNotes || r.adminNote || '',
+  }))
   res.json({ success: true, orders: stored })
 })
 

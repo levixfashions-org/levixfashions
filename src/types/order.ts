@@ -54,6 +54,7 @@ export interface Order {
   id: string
   orderNumber: string
   customerUid: string
+  trackingToken?: string
   customerEmail: string
   customerName: string
   items: OrderItemSnapshot[]

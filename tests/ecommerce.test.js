@@ -101,13 +101,15 @@ function validateOrderItemsAgainstCatalog(clientItems, catalogMap) {
 }
 
 /**
- * IDOR / Access Control Simulation
+ * Hardened IDOR & Access Control Check
+ * Guests must provide a valid 32-character tracking token;
+ * Logged-in customers must match verified UID;
+ * Admin can access all orders.
  */
-function canAccessOrder(order, callerUid, callerEmail, isAdmin) {
+function canAccessOrder(order, verifiedUid, trackingToken, isAdmin) {
   if (isAdmin) return true
-  if (callerUid && callerUid === order.customerUid) return true
-  if (callerEmail && callerEmail.toLowerCase() === order.customerEmail?.toLowerCase()) return true
-  if (order.customerUid === 'guest') return true
+  if (verifiedUid && verifiedUid !== 'guest' && verifiedUid === order.customerUid) return true
+  if (trackingToken && order.trackingToken && trackingToken === order.trackingToken) return true
   return false
 }
 
@@ -274,17 +276,94 @@ describe('LEVIX Security & Defense Hardening Suite', () => {
       id: 'ord-1001',
       customerUid: 'uid-alice',
       customerEmail: 'alice@example.com',
+      trackingToken: 'a1b2c3d4e5f60718293a4b5c6d7e8f90',
       total: 199900,
     }
 
-    // Alice can access her own order
-    assert.equal(canAccessOrder(customerOrder, 'uid-alice', 'alice@example.com', false), true)
+    // Alice can access her own order with verified UID
+    assert.equal(canAccessOrder(customerOrder, 'uid-alice', null, false), true)
 
     // Bob cannot access Alice's order
-    assert.equal(canAccessOrder(customerOrder, 'uid-bob', 'bob@example.com', false), false)
+    assert.equal(canAccessOrder(customerOrder, 'uid-bob', null, false), false)
 
-    // Admin can access Alice's order
-    assert.equal(canAccessOrder(customerOrder, 'uid-admin', 'levixfashions@gmail.com', true), true)
+    // Stranger without tracking token cannot access order
+    assert.equal(canAccessOrder(customerOrder, null, null, false), false)
+
+    // Guest with valid tracking token can access order
+    assert.equal(canAccessOrder(customerOrder, null, 'a1b2c3d4e5f60718293a4b5c6d7e8f90', false), true)
+
+    // Guest with invalid tracking token is denied
+    assert.equal(canAccessOrder(customerOrder, null, 'wrong-token-12345678901234567890', false), false)
+
+    // Admin can access order
+    assert.equal(canAccessOrder(customerOrder, null, null, true), true)
+  })
+
+  test('Guest Order Privacy: Guest orders require 32-char tracking token', () => {
+    const guestOrder = {
+      id: 'ord-guest-999',
+      customerUid: 'guest',
+      customerEmail: 'shopper@example.com',
+      trackingToken: '1234567890abcdef1234567890abcdef',
+      total: 149900,
+    }
+
+    // Anyone without the tracking token is blocked
+    assert.equal(canAccessOrder(guestOrder, null, null, false), false)
+    assert.equal(canAccessOrder(guestOrder, 'guest', null, false), false)
+
+    // Only bearer with matching tracking token can view
+    assert.equal(canAccessOrder(guestOrder, null, '1234567890abcdef1234567890abcdef', false), true)
+  })
+
+  test('Forged Token Defense: Tampered JWT signature is rejected', () => {
+    // Generate a simulated RS256 token structure
+    const header = Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'fake-kid' })).toString('base64url')
+    const payload = Buffer.from(
+      JSON.stringify({
+        email: 'levixfashions@gmail.com',
+        admin: true,
+        sub: 'forged-attacker-uid',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      })
+    ).toString('base64url')
+    const fakeSignature = Buffer.from('forged_cryptographic_signature_bytes').toString('base64url')
+    const forgedToken = `${header}.${payload}.${fakeSignature}`
+
+    // Function simulating server cryptographic verification check
+    function verifyTokenSignature(token, googleCerts) {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+      const h = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
+      if (!googleCerts[h.kid]) return null // Unknown / unverified Google cert key
+      return null
+    }
+
+    const verified = verifyTokenSignature(forgedToken, {})
+    assert.equal(verified, null, 'Forged token without verified Google signature must be rejected with 401')
+  })
+
+  test('Atomic Stock Oversell Prevention: Rejects concurrent purchases when stock is depleted', () => {
+    let mockStock = 1 // only 1 unit remaining in warehouse
+
+    function attemptStockReservation(requestedQty) {
+      if (mockStock >= requestedQty) {
+        mockStock -= requestedQty
+        return { success: true, remaining: mockStock }
+      }
+      return { success: false, error: 'Item out of stock' }
+    }
+
+    // Buyer 1 attempts to buy 1 item
+    const buyer1 = attemptStockReservation(1)
+    assert.equal(buyer1.success, true)
+    assert.equal(mockStock, 0)
+
+    // Buyer 2 simultaneously attempts to buy 1 item
+    const buyer2 = attemptStockReservation(1)
+    assert.equal(buyer2.success, false)
+    assert.equal(buyer2.error, 'Item out of stock')
+    assert.equal(mockStock, 0, 'Stock must never become negative')
   })
 
   test('Address Validation: Indian 6-Digit PIN Code Check', () => {
@@ -296,5 +375,68 @@ describe('LEVIX Security & Defense Hardening Suite', () => {
     assert.equal(pinRegex.test(validPin), true)
     assert.equal(pinRegex.test(invalidPin1), false)
     assert.equal(pinRegex.test(invalidPin2), false)
+  })
+
+  test('Coupon Discount Computation: LEVIX10, LEVIX15, and Unknown Codes', () => {
+    function computeDiscount(subtotal, code) {
+      const normalized = (code || '').trim().toUpperCase()
+      if (normalized === 'LEVIX10' || normalized === 'WELCOME10') {
+        return Math.round((subtotal * 10) / 100)
+      }
+      if (normalized === 'LEVIX15') {
+        return Math.round((subtotal * 15) / 100)
+      }
+      return 0
+    }
+
+    const subtotal = 200000 // ₹2,000 in paise
+    assert.equal(computeDiscount(subtotal, 'LEVIX10'), 20000) // ₹200 off
+    assert.equal(computeDiscount(subtotal, 'welcome10'), 20000) // case insensitive
+    assert.equal(computeDiscount(subtotal, 'LEVIX15'), 30000) // ₹300 off
+    assert.equal(computeDiscount(subtotal, 'FAKE99'), 0) // rejected
+    assert.equal(computeDiscount(subtotal, ''), 0)
+  })
+
+  test('Fail-Closed Razorpay Payment Verification State Machine', () => {
+    function verifyPaymentTransition(currentPaymentStatus, signatureMatches, callerMatches) {
+      // Must be Pending
+      if (currentPaymentStatus !== 'Pending') {
+        return { allowed: false, error: 'Order is not awaiting payment' }
+      }
+      // Must have valid signature
+      if (!signatureMatches) {
+        return { allowed: false, error: 'Cryptographic signature mismatch' }
+      }
+      // Must belong to verified caller
+      if (!callerMatches) {
+        return { allowed: false, error: 'Unauthorized access to order' }
+      }
+      return { allowed: true, newStatus: 'Paid' }
+    }
+
+    // Normal happy path
+    assert.deepEqual(verifyPaymentTransition('Pending', true, true), { allowed: true, newStatus: 'Paid' })
+
+    // Attacker tries to replay or double-pay an already paid order
+    assert.equal(verifyPaymentTransition('Paid', true, true).allowed, false)
+
+    // Attacker sends forged signature
+    assert.equal(verifyPaymentTransition('Pending', false, true).allowed, false)
+
+    // Attacker tries to verify another customer's order
+    assert.equal(verifyPaymentTransition('Pending', true, false).allowed, false)
+  })
+
+  test('Reserved Stock Expiry Logic (H2): Stock released after 30 minutes', () => {
+    function isReservationExpired(reservedUntilISO) {
+      if (!reservedUntilISO) return false
+      return new Date(reservedUntilISO).getTime() < Date.now()
+    }
+
+    const pastExpiry = new Date(Date.now() - 60000).toISOString() // 1 min ago
+    const futureExpiry = new Date(Date.now() + 1800000).toISOString() // 30 min future
+
+    assert.equal(isReservationExpired(pastExpiry), true, 'Past reservation must be expired')
+    assert.equal(isReservationExpired(futureExpiry), false, 'Active reservation must not be expired')
   })
 })

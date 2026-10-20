@@ -19,10 +19,22 @@ export const Cart: React.FC = () => {
   } = useCart()
 
   const navigate = useNavigate()
-  const [promoCode, setPromoCode] = useState('')
-  const [discountPercent, setDiscountPercent] = useState<number>(0)
+  const [promoCode, setPromoCode] = useState<string>(() => {
+    return typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('levix_applied_coupon') || '' : ''
+  })
+  const [discountPercent, setDiscountPercent] = useState<number>(() => {
+    const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('levix_applied_coupon') || '' : ''
+    if (saved === 'LEVIX10' || saved === 'WELCOME10') return 10
+    if (saved === 'LEVIX15') return 15
+    return 0
+  })
   const [promoError, setPromoError] = useState<string | null>(null)
-  const [promoSuccess, setPromoSuccess] = useState<string | null>(null)
+  const [promoSuccess, setPromoSuccess] = useState<string | null>(() => {
+    const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('levix_applied_coupon') || '' : ''
+    if (saved === 'LEVIX10' || saved === 'WELCOME10') return '10% seasonal discount applied!'
+    if (saved === 'LEVIX15') return '15% VIP discount applied!'
+    return null
+  })
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,17 +42,24 @@ export const Cart: React.FC = () => {
     setPromoSuccess(null)
 
     const code = promoCode.trim().toUpperCase()
-    if (!code) return
+    if (!code) {
+      setDiscountPercent(0)
+      if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('levix_applied_coupon')
+      return
+    }
 
     if (code === 'LEVIX10' || code === 'WELCOME10') {
       setDiscountPercent(10)
       setPromoSuccess('10% seasonal discount applied!')
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('levix_applied_coupon', code)
     } else if (code === 'LEVIX15') {
       setDiscountPercent(15)
       setPromoSuccess('15% VIP discount applied!')
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('levix_applied_coupon', code)
     } else {
       setPromoError('Invalid promo code. Try "LEVIX10" for 10% off.')
       setDiscountPercent(0)
+      if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('levix_applied_coupon')
     }
   }
 

@@ -2,9 +2,14 @@
   RewriteEngine On
   RewriteBase /
 
-  # Ensure HTTPS
-  # RewriteCond %{HTTPS} off
-  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Preserve HTTP Authorization Header for PHP FastCGI/FPM on Hostinger
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Security Rules: Block data files, dotfiles, and sensitive extensions (Appendix C)
+  RewriteRule ^api/data/ - [F,L]
+  RewriteRule (^|/)\. - [F,L]
+  RewriteRule \.(env|sql|log|bak|json\.bak)$ - [F,L]
 
   # Don't rewrite real files or directories
   RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -15,11 +20,33 @@
   RewriteRule ^ index.html [L]
 </IfModule>
 
+# Preserve Authorization header when mod_setenvif is enabled
+<IfModule mod_setenvif.c>
+  SetEnvIfNoCase Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# Block sensitive and hidden files
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+<FilesMatch "\.(env|sql|log|bak|ini|lock|md)$">
+  Require all denied
+</FilesMatch>
+
 # Correct MIME Types
 <IfModule mod_mime.c>
   AddType application/manifest+json .webmanifest
   AddType image/svg+xml .svg
   AddType application/javascript .js
+</IfModule>
+
+# Security Headers (Appendix C & Section 3)
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com; frame-src https://api.razorpay.com https://checkout.razorpay.com; connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://api.razorpay.com https://thelevix.shop http://localhost:5000 http://localhost:5173"
 </IfModule>
 
 # Strict Anti-Caching for Dynamic Entry & Service Worker Files

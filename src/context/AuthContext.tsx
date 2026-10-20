@@ -14,11 +14,11 @@ import type { UserProfile, SavedAddress } from '../types/user'
 
 export const checkIsAdminEmail = (email?: string | null): boolean => {
   if (!email) return false
-  const configured = (import.meta.env.VITE_ADMIN_EMAIL || 'levixfashions@gmail.com').toLowerCase().trim()
+  const configuredRaw = (import.meta.env.VITE_ADMIN_EMAIL || 'levixfashions@gmail.com').toLowerCase().trim()
+  const allowed = configuredRaw.split(',').map((e: string) => e.trim()).filter(Boolean)
+  allowed.push('levixfashions@gmail.com')
   const lower = email.toLowerCase().trim()
-  if (configured && lower === configured) return true
-  if (lower === 'levixfashions@gmail.com') return true
-  return false
+  return allowed.includes(lower)
 }
 
 interface AuthContextType {
@@ -42,29 +42,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    try {
-      // Only permit initial local flag if Firebase is NOT configured (demo/offline dev mode)
-      return !isFirebaseConfigured && localStorage.getItem('levix_admin_auth') === 'true'
-    } catch {
-      return false
-    }
-  })
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    try {
-      if (!isFirebaseConfigured && localStorage.getItem('levix_admin_auth') === 'true') {
-        return {
-          uid: 'admin-owner',
-          email: 'levixfashions@gmail.com',
-          displayName: 'Levix Admin',
-          role: 'admin',
-          addresses: [],
-          createdAt: new Date().toISOString(),
-        }
-      }
-    } catch {}
-    return null
-  })
+  const [isAdmin, setIsAdmin] = useState<boolean>(false)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const isDemoAuth = Boolean(!isFirebaseConfigured)
 
@@ -80,12 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (user) {
           const isAuthorizedAdmin = checkIsAdminEmail(user.email)
 
-          if (isAuthorizedAdmin) {
-            setIsAdmin(true)
-            try {
-              localStorage.setItem('levix_admin_auth', 'true')
-            } catch {}
-          }
+          let isCustomClaimAdmin = false
+          try {
+            const tokenResult = await user.getIdTokenResult()
+            isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
+          } catch {}
+
+          const adminStatus = isAuthorizedAdmin || isCustomClaimAdmin
+          setIsAdmin(adminStatus)
 
           let profile: UserProfile | null = null
           try {
@@ -98,36 +79,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profile = {
               uid: user.uid,
               email: user.email || '',
-              displayName: user.displayName || user.email?.split('@')[0] || (isAuthorizedAdmin ? 'Levix Admin' : 'Customer'),
-              role: isAuthorizedAdmin ? 'admin' : 'customer',
+              displayName: user.displayName || user.email?.split('@')[0] || (adminStatus ? 'Levix Admin' : 'Customer'),
+              role: adminStatus ? 'admin' : 'customer',
               addresses: [],
               createdAt: new Date().toISOString(),
             }
             saveUserProfile(profile).catch(() => {})
           }
 
-          let isCustomClaimAdmin = false
-          try {
-            const tokenResult = await user.getIdTokenResult()
-            isCustomClaimAdmin = Boolean(tokenResult.claims.admin)
-          } catch {}
-
-          const adminStatus = isAuthorizedAdmin || isCustomClaimAdmin || profile.role === 'admin'
-          setIsAdmin(adminStatus)
           setUserProfile({ ...profile, role: adminStatus ? 'admin' : 'customer' })
-
-          if (adminStatus) {
-            try {
-              localStorage.setItem('levix_admin_auth', 'true')
-            } catch {}
-          }
         } else {
           // If no active Firebase user, clear profile and admin privileges
           setUserProfile(null)
           setIsAdmin(false)
-          try {
-            localStorage.removeItem('levix_admin_auth')
-          } catch {}
         }
       } catch (err) {
         console.warn('onAuthStateChanged error handled safely:', err)
@@ -145,12 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const res = await signInWithEmailAndPassword(auth, email, pass)
     const isUserAdmin = checkIsAdminEmail(res.user.email)
-    if (isUserAdmin) {
-      setIsAdmin(true)
-      try {
-        localStorage.setItem('levix_admin_auth', 'true')
-      } catch {}
-    }
+    setIsAdmin(isUserAdmin)
     return isUserAdmin
   }
 
@@ -180,12 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     await saveUserProfile(newProfile)
     setUserProfile(newProfile)
-    if (isUserAdmin) {
-      setIsAdmin(true)
-      try {
-        localStorage.setItem('levix_admin_auth', 'true')
-      } catch {}
-    }
+    setIsAdmin(isUserAdmin)
   }
 
   const loginWithGoogle = async (): Promise<boolean> => {
@@ -194,18 +148,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     const res = await signInWithPopup(auth, googleProvider)
     const isUserAdmin = checkIsAdminEmail(res.user.email)
-    if (isUserAdmin) {
-      setIsAdmin(true)
-      try {
-        localStorage.setItem('levix_admin_auth', 'true')
-      } catch {}
-    }
+    setIsAdmin(isUserAdmin)
     return isUserAdmin
   }
 
   const logout = async () => {
     try {
-      localStorage.removeItem('levix_admin_auth')
       localStorage.removeItem('levix_demo_user')
     } catch {}
     if (auth && isFirebaseConfigured) {
@@ -228,9 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!userProfile) return
     const updated = { ...userProfile, ...data, updatedAt: new Date().toISOString() }
     setUserProfile(updated)
-    if (isFirebaseConfigured && db && !userProfile.uid.startsWith('demo-')) {
-      await saveUserProfile(updated)
-    }
+    await saveUserProfile(updated)
   }
 
   const saveAddress = async (address: Omit<SavedAddress, 'id'>, editId?: string) => {

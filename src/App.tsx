@@ -20,14 +20,14 @@ import { ProductDetail } from './pages/ProductDetail'
 import { Cart } from './pages/Cart'
 import { NotFound } from './pages/NotFound'
 
-// Admin Pages (Eagerly loaded to prevent dynamic import chunk errors across deployments and ensure 0ms tab switching)
-import { AdminLayout } from './pages/admin/AdminLayout'
-import { AdminLogin } from './pages/admin/AdminLogin'
-import { AdminDashboard } from './pages/admin/AdminDashboard'
-import { AdminProducts } from './pages/admin/AdminProducts'
-import { AdminCategories } from './pages/admin/AdminCategories'
-import { AdminOrders } from './pages/admin/AdminOrders'
-import { AdminSettings } from './pages/admin/AdminSettings'
+// Admin Pages (Code-split with safeLazy to keep customer bundle lean while maintaining resilient chunk reload)
+const AdminLayout = safeLazy(() => import('./pages/admin/AdminLayout').then(m => ({ default: m.AdminLayout })))
+const AdminLogin = safeLazy(() => import('./pages/admin/AdminLogin').then(m => ({ default: m.AdminLogin })))
+const AdminDashboard = safeLazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })))
+const AdminProducts = safeLazy(() => import('./pages/admin/AdminProducts').then(m => ({ default: m.AdminProducts })))
+const AdminCategories = safeLazy(() => import('./pages/admin/AdminCategories').then(m => ({ default: m.AdminCategories })))
+const AdminOrders = safeLazy(() => import('./pages/admin/AdminOrders').then(m => ({ default: m.AdminOrders })))
+const AdminSettings = safeLazy(() => import('./pages/admin/AdminSettings').then(m => ({ default: m.AdminSettings })))
 
 // Resilient Lazy Wrapper that auto-reloads if a new deployment changes chunk hashes
 function safeLazy<T extends React.ComponentType<any>>(
@@ -131,24 +131,24 @@ const router = createBrowserRouter([
   // Admin Login (Standalone)
   {
     path: '/admin/login',
-    element: <AdminLogin />,
+    element: withSuspense(AdminLogin),
     errorElement: <RouteErrorBoundary />,
   },
-  // Protected Admin Management Area (Eagerly loaded for instant 0ms switching and no chunk errors)
+  // Protected Admin Management Area (Lazy chunked with safeLazy retry protection)
   {
     path: '/admin',
     element: (
       <AdminRoute>
-        <AdminLayout />
+        {withSuspense(AdminLayout)}
       </AdminRoute>
     ),
     errorElement: <RouteErrorBoundary />,
     children: [
-      { index: true, element: <AdminDashboard /> },
-      { path: 'products', element: <AdminProducts /> },
-      { path: 'categories', element: <AdminCategories /> },
-      { path: 'orders', element: <AdminOrders /> },
-      { path: 'settings', element: <AdminSettings /> },
+      { index: true, element: withSuspense(AdminDashboard) },
+      { path: 'products', element: withSuspense(AdminProducts) },
+      { path: 'categories', element: withSuspense(AdminCategories) },
+      { path: 'orders', element: withSuspense(AdminOrders) },
+      { path: 'settings', element: withSuspense(AdminSettings) },
     ],
   },
   // Wildcard 404

@@ -41,9 +41,10 @@ describe('LEVIX Concurrency & Throughput Benchmark', () => {
 
   test('Admin-to-Storefront Workflow Benchmark (Image Upload, Price Edit, Instant Reflection)', async () => {
     const BASE = 'http://localhost:5000'
+    const testSecret = process.env.ADMIN_SECRET_KEY || 'bench_test_secret_2026'
     const ADMIN_HEADERS = {
       'Content-Type': 'application/json',
-      'x-admin-key': 'levix_admin_auth_sec_2026',
+      'Authorization': `Bearer ${testSecret}`,
     }
 
     try {

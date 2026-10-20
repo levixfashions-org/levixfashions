@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   DollarSign,
@@ -8,23 +8,69 @@ import {
   ArrowRight,
   Plus,
   Package,
+  RefreshCw,
 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../context/StoreContext'
 import { getOrders } from '../../lib/firestore'
 import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order } from '../../types/order'
 
 export const AdminDashboard: React.FC = () => {
+  const { loading: authLoading } = useAuth()
   const { products } = useStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchOrders = useCallback(async (showFullSpinner = false) => {
+    if (showFullSpinner) {
+      setLoading(true)
+    }
+    setRefreshing(true)
+    try {
+      const data = await getOrders()
+      setOrders(data)
+    } catch (err) {
+      console.warn('Dashboard orders fetch error:', err)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [])
 
   useEffect(() => {
-    getOrders().then((data) => {
-      setOrders(data)
-      setLoading(false)
-    })
-  }, [])
+    fetchOrders(orders.length === 0)
+
+    // Listen to real-time order creation across tabs
+    let ch: BroadcastChannel | null = null
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        ch = new BroadcastChannel('levix_store_sync')
+        ch.onmessage = (event) => {
+          if (event.data?.type === 'ORDER_CREATED' || event.data?.type === 'ORDERS_UPDATED') {
+            fetchOrders(false)
+          }
+        }
+      } catch {}
+    }
+
+    // Auto-poll every 12 seconds so new customer purchases appear live
+    const pollInterval = setInterval(() => {
+      fetchOrders(false)
+    }, 12000)
+
+    const onFocus = () => {
+      fetchOrders(false)
+    }
+    window.addEventListener('focus', onFocus)
+
+    return () => {
+      ch?.close()
+      clearInterval(pollInterval)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [fetchOrders])
 
   // Real Metric Calculations
   const totalOrders = orders.length
@@ -67,13 +113,25 @@ export const AdminDashboard: React.FC = () => {
             Real-time performance metrics, orders requiring action, and catalog inventory controls.
           </p>
         </div>
-        <Link
-          to="/admin/products"
-          className="btn-primary py-2 px-4 text-xs uppercase tracking-wider inline-flex items-center gap-2 self-start sm:self-auto shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Add Product</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fetchOrders(true)}
+            disabled={refreshing}
+            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-levix-orange hover:text-levix-orange"
+            title="Refresh dashboard metrics"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-levix-orange' : ''}`} />
+            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          </button>
+          <Link
+            to="/admin/products"
+            className="btn-primary py-2 px-4 text-xs uppercase tracking-wider inline-flex items-center gap-2 self-start sm:self-auto shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Add Product</span>
+          </Link>
+        </div>
       </div>
 
       {/* Zero Products Banner */}
@@ -210,9 +268,9 @@ export const AdminDashboard: React.FC = () => {
                       {order.orderNumber}
                     </td>
                     <td className="py-3 px-3">
-                      <p className="font-semibold text-levix-charcoal">{order.shippingAddress.fullName}</p>
+                      <p className="font-semibold text-levix-charcoal">{order.customerName || order.shippingAddress?.fullName || 'Customer'}</p>
                       <p className="text-[11px] text-levix-secondary truncate max-w-[140px]">
-                        {order.customerEmail}
+                        {order.customerEmail || order.shippingAddress?.email || '—'}
                       </p>
                     </td>
                     <td className="py-3 px-3 text-levix-secondary whitespace-nowrap">

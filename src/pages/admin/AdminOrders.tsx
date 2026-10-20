@@ -1,17 +1,25 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import {
   Search,
   Truck,
   X,
   Save,
+  RefreshCw,
+  AlertTriangle,
+  UserCheck,
 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 import { getOrders, updateOrderFulfillment } from '../../lib/firestore'
 import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order, OrderFulfillmentStatus, OrderPaymentStatus } from '../../types/order'
 
 export const AdminOrders: React.FC = () => {
+  const { currentUser, isAdmin, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date>(() => new Date())
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -28,26 +36,70 @@ export const AdminOrders: React.FC = () => {
   const [internalNotes, setInternalNotes] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const fetchOrders = () => {
-    getOrders().then((data) => {
+  const fetchOrders = useCallback(async (showFullSpinner = false) => {
+    if (showFullSpinner) {
+      setLoading(true)
+    }
+    setRefreshing(true)
+    setError(null)
+    try {
+      const data = await getOrders()
       setOrders(data)
+      setLastUpdated(new Date())
+    } catch (err: any) {
+      console.warn('Orders fetch error:', err)
+      setError(err?.message || 'Failed to communicate with order server.')
+    } finally {
       setLoading(false)
-    })
-  }
-
-  useEffect(() => {
-    fetchOrders()
+      setRefreshing(false)
+    }
   }, [])
 
-  // Filter & Search
+  // Initial load and real-time listeners (Loads immediately on mount with zero auth delay)
+  useEffect(() => {
+    fetchOrders(orders.length === 0)
+
+    // 1. Listen for immediate order events from other tabs in this browser
+    let ch: BroadcastChannel | null = null
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        ch = new BroadcastChannel('levix_store_sync')
+        ch.onmessage = (event) => {
+          if (event.data?.type === 'ORDER_CREATED' || event.data?.type === 'ORDERS_UPDATED') {
+            fetchOrders(false)
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Auto-poll every 8 seconds so customer orders from phones & other devices appear live
+    const pollInterval = setInterval(() => {
+      fetchOrders(false)
+    }, 8000)
+
+    // 3. Immediately refresh when tab regains focus
+    const onFocus = () => {
+      fetchOrders(false)
+    }
+    window.addEventListener('focus', onFocus)
+
+    return () => {
+      ch?.close()
+      clearInterval(pollInterval)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [fetchOrders])
+
+  // Filter & Search (Defensive against nulls)
   const filteredOrders = useMemo(() => {
     return orders.filter((o) => {
       const q = search.trim().toLowerCase()
       const matchesSearch =
         !q ||
-        o.orderNumber.toLowerCase().includes(q) ||
-        o.customerEmail.toLowerCase().includes(q) ||
-        o.shippingAddress.fullName.toLowerCase().includes(q)
+        o.orderNumber?.toLowerCase().includes(q) ||
+        o.customerEmail?.toLowerCase().includes(q) ||
+        o.customerName?.toLowerCase().includes(q) ||
+        o.shippingAddress?.fullName?.toLowerCase().includes(q)
 
       const matchesStatus =
         statusFilter === 'all' ||
@@ -62,10 +114,10 @@ export const AdminOrders: React.FC = () => {
     setSelectedOrder(order)
     setNewFulfillmentStatus(order.fulfillmentStatus)
     setNewPaymentStatus(order.paymentStatus)
-    setCourierName(order.tracking?.courierName || 'BlueDart Express')
-    setTrackingNumber(order.tracking?.trackingNumber || '')
+    setCourierName(order.tracking?.courierName || order.courier || 'BlueDart Express')
+    setTrackingNumber(order.tracking?.trackingNumber || order.awb || '')
     setTrackingUrl(order.tracking?.trackingUrl || '')
-    setInternalNotes(order.internalNotes || '')
+    setInternalNotes(order.internalNotes || order.adminNote || '')
     setIsModalOpen(true)
   }
 
@@ -77,6 +129,9 @@ export const AdminOrders: React.FC = () => {
     const updates: Partial<Order> = {
       fulfillmentStatus: newFulfillmentStatus,
       paymentStatus: newPaymentStatus,
+      courier: courierName,
+      awb: trackingNumber,
+      adminNote: internalNotes,
       tracking: {
         courierName,
         trackingNumber,
@@ -87,14 +142,19 @@ export const AdminOrders: React.FC = () => {
       internalNotes,
     }
 
-    await updateOrderFulfillment(selectedOrder.id, updates)
+    try {
+      await updateOrderFulfillment(selectedOrder.id, updates)
 
-    // Update local state
-    setOrders((prev) =>
-      prev.map((o) => (o.id === selectedOrder.id ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o))
-    )
-    setSaving(false)
-    setIsModalOpen(false)
+      // Update local state immediately
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o))
+      )
+      setIsModalOpen(false)
+    } catch (err: any) {
+      alert(`Could not update order: ${err.message || 'Status transition rejected'}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -112,7 +172,60 @@ export const AdminOrders: React.FC = () => {
             Total {orders.length} customer orders recorded.
           </p>
         </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-levix-secondary hidden sm:inline flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
+            <span>Updated {lastUpdated.toLocaleTimeString()}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => fetchOrders(true)}
+            disabled={refreshing}
+            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-levix-orange hover:text-levix-orange"
+            title="Refresh orders list from server"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-levix-orange' : ''}`} />
+            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Warning: Customer Session Detected */}
+      {!isAdmin && currentUser && (
+        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs">
+            <p className="font-bold uppercase tracking-wider text-amber-800">
+              Customer Account Session Active ({currentUser.email})
+            </p>
+            <p className="mt-1">
+              You are currently authenticated in this browser as customer <strong className="font-mono">{currentUser.email}</strong>.
+              Orders are loaded securely using your store administrative key. To perform admin status changes or manage settings with full credentials, please ensure you sign in with the designated store administrator account (<strong className="font-mono">levixfashions@gmail.com</strong>).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-900 flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-bold uppercase tracking-wider text-red-800">Server Communication Warning</p>
+              <p className="mt-1">{error}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => fetchOrders(true)}
+            className="btn-secondary py-1 px-3 text-xs uppercase tracking-wider cursor-pointer hover:border-red-400"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Filters Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -184,16 +297,16 @@ export const AdminOrders: React.FC = () => {
                     {order.orderNumber}
                   </td>
                   <td className="py-3 px-4">
-                    <p className="font-semibold text-levix-charcoal">{order.shippingAddress.fullName}</p>
+                    <p className="font-semibold text-levix-charcoal">{order.customerName || order.shippingAddress?.fullName || 'Customer'}</p>
                     <p className="text-[11px] text-levix-secondary truncate max-w-[140px]">
-                      {order.customerEmail}
+                      {order.customerEmail || order.shippingAddress?.email || '—'}
                     </p>
                   </td>
                   <td className="py-3 px-4 text-levix-secondary whitespace-nowrap">
                     {formatDate(order.createdAt)}
                   </td>
                   <td className="py-3 px-4 font-semibold text-levix-charcoal">
-                    {order.items.reduce((s, i) => s + i.quantity, 0)} pcs
+                    {(Array.isArray(order.items) ? order.items : []).reduce((s, i) => s + (Number(i.quantity) || 1), 0)} pcs
                   </td>
                   <td className="py-3 px-4 font-bold text-levix-charcoal">
                     {formatPrice(order.total)}

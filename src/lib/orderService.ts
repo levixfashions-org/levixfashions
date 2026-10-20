@@ -1,6 +1,7 @@
 import type { Order, PaymentMethod, ShippingAddress, OrderItemSnapshot } from '../types/order'
 import type { CartItem } from '../context/CartContext'
 import type { StoreSettings } from '../types/settings'
+import { auth } from './firebase'
 import { saveOrder } from './firestore'
 import { generateOrderNumber } from './utils'
 
@@ -18,6 +19,7 @@ export interface CheckoutPayload {
   shippingAddress: ShippingAddress
   paymentMethod: PaymentMethod
   settings: StoreSettings
+  couponCode?: string
 }
 
 export interface ProcessOrderResult {
@@ -68,11 +70,21 @@ export async function processCheckoutOrder(
 
   // 2. Try Trusted Backend API first
   let razorpayOrderId: string | undefined = undefined
+  let authoritativeOrder: Order | undefined = undefined
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (auth?.currentUser) {
+      try {
+        const token = await auth.currentUser.getIdToken()
+        headers['Authorization'] = `Bearer ${token}`
+        headers['X-Firebase-Token'] = token
+      } catch {}
+    }
+
     const res = await fetch('/api/orders/create', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         customerUid,
         customerEmail,
@@ -80,51 +92,56 @@ export async function processCheckoutOrder(
         items,
         shippingAddress,
         paymentMethod,
+        couponCode: payload.couponCode || undefined,
       }),
     })
 
     if (res.ok) {
       const data = await res.json()
       razorpayOrderId = data.razorpayOrderId
+      if (data.order) {
+        authoritativeOrder = data.order
+      }
+      if (data.trackingToken && typeof localStorage !== 'undefined') {
+        const tid = authoritativeOrder?.id || orderId
+        localStorage.setItem(`levix_tracking_${tid}`, data.trackingToken)
+      }
+    } else {
+      const errData = await res.json().catch(() => ({}))
+      return { success: false, error: errData.error || 'Failed to place order.' }
     }
-  } catch {
-    // Backend server not currently running locally or deployed statically
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Could not connect to order server. Please check your connection and try again.' }
   }
 
-  // Initial Order Object
-  const order: Order = {
-    id: orderId,
-    orderNumber,
-    customerUid: customerUid || 'guest',
-    customerEmail,
-    customerName,
-    items: snapshots,
-    shippingAddress,
-    subtotal,
-    shippingFee,
-    discount,
-    total,
-    paymentMethod,
-    paymentStatus: paymentMethod === 'cod' ? 'COD unpaid' : 'Pending',
-    fulfillmentStatus: paymentMethod === 'cod' ? 'Confirmed' : 'Pending',
-    razorpayOrderId: razorpayOrderId || `order_${orderNumber.replace(/-/g, '_')}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+  if (!authoritativeOrder) {
+    return { success: false, error: 'Order could not be verified by the server. Please try again.' }
   }
+
+  // Authoritative Order Object strictly from server
+  const order: Order = authoritativeOrder
 
   // 3. Handle Cash on Delivery
   if (paymentMethod === 'cod') {
     if (!settings.codEnabled) {
       return { success: false, error: 'Cash on Delivery is currently disabled by store administrator.' }
     }
-    if (total > settings.maxCodAmount) {
+    if (order.total > settings.maxCodAmount) {
       return {
         success: false,
         error: `Order amount exceeds the maximum allowable limit for Cash on Delivery (₹${settings.maxCodAmount / 100}). Please use Online Payment.`,
       }
     }
 
-    await saveOrder(order)
+    // Broadcast new order creation to open admin tabs
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        const ch = new BroadcastChannel('levix_store_sync')
+        ch.postMessage({ type: 'ORDER_CREATED', orderId: order.id, order })
+        ch.close()
+      } catch {}
+    }
+
     return { success: true, order }
   }
 
@@ -135,36 +152,29 @@ export async function processCheckoutOrder(
     return new Promise((resolve) => {
       // Check if Razorpay SDK script is loaded
       if (typeof window.Razorpay === 'undefined') {
-        // Fallback test mode: simulate payment gateway interaction
-        const confirmed = window.confirm(
-          `[LEVIX Razorpay Secure Test Mode]\n\nOrder Number: ${orderNumber}\nAmount: ₹${(total / 100).toFixed(2)}\n\nClick OK to simulate successful payment authorization, or Cancel to simulate user decline.`
-        )
-
-        if (confirmed) {
-          const paidOrder: Order = {
-            ...order,
-            paymentStatus: 'Paid',
-            fulfillmentStatus: 'Confirmed',
-            razorpayPaymentId: `pay_test_${Date.now()}`,
-            razorpaySignature: 'sig_test_verified',
-            updatedAt: new Date().toISOString(),
-          }
-          saveOrder(paidOrder).then(() => {
-            resolve({ success: true, order: paidOrder })
-          })
-        } else {
-          resolve({ success: false, error: 'Payment was cancelled by the customer.' })
-        }
+        resolve({
+          success: false,
+          error: 'Payment gateway failed to load. Please check your internet connection or use Cash on Delivery.',
+        })
         return
       }
 
       // Initialize Genuine Razorpay Options
+      const keyId = settings.razorpayKeyId || (authoritativeOrder as any)?.razorpayKeyId
+      if (!keyId || keyId.includes('YOUR_') || keyId === 'rzp_test_LEVIX_DEFAULT') {
+        resolve({
+          success: false,
+          error: 'Online payment gateway is not properly configured. Please contact store support or use Cash on Delivery.',
+        })
+        return
+      }
+
       const options = {
-        key: settings.razorpayKeyId || 'rzp_test_LEVIX_DEFAULT',
-        amount: total, // in paise
+        key: keyId,
+        amount: order.total, // in paise
         currency: 'INR',
         name: 'LEVIX',
-        description: `Order ${orderNumber}`,
+        description: `Order ${order.orderNumber}`,
         image: `${window.location.origin}/favicon.svg`,
         order_id: razorpayOrderId,
         prefill: {
@@ -178,33 +188,70 @@ export async function processCheckoutOrder(
         handler: async function (response: any) {
           onPaymentStep?.('verifying')
 
-          // Attempt server-side verification
+          // Strict server-side verification: fail closed
           try {
-            await fetch('/api/orders/verify-razorpay', {
+            const verifyHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+            if (auth?.currentUser) {
+              try {
+                const token = await auth.currentUser.getIdToken()
+                verifyHeaders['Authorization'] = `Bearer ${token}`
+                verifyHeaders['X-Firebase-Token'] = token
+              } catch {}
+            }
+            const trackingToken = typeof localStorage !== 'undefined'
+              ? localStorage.getItem(`levix_tracking_${order.id}`)
+              : null
+
+            const verifyRes = await fetch('/api/orders/verify-razorpay', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: verifyHeaders,
               body: JSON.stringify({
                 orderId: order.id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                trackingToken: trackingToken || undefined,
               }),
             })
-          } catch {
-            // Server offline
-          }
 
-          const confirmedOrder: Order = {
-            ...order,
-            paymentStatus: 'Paid',
-            fulfillmentStatus: 'Confirmed',
-            razorpayPaymentId: response.razorpay_payment_id,
-            razorpaySignature: response.razorpay_signature,
-            updatedAt: new Date().toISOString(),
-          }
+            if (!verifyRes.ok) {
+              const errData = await verifyRes.json().catch(() => ({}))
+              resolve({
+                success: false,
+                error: errData.error || 'Payment verification failed on the server. If money was deducted, it will be refunded or credited.',
+              })
+              return
+            }
 
-          await saveOrder(confirmedOrder)
-          resolve({ success: true, order: confirmedOrder })
+            const verifyData = await verifyRes.json()
+            const confirmedOrder: Order = verifyData.order || {
+              ...order,
+              paymentStatus: 'Paid',
+              fulfillmentStatus: 'Confirmed',
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              updatedAt: new Date().toISOString(),
+            }
+
+            // Broadcast verified online order creation to open admin tabs
+            if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+              try {
+                const ch = new BroadcastChannel('levix_store_sync')
+                ch.postMessage({ type: 'ORDER_CREATED', orderId: confirmedOrder.id, order: confirmedOrder })
+                ch.close()
+              } catch {}
+            }
+
+            resolve({
+              success: true,
+              order: confirmedOrder,
+            })
+          } catch (err: any) {
+            resolve({
+              success: false,
+              error: err.message || 'Network error verifying payment. Please contact customer support.',
+            })
+          }
         },
         modal: {
           ondismiss: function () {

@@ -82,6 +82,8 @@ export const compressAndProcessImage = (
   })
 }
 
+import { getAdminHeaders } from './firestore'
+
 /**
  * Uploads compressed base64 image data to the backend storage endpoint (/api/upload).
  * Returns the permanent static file URL (/uploads/img-*.jpg) or falls back to base64 data URL.
@@ -92,12 +94,10 @@ async function uploadCompressedImage(imageData: string): Promise<string> {
   }
 
   try {
+    const headers = await getAdminHeaders()
     const res = await fetch('/api/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-key': 'levix_admin_auth_sec_2026',
-      },
+      headers,
       body: JSON.stringify({ image: imageData }),
     })
 

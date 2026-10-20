@@ -44,6 +44,16 @@ export const Checkout: React.FC = () => {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [paymentStep, setPaymentStep] = useState<string | null>(null)
 
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(() => {
+    return typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('levix_applied_coupon') : null
+  })
+
+  let discountPercent = 0
+  if (appliedCoupon === 'LEVIX10' || appliedCoupon === 'WELCOME10') discountPercent = 10
+  if (appliedCoupon === 'LEVIX15') discountPercent = 15
+  const discountAmount = Math.round((subtotal * discountPercent) / 100)
+  const finalPayable = Math.max(0, subtotal + shippingFee - discountAmount)
+
   // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0) {
@@ -110,6 +120,7 @@ export const Checkout: React.FC = () => {
           shippingAddress,
           paymentMethod,
           settings,
+          couponCode: appliedCoupon || undefined,
         },
         (step) => {
           if (step === 'awaiting_payment') setPaymentStep('Waiting for payment confirmation...')
@@ -118,6 +129,9 @@ export const Checkout: React.FC = () => {
       )
 
       if (result.success && result.order) {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem('levix_applied_coupon')
+        }
         clearCart()
         navigate(`/order-confirmation/${result.order.id}`)
       } else {
@@ -441,12 +455,19 @@ export const Checkout: React.FC = () => {
                       </span>
                     </div>
 
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Promo Discount ({appliedCoupon})</span>
+                        <span className="font-semibold">-{formatPrice(discountAmount)}</span>
+                      </div>
+                    )}
+
                     <div className="pt-3 border-t border-levix-border flex justify-between items-baseline">
                       <span className="text-xs uppercase font-bold text-levix-charcoal tracking-wider">
                         Total Payable
                       </span>
                       <span className="text-2xl font-black text-levix-charcoal">
-                        {formatPrice(total)}
+                        {formatPrice(finalPayable)}
                       </span>
                     </div>
                   </div>
@@ -467,8 +488,8 @@ export const Checkout: React.FC = () => {
                         <>
                           <span>
                             {paymentMethod === 'razorpay'
-                              ? `Pay ${formatPrice(total)} Online`
-                              : `Confirm Cash on Delivery (${formatPrice(total)})`}
+                              ? `Pay ${formatPrice(finalPayable)} Online`
+                              : `Confirm Cash on Delivery (${formatPrice(finalPayable)})`}
                           </span>
                           <ArrowRight className="w-4 h-4" />
                         </>
