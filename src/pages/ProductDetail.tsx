@@ -607,91 +607,23 @@ export const ProductDetail: React.FC = () => {
               </div>
             )}
 
-            {/* Quantity Selector & Stock Indicator */}
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-4">
-                <span className="text-xs uppercase font-bold tracking-wider text-levix-charcoal">
-                  Quantity:
-                </span>
-                <div className="flex items-center border border-levix-border bg-white">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1 || isOutOfStock}
-                    className="p-2 hover:bg-levix-gray text-levix-charcoal disabled:opacity-40"
-                    aria-label="Decrease quantity"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="w-10 text-center text-xs font-bold text-levix-charcoal">
-                    {quantity}
+            {/* Live Stock Indicator */}
+            <div className="pt-2">
+              <div className="text-xs">
+                {isOutOfStock ? (
+                  <span className="text-red-600 font-semibold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((q) => Math.min(currentStock, q + 1))}
-                    disabled={quantity >= currentStock || isOutOfStock}
-                    className="p-2 hover:bg-levix-gray text-levix-charcoal disabled:opacity-40"
-                    aria-label="Increase quantity"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="text-xs">
-                  {isOutOfStock ? (
-                    <span className="text-red-600 font-semibold flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
-                    </span>
-                  ) : currentStock <= 5 ? (
-                    <span className="text-amber-600 font-semibold">
-                      Low Stock ({currentStock} available)
-                    </span>
-                  ) : (
-                    <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> In Stock & Ready to Ship
-                    </span>
-                  )}
-                </div>
+                ) : currentStock <= 5 ? (
+                  <span className="text-amber-600 font-semibold">
+                    Low Stock ({currentStock} available)
+                  </span>
+                ) : (
+                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> In Stock & Ready to Ship
+                  </span>
+                )}
               </div>
-            </div>
-
-            {/* Action Buttons: Add to Bag, Buy Now, Wishlist */}
-            <div className="space-y-2.5 pt-4">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={isOutOfStock}
-                  onClick={handleAddToCart}
-                  className="flex-1 btn-primary py-4 text-xs uppercase tracking-wider flex items-center justify-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>{isOutOfStock ? 'Currently Unavailable' : 'Add to Bag'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => toggleWishlist(product.id)}
-                  aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                  className="px-4 py-4 border border-levix-border hover:border-levix-orange text-levix-charcoal flex items-center justify-center transition-colors"
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      wishlisted ? 'fill-levix-orange text-levix-orange' : 'text-levix-charcoal'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {!isOutOfStock && (
-                <button
-                  type="button"
-                  onClick={handleBuyNow}
-                  className="w-full btn-secondary py-3.5 text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-levix-charcoal hover:bg-levix-charcoal hover:text-white"
-                >
-                  <Zap className="w-4 h-4 text-levix-orange" />
-                  <span>Instant Buy Now</span>
-                </button>
-              )}
             </div>
 
             {/* Trust Features Bar */}
