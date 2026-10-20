@@ -70,10 +70,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
         />
 
-        {/* Secondary Image on Hover if available */}
-        {product.images[1] && (
+        {/* Secondary Image on Hover if available (e.g. Back view of t-shirt) */}
+        {secondaryImage && (
           <img
-            src={product.images[1]}
+            src={secondaryImage}
             alt={`${product.name} alternate view`}
             loading="lazy"
             className="absolute inset-0 w-full h-full object-cover object-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out"
