@@ -75,13 +75,17 @@ async function checkAndSync() {
 }
 
 console.log('====================================================')
-console.log('  LEVIX Live GitHub Auto-Sync Service Active')
-console.log('  Watching for changes every 10 seconds...')
+console.log('  LEVIX GitHub Deployment Sync Tool')
 console.log('  Repository: https://github.com/levixfashions-org/levixfashions.git')
 console.log('====================================================\n')
 
-// Initial check
-checkAndSync()
+const isWatchMode = process.argv.includes('--watch')
 
-// Loop interval
-setInterval(checkAndSync, CHECK_INTERVAL_MS)
+if (isWatchMode) {
+  console.log('  Watching for changes (run without --watch for one-shot sync)...')
+  checkAndSync()
+  setInterval(checkAndSync, CHECK_INTERVAL_MS)
+} else {
+  console.log('  Executing one-shot sync...')
+  checkAndSync()
+}
