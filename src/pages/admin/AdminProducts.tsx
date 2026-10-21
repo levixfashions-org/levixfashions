@@ -168,7 +168,6 @@ export const AdminProducts: React.FC = () => {
     setShowUrlTextarea(false)
     setIsUploadingImage(false)
     setUploadingColorSide(null)
-    setUploadingColor(null)
     setFormError(null)
     setIsModalOpen(true)
   }
