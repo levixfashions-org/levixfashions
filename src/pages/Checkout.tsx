@@ -133,7 +133,13 @@ export const Checkout: React.FC = () => {
           sessionStorage.removeItem('levix_applied_coupon')
         }
         clearCart()
-        navigate(`/order-confirmation/${result.order.id}`)
+        // Pass order in router state for instant 0ms confirmation without refetching (Fix 4.2)
+        navigate(`/order-confirmation/${result.order.id}`, {
+          state: {
+            order: result.order,
+            trackingToken: (result as any).trackingToken,
+          },
+        })
       } else {
         setCheckoutError(result.error || 'Failed to complete order. Please try again.')
       }
