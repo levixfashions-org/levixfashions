@@ -1,9 +1,7 @@
-import type { Order, PaymentMethod, ShippingAddress, OrderItemSnapshot } from '../types/order'
+import type { Order, PaymentMethod, ShippingAddress } from '../types/order'
 import type { CartItem } from '../context/CartContext'
 import type { StoreSettings } from '../types/settings'
 import { auth } from './firebase'
-import { saveOrder } from './firestore'
-import { generateOrderNumber } from './utils'
 
 declare global {
   interface Window {
@@ -38,37 +36,7 @@ export async function processCheckoutOrder(
     return { success: false, error: 'Shopping bag is empty.' }
   }
 
-  // 1. Independent Trusted Price Calculation in integer paise
-  let subtotal = 0
-  const snapshots: OrderItemSnapshot[] = items.map((item) => {
-    const qty = Math.max(1, Math.floor(Number(item.quantity) || 1))
-    const price = Math.max(0, Math.floor(Number(item.price) || 0))
-    const itemSubtotal = price * qty
-    subtotal += itemSubtotal
-
-    return {
-      productId: item.productId,
-      name: item.name,
-      slug: item.slug,
-      imageUrl: item.imageUrl,
-      sku: item.sku,
-      variantId: item.variantId,
-      variantName: item.variantName,
-      unitPrice: price,
-      quantity: qty,
-      subtotal: itemSubtotal,
-    }
-  })
-
-  const isFreeShipping = subtotal >= settings.freeShippingThreshold
-  const shippingFee = isFreeShipping ? 0 : settings.standardShippingFee
-  const discount = 0
-  const total = subtotal + shippingFee - discount
-
-  const orderId = `ord-${Date.now()}`
-  const orderNumber = generateOrderNumber()
-
-  // 2. Try Trusted Backend API first
+  // 1. Call Trusted Backend API (prices & inventory verified authoritatively on server)
   let razorpayOrderId: string | undefined = undefined
   let authoritativeOrder: Order | undefined = undefined
 
@@ -103,7 +71,7 @@ export async function processCheckoutOrder(
         authoritativeOrder = data.order
       }
       if (data.trackingToken && typeof localStorage !== 'undefined') {
-        const tid = authoritativeOrder?.id || orderId
+        const tid = authoritativeOrder?.id || data.order?.id || ''
         localStorage.setItem(`levix_tracking_${tid}`, data.trackingToken)
       }
     } else {
