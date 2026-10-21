@@ -335,12 +335,9 @@ async function decrementProductStock(items) {
   }
 }
 
-// 8. Order Persistence in Database & Disk
+// 8. Order Persistence in Database (Fix 4.3 - Eliminated orders.json disk writes for security & privacy)
 async function saveOrderRecord(orderRecord) {
   ordersDb.set(orderRecord.id, orderRecord)
-  const stored = readStoredOrders()
-  const updated = [orderRecord, ...stored.filter((o) => o.id !== orderRecord.id)]
-  writeStoredOrders(updated)
 
   if (isMySQLConnected()) {
     try {
