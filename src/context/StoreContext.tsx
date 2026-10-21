@@ -86,6 +86,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [])
 
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
   // Real-time live synchronization across tabs and throttled refresh (Fix 2.1)
   const lastLoad = React.useRef(0)
   const refreshIfStale = useCallback(() => {
