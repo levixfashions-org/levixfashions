@@ -915,11 +915,14 @@ if ($route === 'orders/create' && $method === 'POST') {
         $lineSubtotal = $unitPrice * $qty;
         $calculatedSubtotal += $lineSubtotal;
 
+        $prodImages = json_decode($catalogProd['images'] ?? '[]', true) ?: [];
+        $catalogFirstImage = !empty($prodImages[0]) ? $prodImages[0] : '';
+
         $validatedItems[] = [
             'productId' => $catalogProd['id'],
             'name' => $catalogProd['name'],
             'slug' => $catalogProd['slug'],
-            'imageUrl' => $item['imageUrl'] ?? '',
+            'imageUrl' => $catalogFirstImage, // Strictly server catalog URL (Fix 1 - Section 3.3)
             'sku' => $catalogProd['sku'] ?? '',
             'variantId' => $variantId,
             'variantName' => $item['variantName'] ?? null,
