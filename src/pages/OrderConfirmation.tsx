@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import {
   CheckCircle,
@@ -13,10 +13,27 @@ import type { Order } from '../types/order'
 
 export const OrderConfirmation: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>()
-  const [order, setOrder] = useState<Order | null>(null)
-  const [loading, setLoading] = useState(true)
+  const location = useLocation()
+  const routerOrder = location.state?.order as Order | undefined
+  const [order, setOrder] = useState<Order | null>(routerOrder || null)
+  const [loading, setLoading] = useState<boolean>(!routerOrder)
 
   useEffect(() => {
+    // Fix 4.2: Use order directly from router state for instant 0ms paint without refetching
+    if (routerOrder) {
+      setOrder(routerOrder)
+      setLoading(false)
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#E87524', '#222222', '#FFF5ED', '#F8F8F8'],
+        })
+      } catch {}
+      return
+    }
+
     if (!orderId) return
 
     getOrderById(orderId).then((data) => {
@@ -33,7 +50,7 @@ export const OrderConfirmation: React.FC = () => {
         })
       } catch {}
     })
-  }, [orderId])
+  }, [orderId, routerOrder])
 
   if (loading) {
     return (
