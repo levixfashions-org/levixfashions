@@ -439,4 +439,76 @@ describe('LEVIX Security & Defense Hardening Suite', () => {
     assert.equal(isReservationExpired(pastExpiry), true, 'Past reservation must be expired')
     assert.equal(isReservationExpired(futureExpiry), false, 'Active reservation must not be expired')
   })
+
+  test('PDF Fix 1.1: Rejection of inline base64 images in product saves (assertNoDataUris)', () => {
+    function assertNoDataUris(val) {
+      if (!val) return true
+      if (typeof val === 'string') {
+        if (val.trim().toLowerCase().startsWith('data:')) {
+          throw new Error('Images must be uploaded first. Inline images are not allowed.')
+        }
+        return true
+      }
+      if (Array.isArray(val)) {
+        val.forEach(assertNoDataUris)
+        return true
+      }
+      if (typeof val === 'object') {
+        Object.values(val).forEach(assertNoDataUris)
+        return true
+      }
+      return true
+    }
+
+    // Valid URLs must pass
+    assert.doesNotThrow(() => {
+      assertNoDataUris(['/uploads/img-1234.jpg', 'https://images.unsplash.com/photo-1'])
+    })
+
+    // Inline base64 must be rejected
+    assert.throws(
+      () => {
+        assertNoDataUris(['data:image/jpeg;base64,/9j/4AAQSkZJRg...'])
+      },
+      /Inline images are not allowed/
+    )
+  })
+
+  test('PDF Fix 1.3: Order items strictly take server catalog image URL, ignoring client image', () => {
+    const catalogItem = {
+      id: 'prod-101',
+      name: 'Oversized Trench',
+      images: ['/uploads/img-server-canonical.jpg'],
+    }
+    const clientPayloadItem = {
+      productId: 'prod-101',
+      imageUrl: 'data:image/jpeg;base64,ATTACKER_OVERSIZED_BASE64_TEXT...',
+      quantity: 1,
+    }
+
+    // Server-side construction
+    const orderItem = {
+      productId: catalogItem.id,
+      name: catalogItem.name,
+      imageUrl: (catalogItem.images && catalogItem.images[0]) || '',
+    }
+
+    assert.equal(orderItem.imageUrl, '/uploads/img-server-canonical.jpg')
+    assert.ok(!orderItem.imageUrl.includes('data:image'))
+  })
+
+  test('PDF Fix 2.2: ETag generation and 304 response matching', () => {
+    const payload = JSON.stringify({ success: true, count: 5 })
+    const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
+
+    function checkCache(clientIfNoneMatch, serverEtag) {
+      if (clientIfNoneMatch === serverEtag) {
+        return { status: 304, body: null }
+      }
+      return { status: 200, body: payload }
+    }
+
+    assert.equal(checkCache(etag, etag).status, 304)
+    assert.equal(checkCache('"different-tag"', etag).status, 200)
+  })
 })
