@@ -324,7 +324,7 @@ export async function saveCategory(category: Category): Promise<Category> {
 export async function getStoreSettings(): Promise<StoreSettings> {
   try {
     const res = await Promise.race([
-      fetch(`/api/settings?_t=${Date.now()}`, { cache: 'no-store' }),
+      fetch('/api/settings'),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
