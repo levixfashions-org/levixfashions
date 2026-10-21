@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Heart,
   ShoppingBag,
-  Zap,
   Truck,
   RotateCcw,
   ShieldCheck,
