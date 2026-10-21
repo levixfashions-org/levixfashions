@@ -424,50 +424,159 @@ app.post('/api/upload', requireAdmin, async (req, res) => {
   }
 })
 
-// Products Catalog API: Public GET
-app.get('/api/products', async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-  res.setHeader('Pragma', 'no-cache')
-  res.setHeader('Expires', '0')
+function hasDataUri(val) {
+  if (!val) return false
+  if (typeof val === 'string') return val.trim().startsWith('data:')
+  if (Array.isArray(val)) return val.some(hasDataUri)
+  if (typeof val === 'object') return Object.values(val).some(hasDataUri)
+  return false
+}
+
+// Single Product Detail API: GET /api/products/:slugOrId (Fix 2.2)
+app.get('/api/products/:slugOrId', async (req, res) => {
+  const { slugOrId } = req.params
 
   if (isMySQLConnected()) {
     try {
       const pool = getPool()
-      const [rows] = await pool.query('SELECT * FROM products ORDER BY created_at DESC')
-      const products = rows.map((r) => ({
-        id: r.id,
-        name: r.name,
-        slug: r.slug,
-        description: r.description,
-        shortDescription: r.short_description,
-        sku: r.sku,
-        categoryId: r.category_id,
-        categoryName: r.category_name,
-        images: typeof r.images === 'string' ? JSON.parse(r.images || '[]') : r.images || [],
-        colorImages: typeof r.color_images === 'string' ? JSON.parse(r.color_images || '{}') : r.color_images || {},
-        price: Number(r.price),
-        salePrice: r.sale_price !== null ? Number(r.sale_price) : null,
-        stock: Number(r.stock),
-        hasVariants: Boolean(r.has_variants),
-        variants: typeof r.variants === 'string' ? JSON.parse(r.variants || '[]') : r.variants || [],
-        isPublished: Boolean(r.is_published),
-        isFeatured: Boolean(r.is_featured),
-        isNewArrival: Boolean(r.is_new_arrival),
-        isBestseller: Boolean(r.is_bestseller),
-        details: typeof r.details === 'string' ? JSON.parse(r.details || '{}') : r.details || {},
-        seoTitle: r.seo_title,
-        seoDescription: r.seo_description,
-        createdAt: r.created_at,
-        updatedAt: r.updated_at,
-      }))
-      return res.json({ success: true, source: 'mysql', products })
+      const [rows] = await pool.query(
+        'SELECT * FROM products WHERE slug = ? OR id = ? LIMIT 1',
+        [slugOrId, slugOrId]
+      )
+      if (rows.length > 0) {
+        const r = rows[0]
+        const product = {
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          description: r.description,
+          shortDescription: r.short_description,
+          sku: r.sku,
+          categoryId: r.category_id,
+          categoryName: r.category_name,
+          images: typeof r.images === 'string' ? JSON.parse(r.images || '[]') : r.images || [],
+          colorImages: typeof r.color_images === 'string' ? JSON.parse(r.color_images || '{}') : r.color_images || {},
+          price: Number(r.price),
+          salePrice: r.sale_price !== null ? Number(r.sale_price) : null,
+          stock: Number(r.stock),
+          hasVariants: Boolean(r.has_variants),
+          variants: typeof r.variants === 'string' ? JSON.parse(r.variants || '[]') : r.variants || [],
+          isPublished: Boolean(r.is_published),
+          isFeatured: Boolean(r.is_featured),
+          isNewArrival: Boolean(r.is_new_arrival),
+          isBestseller: Boolean(r.is_bestseller),
+          details: typeof r.details === 'string' ? JSON.parse(r.details || '{}') : r.details || {},
+          seoTitle: r.seo_title,
+          seoDescription: r.seo_description,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }
+        const payload = JSON.stringify({ success: true, product })
+        const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
+        res.setHeader('ETag', etag)
+        res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+        if (req.headers['if-none-match'] === etag) {
+          return res.status(304).end()
+        }
+        return res.type('json').send(payload)
+      }
     } catch (err) {
-      console.warn('MySQL query error, using file fallback:', err.message)
+      console.warn('MySQL single product query error:', err.message)
     }
   }
 
   const products = readStoredProducts()
-  res.json({ success: true, source: 'file', products })
+  const found = products.find((p) => p.slug === slugOrId || p.id === slugOrId)
+  if (!found) {
+    return res.status(404).json({ error: 'Product not found' })
+  }
+  const payload = JSON.stringify({ success: true, product: found })
+  const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
+  res.setHeader('ETag', etag)
+  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+  if (req.headers['if-none-match'] === etag) {
+    return res.status(304).end()
+  }
+  res.type('json').send(payload)
+})
+
+// Products Catalog API: Public GET (Fix 2.2: Lightweight list view & ETag caching)
+app.get('/api/products', async (req, res) => {
+  const isListView = req.query.view === 'list'
+  let products = []
+
+  if (isMySQLConnected()) {
+    try {
+      const pool = getPool()
+      const query = isListView
+        ? 'SELECT id, name, slug, category_id, category_name, price, sale_price, stock, has_variants, images, is_featured, is_new_arrival, is_bestseller, updated_at FROM products WHERE is_published = 1 ORDER BY created_at DESC'
+        : 'SELECT * FROM products ORDER BY created_at DESC'
+      const [rows] = await pool.query(query)
+      products = rows.map((r) => {
+        const imgs = typeof r.images === 'string' ? JSON.parse(r.images || '[]') : r.images || []
+        const first = imgs[0] || ''
+        if (isListView) {
+          return {
+            id: r.id,
+            name: r.name,
+            slug: r.slug,
+            categoryId: r.category_id,
+            categoryName: r.category_name,
+            price: Number(r.price),
+            salePrice: r.sale_price !== null ? Number(r.sale_price) : null,
+            stock: Number(r.stock),
+            hasVariants: Boolean(r.has_variants),
+            image: first,
+            images: [first],
+            isFeatured: Boolean(r.is_featured),
+            isNewArrival: Boolean(r.is_new_arrival),
+            isBestseller: Boolean(r.is_bestseller),
+            updatedAt: r.updated_at,
+          }
+        }
+        return {
+          id: r.id,
+          name: r.name,
+          slug: r.slug,
+          description: r.description,
+          shortDescription: r.short_description,
+          sku: r.sku,
+          categoryId: r.category_id,
+          categoryName: r.category_name,
+          images: imgs,
+          colorImages: typeof r.color_images === 'string' ? JSON.parse(r.color_images || '{}') : r.color_images || {},
+          price: Number(r.price),
+          salePrice: r.sale_price !== null ? Number(r.sale_price) : null,
+          stock: Number(r.stock),
+          hasVariants: Boolean(r.has_variants),
+          variants: typeof r.variants === 'string' ? JSON.parse(r.variants || '[]') : r.variants || [],
+          isPublished: Boolean(r.is_published),
+          isFeatured: Boolean(r.is_featured),
+          isNewArrival: Boolean(r.is_new_arrival),
+          isBestseller: Boolean(r.is_bestseller),
+          details: typeof r.details === 'string' ? JSON.parse(r.details || '{}') : r.details || {},
+          seoTitle: r.seo_title,
+          seoDescription: r.seo_description,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }
+      })
+    } catch (err) {
+      console.warn('MySQL query error, using file fallback:', err.message)
+      products = readStoredProducts()
+    }
+  } else {
+    products = readStoredProducts()
+  }
+
+  const payload = JSON.stringify({ success: true, products })
+  const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
+  res.setHeader('ETag', etag)
+  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+  if (req.headers['if-none-match'] === etag) {
+    return res.status(304).end()
+  }
+  res.type('json').send(payload)
 })
 
 // Protected Admin: Save Product
@@ -475,6 +584,13 @@ app.post('/api/products', requireAdmin, async (req, res) => {
   const product = req.body
   if (!product || !product.name) {
     return res.status(400).json({ error: 'Product name is required' })
+  }
+
+  // Fix 1 (Section 3.1): Strictly refuse inline base64 images in product saves
+  if (hasDataUri([product.images, product.colorImages])) {
+    return res.status(422).json({
+      error: 'Images must be uploaded first. Inline base64 images are not allowed.',
+    })
   }
   const id = product.id || `prod-${Date.now()}`
   const now = new Date().toISOString()
