@@ -12,7 +12,6 @@ import {
   seedFirestoreDatabase,
   invalidateProductsCache,
 } from '../lib/firestore'
-import { INITIAL_SETTINGS } from '../data/initialSettings'
 import { localStore } from '../lib/storage'
 
 interface StoreContextType {
@@ -36,7 +35,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [products, setProducts] = useState<Product[]>(() => localStore.getProducts())
   const [categories, setCategories] = useState<Category[]>(() => localStore.getCategories())
   const [settings, setSettings] = useState<StoreSettings>(() => localStore.getSettings())
-  const [loading, setLoading] = useState<boolean>(false)
+  const [loading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
