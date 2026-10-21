@@ -70,6 +70,9 @@ export interface Order {
   razorpayPaymentId?: string
   razorpaySignature?: string
   tracking?: TrackingDetails
+  courier?: string
+  awb?: string
+  adminNote?: string
   internalNotes?: string
   createdAt: any
   updatedAt: any
