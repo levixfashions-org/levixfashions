@@ -91,7 +91,9 @@ export const AdminOrders: React.FC = () => {
               setLastUpdated(new Date())
             }
           }
-        } catch {}
+        } catch (err) {
+          console.warn('Incremental orders polling error:', err)
+        }
       }
     }, 20000)
 
