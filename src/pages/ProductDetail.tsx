@@ -32,25 +32,6 @@ export const ProductDetail: React.FC = () => {
   const [quantity, setQuantity] = useState(1)
   const [copiedLink, setCopiedLink] = useState(false)
   const [activeTab, setActiveTab] = useState<'details' | 'shipping' | 'returns'>('details')
-  const [showFloatingBar, setShowFloatingBar] = useState(false)
-  const heroImageSectionRef = useRef<HTMLDivElement>(null)
-
-  // Scroll listener: activates the floating bar immediately after scrolling past the t-shirt image hero section
-  useEffect(() => {
-    const handleScroll = () => {
-      if (heroImageSectionRef.current) {
-        const rect = heroImageSectionRef.current.getBoundingClientRect()
-        // When the bottom of the main t-shirt image & thumbnails crosses above the viewport
-        setShowFloatingBar(rect.bottom < 80)
-      } else {
-        setShowFloatingBar(window.scrollY > 400)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   // Extract unique colors & sizes for clean multi-color selection
   const uniqueColors = useMemo(() => {
