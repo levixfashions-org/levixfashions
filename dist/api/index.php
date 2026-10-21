@@ -1627,6 +1627,7 @@ if ($route === 'orders' && $method === 'GET') {
     $offset = ($page - 1) * $limit;
     $status = trim($_GET['status'] ?? '');
     $search = trim($_GET['search'] ?? '');
+    $updatedSince = trim($_GET['updatedSince'] ?? '');
 
     $whereClauses = [];
     $params = [];
@@ -1638,6 +1639,10 @@ if ($route === 'orders' && $method === 'GET') {
     if (!empty($search)) {
         $whereClauses[] = "(order_number LIKE :search OR customer_name LIKE :search OR customer_email LIKE :search)";
         $params[':search'] = "%{$search}%";
+    }
+    if (!empty($updatedSince)) {
+        $whereClauses[] = "updated_at > :since";
+        $params[':since'] = $updatedSince;
     }
 
     $whereSql = !empty($whereClauses) ? "WHERE " . implode(' AND ', $whereClauses) : "";
