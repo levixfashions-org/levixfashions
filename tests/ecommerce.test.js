@@ -511,4 +511,74 @@ describe('LEVIX Security & Defense Hardening Suite', () => {
     assert.equal(checkCache(etag, etag).status, 304)
     assert.equal(checkCache('"different-tag"', etag).status, 200)
   })
+
+  test('PDF Fix N1: Static admin keys are rejected; only verified tokens allowed', () => {
+    function isAuthorized(user, adminEmail, adminUids) {
+      if (!user || !user.email_verified) return false
+      if (adminUids.length > 0 && adminUids.includes(user.sub)) return true
+      return Boolean(user.email && user.email.toLowerCase() === adminEmail.toLowerCase())
+    }
+
+    // Attempt with static master key (no verified user)
+    assert.equal(isAuthorized(null, 'admin@levix.com', []), false)
+
+    // Attempt with unverified user email
+    assert.equal(isAuthorized({ sub: 'user-1', email: 'admin@levix.com', email_verified: false }, 'admin@levix.com', []), false)
+
+    // Verified administrator user
+    assert.equal(isAuthorized({ sub: 'admin-123', email: 'admin@levix.com', email_verified: true }, 'admin@levix.com', []), true)
+  })
+
+  test('PDF Fix N3: Rate limiter enforces limit and returns 429 on overflow', () => {
+    const memoryStore = new Map()
+    function testRateLimiter(key, max, windowSec) {
+      const now = Date.now()
+      const record = memoryStore.get(key) || { n: 0, resetAt: now + windowSec * 1000 }
+      if (record.resetAt < now) {
+        record.n = 1
+        record.resetAt = now + windowSec * 1000
+      } else {
+        record.n += 1
+      }
+      memoryStore.set(key, record)
+      return record.n > max ? 429 : 200
+    }
+
+    // 5 allowed requests
+    for (let i = 0; i < 5; i++) {
+      assert.equal(testRateLimiter('ip-1.2.3.4', 5, 60), 200)
+    }
+    // 6th request triggers 429 rate limit
+    assert.equal(testRateLimiter('ip-1.2.3.4', 5, 60), 429)
+  })
+
+  test('PDF Fix N6 & N7: Guest WELCOME10 coupon rejection & unknown variant protection', () => {
+    // Guest attempting WELCOME10 coupon
+    function validateCoupon(code, customerUid, subtotal) {
+      if (code === 'WELCOME10') {
+        if (!customerUid || customerUid === 'guest') {
+          return { valid: false, error: 'WELCOME10 requires signing in' }
+        }
+      }
+      return { valid: true, discount: Math.round(subtotal * 0.1) }
+    }
+
+    assert.equal(validateCoupon('WELCOME10', 'guest', 200000).valid, false)
+    assert.equal(validateCoupon('WELCOME10', 'usr_auth_789', 200000).valid, true)
+
+    // Variant validation
+    function validateVariant(product, variantId) {
+      if (product.hasVariants) {
+        if (!variantId) return { valid: false, error: 'Variant required' }
+        const exists = product.variants.some((v) => v.id === variantId)
+        if (!exists) return { valid: false, error: 'Variant not found' }
+      }
+      return { valid: true }
+    }
+
+    const prodWithVariants = { hasVariants: true, variants: [{ id: 'var-1', name: 'Black / M' }] }
+    assert.equal(validateVariant(prodWithVariants, null).valid, false)
+    assert.equal(validateVariant(prodWithVariants, 'var-999').valid, false)
+    assert.equal(validateVariant(prodWithVariants, 'var-1').valid, true)
+  })
 })

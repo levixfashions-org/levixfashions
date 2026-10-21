@@ -82,14 +82,14 @@ foreach ($envFiles as $envFile) {
 }
 
 // Database Credentials — Authoritative Hostinger MySQL
-$dbHost = getenv('MYSQL_HOST') ?: ($envLoaded['MYSQL_HOST'] ?? 'localhost');
-$dbName = getenv('MYSQL_DATABASE') ?: ($envLoaded['MYSQL_DATABASE'] ?? 'u214946046_levix');
-$dbUser = getenv('MYSQL_USER') ?: ($envLoaded['MYSQL_USER'] ?? 'u214946046_levix77');
-$dbPass = getenv('MYSQL_PASSWORD') ?: ($envLoaded['MYSQL_PASSWORD'] ?? 'Sainath2578');
+$dbHost = getenv('MYSQL_HOST') ?: ($envLoaded['MYSQL_HOST'] ?? '');
+$dbName = getenv('MYSQL_DATABASE') ?: ($envLoaded['MYSQL_DATABASE'] ?? '');
+$dbUser = getenv('MYSQL_USER') ?: ($envLoaded['MYSQL_USER'] ?? '');
+$dbPass = getenv('MYSQL_PASSWORD') ?: ($envLoaded['MYSQL_PASSWORD'] ?? '');
 
-if (empty($dbPass)) {
+if (empty($dbHost) || empty($dbName) || empty($dbUser) || empty($dbPass)) {
     http_response_code(500);
-    echo json_encode(['error' => 'Database configuration missing. Server cannot start.']);
+    echo json_encode(['error' => 'Database configuration missing in environment. Server cannot start.']);
     exit;
 }
 
@@ -138,17 +138,16 @@ function assertNoDataUris($urls): void {
     }
 }
 
-// 6. Rate Limiter Helper (H3 & Appendix F)
+// 6. Rate Limiter Helper (Appendix B)
 function rateLimit(PDO $pdo, string $key, int $max, int $windowSec): void {
     try {
         $st = $pdo->prepare("
-            INSERT INTO rate_limits (k, n, reset_at)
-            VALUES (:k, 1, NOW() + INTERVAL :w SECOND)
+            INSERT INTO rate_limits (k, n, reset_at) VALUES (:k, 1, NOW() + INTERVAL :w1 SECOND)
             ON DUPLICATE KEY UPDATE
                 n = IF(reset_at < NOW(), 1, n + 1),
-                reset_at = IF(reset_at < NOW(), NOW() + INTERVAL :w SECOND, reset_at)
+                reset_at = IF(reset_at < NOW(), NOW() + INTERVAL :w2 SECOND, reset_at)
         ");
-        $st->execute([':k' => $key, ':w' => $windowSec]);
+        $st->execute([':k' => $key, ':w1' => $windowSec, ':w2' => $windowSec]);
 
         $checkSt = $pdo->prepare("SELECT n FROM rate_limits WHERE k = :k");
         $checkSt->execute([':k' => $key]);
@@ -156,11 +155,11 @@ function rateLimit(PDO $pdo, string $key, int $max, int $windowSec): void {
 
         if ($n > $max) {
             http_response_code(429);
-            echo json_encode(['error' => 'Too many requests. Please slow down and try again later.']);
+            echo json_encode(['error' => 'Too many requests. Please try again shortly.']);
             exit;
         }
-    } catch (Exception $e) {
-        // Continue if rate limit table temporarily locked
+    } catch (Throwable $e) {
+        error_log('rateLimit failed: ' . $e->getMessage());
     }
 }
 
@@ -286,13 +285,9 @@ function getBearerToken(): string {
 
     foreach ($allHeaders as $key => $val) {
         $lower = strtolower((string)$key);
-        if ($lower === 'authorization' || $lower === 'x-firebase-token' || $lower === 'x-admin-key') {
+        if ($lower === 'authorization' || $lower === 'x-firebase-token') {
             $candidates[] = (string)$val;
         }
-    }
-
-    if (!empty($_SERVER['HTTP_X_ADMIN_KEY'])) {
-        $candidates[] = (string)$_SERVER['HTTP_X_ADMIN_KEY'];
     }
 
     foreach ($candidates as $cand) {
@@ -315,42 +310,12 @@ function currentUser(string $projectId): ?array {
     return verifyFirebaseToken($token, $projectId);
 }
 
-// Admin Authorization strictly by verified Firebase UID / Email / Secret (M1)
+// Admin Authorization strictly by verified Firebase login (Appendix A)
 function isAuthorizedAdmin(string $adminEmail, array $adminUids, string $projectId): bool {
-    $adminSecret = getenv('ADMIN_SECRET_KEY') ?: ($GLOBALS['envLoaded']['ADMIN_SECRET_KEY'] ?? 'levix_admin_auth_sec_2026');
-
-    // 1. Check explicit X-Admin-Key header
-    $adminKeyHeader = $_SERVER['HTTP_X_ADMIN_KEY'] ?? '';
-    if (empty($adminKeyHeader) && function_exists('getallheaders')) {
-        $all = getallheaders();
-        $adminKeyHeader = $all['X-Admin-Key'] ?? ($all['x-admin-key'] ?? '');
-    }
-    if (!empty($adminSecret) && !empty($adminKeyHeader) && hash_equals($adminSecret, (string)$adminKeyHeader)) {
-        return true;
-    }
-
-    // 2. Check Bearer token matching secret key
-    $token = getBearerToken();
-    if (!empty($adminSecret) && !empty($token) && hash_equals($adminSecret, (string)$token)) {
-        return true;
-    }
-
-    // 3. Check verified cryptographic Firebase token
-    $user = currentUser($projectId);
-    if (!$user) return false;
-
-    if (!empty($user['admin']) && $user['admin'] === true) return true;
+    $user = currentUser($projectId); // verified Firebase token only
+    if (!$user || empty($user['email_verified'])) return false;
     if (!empty($adminUids) && in_array($user['sub'], $adminUids, true)) return true;
-    if (!empty($user['email'])) {
-        $email = strtolower(trim($user['email']));
-        $allowed = array_map('trim', explode(',', strtolower($adminEmail)));
-        $allowed[] = 'levixfashions@gmail.com';
-        if (in_array($email, $allowed, true)) {
-            return true;
-        }
-    }
-
-    return false;
+    return !empty($user['email']) && strtolower($user['email']) === strtolower($adminEmail);
 }
 
 // 9. Server-to-Server Razorpay Order Creator (C2 & Appendix B)
@@ -422,20 +387,28 @@ function releaseExpiredUnpaidOrders(PDO $pdo): void {
     }
 }
 
-// Auto-run cleanup with 10% probability on requests
-if (random_int(1, 10) === 1) {
-    releaseExpiredUnpaidOrders($pdo);
-}
-
 // 11. Request Routing
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 $route = preg_replace('#^/api#', '', $uri);
 $route = trim($route, '/');
-$clientIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'));
 
-// --- CRON: MANUAL RELEASE OF EXPIRED ORDERS (H2) ---
+// Client IP: trust Cloudflare header only when verified Cloudflare proxy headers exist, otherwise REMOTE_ADDR (Finding N10)
+$rawRemote = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+if (!empty($_SERVER['HTTP_CF_CONNECTING_IP']) && !empty($_SERVER['HTTP_CF_RAY'])) {
+    $clientIp = trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+} else {
+    $clientIp = $rawRemote;
+}
+
+// --- CRON: MANUAL RELEASE OF EXPIRED ORDERS (H2 & Appendix C) ---
 if ($route === 'cron/cleanup-expired-orders' && in_array($method, ['GET', 'POST'])) {
+    $cronSecret = getenv('CRON_SECRET') ?: ($envLoaded['CRON_SECRET'] ?? '');
+    $providedSecret = $_SERVER['HTTP_X_CRON_SECRET'] ?? ($_GET['secret'] ?? '');
+    if (empty($cronSecret) || !hash_equals($cronSecret, $providedSecret)) {
+        http_response_code(404);
+        exit;
+    }
     releaseExpiredUnpaidOrders($pdo);
     echo json_encode(['success' => true, 'message' => 'Expired unpaid orders checked and released.']);
     exit;
@@ -516,8 +489,13 @@ if ($route === 'upload' && $method === 'POST') {
 if ($route === 'products' || strpos($route, 'products/') === 0) {
     // 1. Single Product Detail Endpoint: GET /api/products/{slug or id} (Fix 2.2)
     if (strpos($route, 'products/') === 0 && $method === 'GET') {
-        $param = substr($route, 9);
-        $st = $pdo->prepare("SELECT * FROM products WHERE slug = :p OR id = :p LIMIT 1");
+        $param = trim(substr($route, 9));
+        if ($param === '') {
+            http_response_code(404);
+            echo json_encode(['error' => 'Product not found']);
+            exit;
+        }
+        $st = $pdo->prepare("SELECT * FROM products WHERE (id = :p OR (slug = :p AND slug != '')) LIMIT 1");
         $st->execute([':p' => $param]);
         $r = $st->fetch();
         if (!$r) {
@@ -944,6 +922,9 @@ if ($route === 'orders/create' && $method === 'POST') {
     rateLimit($pdo, "order:{$clientIp}", 5, 60);
 
     $input = json_decode(file_get_contents('php://input'), true);
+    // Abuse Protection: rate limit order creation per client IP (Appendix B, Fix N3)
+    rateLimit($pdo, "order_create_{$clientIp}", 8, 60);
+
     if (!$input || empty($input['items']) || !is_array($input['items'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Order must contain at least one item.']);
@@ -971,10 +952,33 @@ if ($route === 'orders/create' && $method === 'POST') {
     $maxCodAmount = (int)($liveSettings['maxCodAmount'] ?? 500000);
 
     $paymentMethod = $input['paymentMethod'] ?? 'razorpay';
-    if ($paymentMethod === 'cod' && !$codEnabled) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Cash on Delivery is currently disabled by store administrator.']);
-        exit;
+    if ($paymentMethod === 'cod') {
+        if (!$codEnabled) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Cash on Delivery is currently disabled by store administrator.']);
+            exit;
+        }
+
+        // COD Bot/Abuse Protection: phone validation & daily limit per phone (Finding N13)
+        $rawPhone = preg_replace('/[^0-9]/', '', (string)($shipping['phone'] ?? ''));
+        if (strlen($rawPhone) < 10) {
+            http_response_code(400);
+            echo json_encode(['error' => 'A valid 10-digit mobile number is required for Cash on Delivery.']);
+            exit;
+        }
+
+        $codCheck = $pdo->prepare("
+            SELECT COUNT(*) FROM orders 
+            WHERE payment_method = 'cod' 
+              AND (JSON_UNQUOTE(JSON_EXTRACT(shipping_address, '$.phone')) LIKE :ph OR client_ip = :ip)
+              AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        ");
+        $codCheck->execute([':ph' => "%{$rawPhone}%", ':ip' => $clientIp]);
+        if ((int)$codCheck->fetchColumn() >= 3) {
+            http_response_code(429);
+            echo json_encode(['error' => 'Maximum Cash on Delivery order limit reached for this phone number today. Please use Online Payment.']);
+            exit;
+        }
     }
 
     // Authoritative Price & Stock Verification (H2: Variant-level)
@@ -984,12 +988,21 @@ if ($route === 'orders/create' && $method === 'POST') {
     foreach ($input['items'] as $item) {
         $qty = max(1, (int)($item['quantity'] ?? 1));
         $prodId = $item['productId'] ?? '';
-        $slug = $item['slug'] ?? '';
+        $slug = trim($item['slug'] ?? '');
         $variantId = $item['variantId'] ?? null;
 
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id OR slug = :slug LIMIT 1");
-        $stmt->execute([':id' => $prodId, ':slug' => $slug]);
-        $catalogProd = $stmt->fetch();
+        // Lookup product strictly by id or non-empty slug (Finding N7)
+        if (!empty($prodId)) {
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => $prodId]);
+            $catalogProd = $stmt->fetch();
+        } elseif (!empty($slug)) {
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE slug = :slug LIMIT 1");
+            $stmt->execute([':slug' => $slug]);
+            $catalogProd = $stmt->fetch();
+        } else {
+            $catalogProd = null;
+        }
 
         if (!$catalogProd || (isset($catalogProd['is_published']) && !$catalogProd['is_published'])) {
             http_response_code(400);
@@ -997,12 +1010,39 @@ if ($route === 'orders/create' && $method === 'POST') {
             exit;
         }
 
-        // Check variant stock if variantId provided
-        if (!empty($variantId)) {
+        // Check variant stock if product has variants (Finding N7: reject unknown variants)
+        if (!empty($catalogProd['has_variants'])) {
+            if (empty($variantId)) {
+                http_response_code(400);
+                echo json_encode(['error' => "Please select a variant for '{$catalogProd['name']}'."]);
+                exit;
+            }
             $vStmt = $pdo->prepare("SELECT stock FROM variants WHERE id = :vid AND product_id = :pid LIMIT 1");
             $vStmt->execute([':vid' => $variantId, ':pid' => $catalogProd['id']]);
             $variantStock = $vStmt->fetchColumn();
-            if ($variantStock !== false && (int)$variantStock < $qty) {
+
+            if ($variantStock === false && !empty($catalogProd['variants'])) {
+                $vList = json_decode($catalogProd['variants'], true) ?: [];
+                $foundV = false;
+                foreach ($vList as $vItem) {
+                    if (($vItem['id'] ?? '') === $variantId) {
+                        $variantStock = (int)($vItem['stock'] ?? 0);
+                        $foundV = true;
+                        break;
+                    }
+                }
+                if (!$foundV) {
+                    http_response_code(400);
+                    echo json_encode(['error' => "Unknown variant selected for '{$catalogProd['name']}'."]);
+                    exit;
+                }
+            } elseif ($variantStock === false) {
+                http_response_code(400);
+                echo json_encode(['error' => "Variant does not exist for '{$catalogProd['name']}'."]);
+                exit;
+            }
+
+            if ((int)$variantStock < $qty) {
                 http_response_code(409);
                 echo json_encode(['error' => "Selected size/color for '{$catalogProd['name']}' is out of stock."]);
                 exit;
@@ -1040,16 +1080,37 @@ if ($route === 'orders/create' && $method === 'POST') {
         ];
     }
 
-    // Server-Side Coupon Validation (H4)
+    // Server-Side Coupon Validation & Usage Limits (Finding N6)
     $discount = 0;
     $appliedCoupon = null;
     $couponCode = strtoupper(trim($input['couponCode'] ?? ''));
     if (!empty($couponCode)) {
+        if ($couponCode === 'WELCOME10') {
+            if ($customerUid === 'guest' || empty($customerUid)) {
+                http_response_code(400);
+                echo json_encode(['error' => 'WELCOME10 coupon requires signing in to your account.']);
+                exit;
+            }
+            $usedSt = $pdo->prepare("SELECT 1 FROM orders WHERE (customer_uid = :uid OR customer_email = :email) AND coupon_code = 'WELCOME10' LIMIT 1");
+            $usedSt->execute([':uid' => $customerUid, ':email' => $customerEmail]);
+            if ($usedSt->fetch()) {
+                http_response_code(400);
+                echo json_encode(['error' => 'WELCOME10 coupon can only be used on your first order.']);
+                exit;
+            }
+        }
+
         $cStmt = $pdo->prepare("SELECT * FROM coupons WHERE code = :code AND is_active = 1 LIMIT 1");
         $cStmt->execute([':code' => $couponCode]);
         $coupon = $cStmt->fetch();
         if ($coupon && $calculatedSubtotal >= (int)$coupon['min_order']) {
             $discount = (int)round(($calculatedSubtotal * (int)$coupon['discount_percent']) / 100);
+            $appliedCoupon = $couponCode;
+        } elseif ($couponCode === 'WELCOME10' || $couponCode === 'LEVIX10') {
+            $discount = (int)round(($calculatedSubtotal * 10) / 100);
+            $appliedCoupon = $couponCode;
+        } elseif ($couponCode === 'LEVIX15') {
+            $discount = (int)round(($calculatedSubtotal * 15) / 100);
             $appliedCoupon = $couponCode;
         }
     }
@@ -1372,7 +1433,10 @@ if ($route === 'orders/mine' && $method === 'GET') {
     $offset = ($page - 1) * $limit;
 
     $stmt = $pdo->prepare("
-        SELECT * FROM orders
+        SELECT id, order_number, customer_uid, tracking_token, customer_email, customer_name,
+               items, subtotal, shipping_fee, discount, total, coupon_code, payment_method,
+               payment_status, fulfillment_status, courier, awb, created_at, updated_at
+        FROM orders
         WHERE customer_uid = :uid
         ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
@@ -1653,7 +1717,11 @@ if ($route === 'orders' && $method === 'GET') {
     $totalCount = (int)$countStmt->fetchColumn();
 
     $stmt = $pdo->prepare("
-        SELECT * FROM orders
+        SELECT id, order_number, customer_uid, tracking_token, customer_email, customer_name,
+               items, subtotal, shipping_fee, discount, total, coupon_code, payment_method,
+               payment_status, fulfillment_status, courier, awb, admin_note, razorpay_order_id,
+               razorpay_payment_id, created_at, updated_at
+        FROM orders
         {$whereSql}
         ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset

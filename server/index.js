@@ -72,9 +72,8 @@ function rateLimiter(maxRequests = 60, windowMs = 60000) {
 
 app.use(rateLimiter(120, 60000))
 
-// 3. Admin Authentication & Authorization Middleware
+// 3. Admin Authentication & Authorization Middleware (Firebase Verified Token Only - Appendix A)
 const ADMIN_EMAIL = (process.env.VITE_ADMIN_EMAIL || 'levixfashions@gmail.com').toLowerCase().trim()
-const ADMIN_SECRET = process.env.ADMIN_SECRET_KEY || 'levix_admin_auth_sec_2026'
 const ADMIN_UIDS = (process.env.ADMIN_UIDS || '').split(',').map((u) => u.trim()).filter(Boolean)
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID || 'levix-fb261'
 
@@ -133,15 +132,7 @@ async function verifyFirebaseTokenNode(token) {
 }
 
 async function verifyAdminCaller(req) {
-  const secretKey = process.env.ADMIN_SECRET_KEY || 'levix_admin_auth_sec_2026'
-
-  // 1. Direct X-Admin-Key header check
-  const adminKeyHeader = req.headers['x-admin-key']
-  if (adminKeyHeader && adminKeyHeader === secretKey) {
-    return true
-  }
-
-  // 2. Token extraction from Authorization or X-Firebase-Token
+  // Token extraction from Authorization or X-Firebase-Token
   const authHeader = req.headers['authorization'] || ''
   let token = ''
   if (authHeader.startsWith('Bearer ')) {
@@ -152,21 +143,15 @@ async function verifyAdminCaller(req) {
 
   if (!token) return false
 
-  // Secure configured server secret
-  if (secretKey && token === secretKey) {
-    return true
-  }
-
   // Cryptographically verify token
   const payload = await verifyFirebaseTokenNode(token)
-  if (!payload) return false
+  if (!payload || !payload.email_verified) return false
 
   if (payload.admin === true) return true
   if (ADMIN_UIDS.length > 0 && ADMIN_UIDS.includes(payload.sub)) return true
   if (payload.email) {
     const email = payload.email.toLowerCase().trim()
     const allowed = ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
-    allowed.push('levixfashions@gmail.com')
     if (allowed.includes(email)) {
       return true
     }
