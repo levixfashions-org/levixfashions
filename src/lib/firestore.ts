@@ -71,14 +71,15 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
   }
 
   try {
+    const url = forceRefresh ? '/api/products?refresh=1' : '/api/products'
     const res = await Promise.race([
-      fetch(`/api/products?_t=${now}`, { cache: 'no-store' }),
+      fetch(url),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('API products timeout')), 5000)),
     ])
     if (res.ok) {
       const data = await res.json()
       if (data && Array.isArray(data.products)) {
-        productsCache = { data: data.products, expiresAt: now + 2500 }
+        productsCache = { data: data.products, expiresAt: now + 30000 }
         return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
       }
     }
