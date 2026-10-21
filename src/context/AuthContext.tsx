@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   type User,
 } from 'firebase/auth'
-import { auth, db, googleProvider, isFirebaseConfigured } from '../lib/firebase'
+import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase'
 import { getUserProfile, saveUserProfile } from '../lib/firestore'
 import type { UserProfile, SavedAddress } from '../types/user'
 
