@@ -10,18 +10,17 @@ import {
   Package,
   RefreshCw,
 } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../context/StoreContext'
-import { getOrders } from '../../lib/firestore'
+import { getOrders, getAdminHeaders } from '../../lib/firestore'
 import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order } from '../../types/order'
 
 export const AdminDashboard: React.FC = () => {
-  const { loading: authLoading } = useAuth()
   const { products } = useStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date>(() => new Date())
 
   const fetchOrders = useCallback(async (showFullSpinner = false) => {
     if (showFullSpinner) {
@@ -31,6 +30,7 @@ export const AdminDashboard: React.FC = () => {
     try {
       const data = await getOrders()
       setOrders(data)
+      setLastUpdated(new Date())
     } catch (err) {
       console.warn('Dashboard orders fetch error:', err)
     } finally {
@@ -55,22 +55,37 @@ export const AdminDashboard: React.FC = () => {
       } catch {}
     }
 
-    // Auto-poll every 12 seconds so new customer purchases appear live
-    const pollInterval = setInterval(() => {
-      fetchOrders(false)
-    }, 12000)
-
-    const onFocus = () => {
-      fetchOrders(false)
-    }
-    window.addEventListener('focus', onFocus)
+    // Incremental polling every 30 seconds while tab is visible (Fix N4: no full-table hammering)
+    const pollInterval = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        try {
+          const since = lastUpdated.toISOString()
+          const headers = await getAdminHeaders()
+          const res = await fetch(`/api/orders?updatedSince=${encodeURIComponent(since)}`, { headers })
+          if (res.ok) {
+            const data = await res.json()
+            if (data && Array.isArray(data.orders) && data.orders.length > 0) {
+              setOrders((prev) => {
+                const incomingMap = new Map<string, Order>(data.orders.map((o: Order) => [o.id, o]))
+                const updatedList = prev.map((o) => incomingMap.get(o.id) || o)
+                const existingIds = new Set(prev.map((o) => o.id))
+                const brandNew = data.orders.filter((o: Order) => !existingIds.has(o.id))
+                return [...brandNew, ...updatedList]
+              })
+              setLastUpdated(new Date())
+            }
+          }
+        } catch (err) {
+          console.warn('Dashboard incremental orders note:', err)
+        }
+      }
+    }, 30000)
 
     return () => {
       ch?.close()
       clearInterval(pollInterval)
-      window.removeEventListener('focus', onFocus)
     }
-  }, [fetchOrders])
+  }, [fetchOrders, lastUpdated])
 
   // Real Metric Calculations
   const totalOrders = orders.length
