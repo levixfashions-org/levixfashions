@@ -72,10 +72,29 @@ export const AdminOrders: React.FC = () => {
       } catch {}
     }
 
-    // 2. Auto-poll every 8 seconds so customer orders from phones & other devices appear live
-    const pollInterval = setInterval(() => {
-      fetchOrders(false)
-    }, 8000)
+    // 2. Incremental polling every 20 seconds while tab is visible (Fix 4.2: No full table hammering)
+    const pollInterval = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        try {
+          const since = lastUpdated.toISOString()
+          const headers = await getAdminHeaders()
+          const res = await fetch(`/api/orders?updatedSince=${encodeURIComponent(since)}`, { headers })
+          if (res.ok) {
+            const data = await res.json()
+            if (data && Array.isArray(data.orders) && data.orders.length > 0) {
+              setOrders((prev) => {
+                const incomingMap = new Map<string, Order>(data.orders.map((o: Order) => [o.id, o]))
+                const updatedList = prev.map((o) => incomingMap.get(o.id) || o)
+                const existingIds = new Set(prev.map((o) => o.id))
+                const brandNew = data.orders.filter((o: Order) => !existingIds.has(o.id))
+                return [...brandNew, ...updatedList]
+              })
+              setLastUpdated(new Date())
+            }
+          }
+        } catch {}
+      }
+    }, 20000)
 
     // 3. Immediately refresh when tab regains focus
     const onFocus = () => {
