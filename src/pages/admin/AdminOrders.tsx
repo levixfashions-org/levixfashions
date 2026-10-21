@@ -6,15 +6,14 @@ import {
   Save,
   RefreshCw,
   AlertTriangle,
-  UserCheck,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { getOrders, updateOrderFulfillment } from '../../lib/firestore'
+import { getOrders, updateOrderFulfillment, getAdminHeaders } from '../../lib/firestore'
 import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order, OrderFulfillmentStatus, OrderPaymentStatus } from '../../types/order'
 
 export const AdminOrders: React.FC = () => {
-  const { currentUser, isAdmin, loading: authLoading } = useAuth()
+  const { currentUser, isAdmin } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
