@@ -758,10 +758,20 @@ export const ProductDetail: React.FC = () => {
                 type="button"
                 disabled={isOutOfStock}
                 onClick={handleAddToCart}
-                className="flex-1 sm:flex-initial btn-primary py-2.5 sm:py-3 px-5 sm:px-8 text-xs uppercase tracking-wider flex items-center justify-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg"
+                className="flex-1 sm:flex-initial btn-primary py-2.5 sm:py-3 px-5 sm:px-7 text-xs uppercase tracking-wider flex items-center justify-center gap-2 whitespace-nowrap shadow-md hover:shadow-lg"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>{isOutOfStock ? 'Sold Out' : 'Add to Bag'}</span>
+              </button>
+
+              {/* Instant Buy Now Button */}
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={handleBuyNow}
+                className="hidden sm:flex btn-secondary py-2.5 sm:py-3 px-4 sm:px-6 text-xs uppercase tracking-wider items-center justify-center gap-1.5 whitespace-nowrap"
+              >
+                <span>Buy Now</span>
               </button>
 
               {/* Wishlist Love Button */}
