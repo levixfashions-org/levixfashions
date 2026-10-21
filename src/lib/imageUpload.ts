@@ -2,7 +2,15 @@
  * LEVIX Client-Side Image Optimizer
  * Converts Camera captures and Gallery files into high-performance,
  * crisp, compressed e-commerce images with zero upload lag or cloud limits.
+ *
+ * Implements Fix 1 (Section 3.1):
+ * - Always forces a fresh admin auth token before uploading.
+ * - Never silently falls back to inline base64 text in products or orders.
+ * - Throws a descriptive error if upload fails so the form stays open for retry.
  */
+
+import { auth } from './firebase'
+import { getAdminHeaders } from './firestore'
 
 export const compressAndProcessImage = (
   file: File,
@@ -35,7 +43,7 @@ export const compressAndProcessImage = (
           } else {
             if (height > maxDimension) {
               width = Math.round((width * maxDimension) / height)
-              height = maxDimension
+              width = maxDimension
             }
           }
 
@@ -44,8 +52,7 @@ export const compressAndProcessImage = (
 
           const ctx = canvas.getContext('2d')
           if (!ctx) {
-            resolve(readerEvent.target?.result as string)
-            return
+            return reject(new Error('Failed to process image canvas context.'))
           }
 
           // Use high quality image smoothing
@@ -57,21 +64,14 @@ export const compressAndProcessImage = (
           const compressed = canvas.toDataURL('image/jpeg', quality)
           uploadCompressedImage(compressed)
             .then(resolve)
-            .catch(() => resolve(compressed))
-        } catch (err) {
-          console.warn('Canvas compression fallback to raw data URL:', err)
-          const fallback = readerEvent.target?.result as string
-          uploadCompressedImage(fallback)
-            .then(resolve)
-            .catch(() => resolve(fallback))
+            .catch(reject)
+        } catch (err: any) {
+          reject(new Error(err?.message || 'Failed to compress image.'))
         }
       }
 
       img.onerror = () => {
-        const fallback = readerEvent.target?.result as string
-        uploadCompressedImage(fallback)
-          .then(resolve)
-          .catch(() => resolve(fallback))
+        reject(new Error('Failed to load image file into memory.'))
       }
 
       img.src = readerEvent.target?.result as string
@@ -82,36 +82,44 @@ export const compressAndProcessImage = (
   })
 }
 
-import { getAdminHeaders } from './firestore'
-
 /**
  * Uploads compressed base64 image data to the backend storage endpoint (/api/upload).
- * Returns the permanent static file URL (/uploads/img-*.jpg) or falls back to base64 data URL.
+ * Returns the permanent static file URL (/uploads/img-*.jpg).
+ * Strictly refuses base64 fallback to prevent database and JSON bloating.
  */
 async function uploadCompressedImage(imageData: string): Promise<string> {
   if (!imageData || !imageData.startsWith('data:image/')) {
     return imageData
   }
 
-  try {
-    const headers = await getAdminHeaders()
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ image: imageData }),
-    })
-
-    if (res.ok) {
-      const data = await res.json()
-      if (data && data.url) {
-        return data.url
-      }
+  // Force fresh token if user is signed in to prevent expired token rejections (Fix 1)
+  if (auth?.currentUser) {
+    try {
+      await auth.currentUser.getIdToken(true)
+    } catch (tokenErr) {
+      console.warn('Could not refresh Firebase auth token before image upload:', tokenErr)
     }
-  } catch (err) {
-    console.warn('API image upload offline or failed, falling back to compressed base64:', err)
   }
 
-  return imageData
+  const headers = await getAdminHeaders()
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ image: imageData }),
+  })
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}))
+    const msg = errData.error || `Server returned ${res.status}: Upload failed, please try again.`
+    throw new Error(msg)
+  }
+
+  const data = await res.json()
+  if (data && data.url) {
+    return data.url
+  }
+
+  throw new Error('Upload failed: Server did not return a valid image URL. Please try again.')
 }
 
 export const processMultipleImages = async (
@@ -119,12 +127,7 @@ export const processMultipleImages = async (
 ): Promise<string[]> => {
   const fileArray = Array.from(files)
   const results = await Promise.all(
-    fileArray.map((file) =>
-      compressAndProcessImage(file).catch((err) => {
-        console.error('Failed to process image:', file.name, err)
-        return null
-      })
-    )
+    fileArray.map((file) => compressAndProcessImage(file))
   )
   return results.filter((res): res is string => Boolean(res))
 }
