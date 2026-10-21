@@ -86,29 +86,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [])
 
-  // Targeted lightweight heartbeat to refresh only products (price & stock), cutting server load by 66%
-  const refreshProductsOnly = useCallback(async () => {
-    try {
-      const freshProducts = await getProducts(false, true)
-      if (Array.isArray(freshProducts)) {
-        setProducts((prev) => {
-          if (
-            prev.length === freshProducts.length &&
-            JSON.stringify(prev) === JSON.stringify(freshProducts)
-          ) {
-            return prev
-          }
-          return freshProducts
-        })
-      }
-    } catch {}
-  }, [])
-
-  useEffect(() => {
+  // Real-time live synchronization across tabs and throttled refresh (Fix 2.1)
+  const lastLoad = React.useRef(0)
+  const refreshIfStale = useCallback(() => {
+    if (Date.now() - lastLoad.current < 60_000) return // at most once a minute
+    lastLoad.current = Date.now()
     loadData()
   }, [loadData])
 
-  // Real-time live synchronization across tabs and in background
   useEffect(() => {
     let channel: BroadcastChannel | null = null
     try {
@@ -129,17 +114,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('BroadcastChannel setup note:', e)
     }
 
-    // Auto-update whenever the user focuses or switches back to this browser tab
-    const handleActive = () => {
-      loadData()
-    }
-    window.addEventListener('focus', handleActive)
-    const handleVisibility = () => {
+    // Single throttled refresh on tab visibility (replaces aggressive 8s polling and focus handler)
+    const onVisible = () => {
       if (document.visibilityState === 'visible') {
-        loadData()
+        refreshIfStale()
       }
     }
-    document.addEventListener('visibilitychange', handleVisibility)
+    document.addEventListener('visibilitychange', onVisible)
 
     // Storage event sync (instant cross-tab update backup)
     const handleStorage = (e: StorageEvent) => {
@@ -153,21 +134,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     window.addEventListener('storage', handleStorage)
 
-    // Lightweight heartbeat only polls products when the tab is visible
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        refreshProductsOnly()
-      }
-    }, 8000)
-
     return () => {
       if (channel) channel.close()
-      window.removeEventListener('focus', handleActive)
-      document.removeEventListener('visibilitychange', handleVisibility)
+      document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('storage', handleStorage)
-      clearInterval(interval)
     }
-  }, [loadData, refreshProductsOnly])
+  }, [loadData, refreshIfStale])
 
   const updateStoreSettings = async (newSettings: StoreSettings) => {
     const saved = await saveStoreSettings(newSettings)
