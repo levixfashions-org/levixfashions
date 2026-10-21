@@ -244,7 +244,7 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function getCategories(): Promise<Category[]> {
   try {
     const res = await Promise.race([
-      fetch(`/api/categories?_t=${Date.now()}`, { cache: 'no-store' }),
+      fetch('/api/categories'),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
