@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React from 'react'
 import './LevixDoorIntro.css'
 
 export interface LevixDoorIntroProps {
