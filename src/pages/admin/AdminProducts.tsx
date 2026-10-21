@@ -62,7 +62,6 @@ export const AdminProducts: React.FC = () => {
 
   // Camera & Gallery Upload States & Refs
   const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [uploadingColor, setUploadingColor] = useState<string | null>(null)
   const [showUrlTextarea, setShowUrlTextarea] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const cameraInputRef = useRef<HTMLInputElement>(null)

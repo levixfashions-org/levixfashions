@@ -34,7 +34,7 @@ const addressSchema = z.object({
 type AddressFormData = z.infer<typeof addressSchema>
 
 export const Checkout: React.FC = () => {
-  const { items, subtotal, shippingFee, total, isFreeShipping, clearCart } = useCart()
+  const { items, subtotal, shippingFee, isFreeShipping, clearCart } = useCart()
   const { currentUser, userProfile } = useAuth()
   const { settings } = useStore()
   const navigate = useNavigate()
@@ -44,7 +44,7 @@ export const Checkout: React.FC = () => {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [paymentStep, setPaymentStep] = useState<string | null>(null)
 
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(() => {
+  const [appliedCoupon] = useState<string | null>(() => {
     return typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('levix_applied_coupon') : null
   })
 
