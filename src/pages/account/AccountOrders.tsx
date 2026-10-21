@@ -7,18 +7,27 @@ import { formatPrice, formatDate } from '../../lib/utils'
 import type { Order } from '../../types/order'
 
 export const AccountOrders: React.FC = () => {
-  const { userProfile, currentUser } = useAuth()
+  const { userProfile, currentUser, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
-  const uid = currentUser?.uid || userProfile?.uid || 'guest'
+  const uid = currentUser?.uid || userProfile?.uid
 
   useEffect(() => {
+    // Wait until auth state is resolved so second customer account immediately sees orders (Fix 4)
+    if (authLoading) return
+    if (!uid) {
+      setOrders([])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
     getOrders(uid).then((res) => {
       setOrders(res)
       setLoading(false)
     })
-  }, [uid])
+  }, [uid, authLoading])
 
   if (loading) {
     return (
