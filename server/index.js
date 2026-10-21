@@ -1366,7 +1366,18 @@ app.get('/api/orders', requireAdmin, async (req, res) => {
     }
   }
 
-  const stored = Array.from(ordersDb.values()).map((r) => ({
+  let stored = Array.from(ordersDb.values())
+  if (status && status !== 'all') {
+    stored = stored.filter((o) => (o.fulfillmentStatus || o.fulfillment_status) === status)
+  }
+  if (updatedSince) {
+    stored = stored.filter((o) => {
+      const u = o.updatedAt || o.updated_at
+      return u && u > updatedSince
+    })
+  }
+
+  const result = stored.map((r) => ({
     ...r,
     tracking: r.tracking || {
       courierName: r.courier || '',
@@ -1375,7 +1386,7 @@ app.get('/api/orders', requireAdmin, async (req, res) => {
     },
     internalNotes: r.internalNotes || r.adminNote || '',
   }))
-  res.json({ success: true, orders: stored })
+  res.json({ success: true, orders: result })
 })
 
 // Webhook Handler
