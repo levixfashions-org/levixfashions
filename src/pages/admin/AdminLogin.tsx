@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { SEO } from '../../components/common/SEO'
 

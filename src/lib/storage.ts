@@ -1,7 +1,6 @@
 import type { Product, Category } from '../types/product'
 import type { Order } from '../types/order'
 import type { StoreSettings } from '../types/settings'
-import { INITIAL_PRODUCTS } from '../data/initialProducts'
 import { INITIAL_CATEGORIES } from '../data/initialCategories'
 import { INITIAL_SETTINGS } from '../data/initialSettings'
 
