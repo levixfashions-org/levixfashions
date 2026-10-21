@@ -512,8 +512,105 @@ if ($route === 'upload' && $method === 'POST') {
     exit;
 }
 
-// --- PRODUCTS API (H5: Authoritative MySQL Catalog) ---
+// --- PRODUCTS API (H5: Authoritative MySQL Catalog & Section 4.2 Lightweight ETag endpoints) ---
 if ($route === 'products' || strpos($route, 'products/') === 0) {
+    // 1. Single Product Detail Endpoint: GET /api/products/{slug or id} (Fix 2.2)
+    if (strpos($route, 'products/') === 0 && $method === 'GET') {
+        $param = substr($route, 9);
+        $st = $pdo->prepare("SELECT * FROM products WHERE slug = :p OR id = :p LIMIT 1");
+        $st->execute([':p' => $param]);
+        $r = $st->fetch();
+        if (!$r) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Product not found']);
+            exit;
+        }
+        $prod = [
+            'id' => $r['id'],
+            'name' => $r['name'],
+            'slug' => $r['slug'],
+            'description' => $r['description'],
+            'shortDescription' => $r['short_description'],
+            'sku' => $r['sku'],
+            'categoryId' => $r['category_id'],
+            'categoryName' => $r['category_name'],
+            'images' => json_decode($r['images'], true) ?: [],
+            'colorImages' => json_decode($r['color_images'], true) ?: new stdClass(),
+            'price' => (int)$r['price'],
+            'salePrice' => $r['sale_price'] !== null ? (int)$r['sale_price'] : null,
+            'stock' => (int)$r['stock'],
+            'hasVariants' => (bool)$r['has_variants'],
+            'variants' => json_decode($r['variants'], true) ?: [],
+            'isPublished' => (bool)$r['is_published'],
+            'isFeatured' => (bool)$r['is_featured'],
+            'isNewArrival' => (bool)$r['is_new_arrival'],
+            'isBestseller' => (bool)$r['is_bestseller'],
+            'details' => json_decode($r['details'], true) ?: new stdClass(),
+            'seoTitle' => $r['seo_title'],
+            'seoDescription' => $r['seo_description'],
+            'createdAt' => $r['created_at'],
+            'updatedAt' => $r['updated_at'],
+        ];
+        $payload = json_encode(['success' => true, 'product' => $prod]);
+        $etag = '"' . md5($payload) . '"';
+        header('ETag: ' . $etag);
+        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+            http_response_code(304);
+            exit;
+        }
+        echo $payload;
+        exit;
+    }
+
+    // 2. Lightweight List Endpoint: GET /api/products?view=list (Fix 2.2)
+    if ($method === 'GET' && ($_GET['view'] ?? '') === 'list') {
+        $limit = min(60, max(1, (int)($_GET['limit'] ?? 24)));
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $offset = ($page - 1) * $limit;
+        $st = $pdo->prepare("
+            SELECT id, name, slug, category_id, category_name, price, sale_price, stock, has_variants,
+                   images, is_featured, is_new_arrival, is_bestseller, updated_at
+            FROM products WHERE is_published = 1 ORDER BY created_at DESC LIMIT :l OFFSET :o
+        ");
+        $st->bindValue(':l', $limit, PDO::PARAM_INT);
+        $st->bindValue(':o', $offset, PDO::PARAM_INT);
+        $st->execute();
+        $rows = $st->fetchAll();
+        $products = array_map(function($r) {
+            $imgs = json_decode($r['images'] ?? '[]', true) ?: [];
+            $first = !empty($imgs[0]) ? $imgs[0] : '';
+            return [
+                'id' => $r['id'],
+                'name' => $r['name'],
+                'slug' => $r['slug'],
+                'categoryId' => $r['category_id'],
+                'categoryName' => $r['category_name'],
+                'price' => (int)$r['price'],
+                'salePrice' => $r['sale_price'] !== null ? (int)$r['sale_price'] : null,
+                'stock' => (int)$r['stock'],
+                'hasVariants' => (bool)$r['has_variants'],
+                'image' => $first,
+                'images' => [$first],
+                'isFeatured' => (bool)$r['is_featured'],
+                'isNewArrival' => (bool)$r['is_new_arrival'],
+                'isBestseller' => (bool)$r['is_bestseller'],
+                'updatedAt' => $r['updated_at'],
+            ];
+        }, $rows);
+        $payload = json_encode(['success' => true, 'products' => $products, 'page' => $page]);
+        $etag = '"' . md5($payload) . '"';
+        header('ETag: ' . $etag);
+        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+            http_response_code(304);
+            exit;
+        }
+        echo $payload;
+        exit;
+    }
+
+    // 3. Complete Catalog GET with ETag caching
     if ($method === 'GET') {
         $stmt = $pdo->query("SELECT * FROM products ORDER BY created_at DESC");
         $rows = $stmt->fetchAll();
@@ -545,7 +642,15 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
                 'updatedAt' => $r['updated_at'],
             ];
         }, $rows);
-        echo json_encode(['success' => true, 'source' => 'mysql', 'products' => $products]);
+        $payload = json_encode(['success' => true, 'source' => 'mysql', 'products' => $products]);
+        $etag = '"' . md5($payload) . '"';
+        header('ETag: ' . $etag);
+        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+            http_response_code(304);
+            exit;
+        }
+        echo $payload;
         exit;
     }
 
@@ -568,6 +673,9 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
             echo json_encode(['error' => 'Valid product price is required']);
             exit;
         }
+
+        // Fix 1 (Section 3.1): Strictly refuse inline base64 images in product saves
+        assertNoDataUris([$body['images'] ?? [], $body['colorImages'] ?? []]);
 
         $id = !empty($body['id']) ? $body['id'] : 'prod-' . time() . '-' . rand(100, 999);
         $now = date('c');
