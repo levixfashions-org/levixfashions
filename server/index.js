@@ -1306,12 +1306,26 @@ app.put('/api/me', async (req, res) => {
   res.json({ success: true, profile: updated })
 })
 
-// Protected Admin: List all orders
+// Protected Admin: List all orders (Fix 4.1 & Section 6.1: Supports status and incremental updatedSince queries)
 app.get('/api/orders', requireAdmin, async (req, res) => {
+  const updatedSince = req.query.updatedSince ? String(req.query.updatedSince).trim() : null
+  const status = req.query.status ? String(req.query.status).trim() : null
+
   if (isMySQLConnected()) {
     try {
       const pool = getPool()
-      const [rows] = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 100')
+      let sql = 'SELECT * FROM orders WHERE 1=1'
+      const params = []
+      if (status && status !== 'all') {
+        sql += ' AND fulfillment_status = ?'
+        params.push(status)
+      }
+      if (updatedSince) {
+        sql += ' AND updated_at > ?'
+        params.push(updatedSince)
+      }
+      sql += ' ORDER BY created_at DESC LIMIT 100'
+      const [rows] = await pool.query(sql, params)
       const orders = rows.map((r) => {
         const shipping = typeof r.shipping_address === 'string' ? JSON.parse(r.shipping_address) : (r.shipping_address || {})
         const items = typeof r.items === 'string' ? JSON.parse(r.items) : (r.items || [])
