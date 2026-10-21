@@ -96,11 +96,31 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
+  try {
+    const res = await Promise.race([
+      fetch(`/api/products/${encodeURIComponent(slug)}`),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.product) return data.product
+    }
+  } catch {}
   const products = await getProducts(false)
   return products.find((p) => p.slug === slug) || null
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  try {
+    const res = await Promise.race([
+      fetch(`/api/products/${encodeURIComponent(id)}`),
+      new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ])
+    if (res.ok) {
+      const data = await res.json()
+      if (data && data.product) return data.product
+    }
+  } catch {}
   const products = await getProducts(false)
   return products.find((p) => p.id === id) || null
 }
