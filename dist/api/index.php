@@ -108,11 +108,12 @@ $razorpayKeyId = getenv('RAZORPAY_KEY_ID') ?: ($envLoaded['RAZORPAY_KEY_ID'] ?? 
 $razorpaySecret = getenv('RAZORPAY_KEY_SECRET') ?: ($envLoaded['RAZORPAY_KEY_SECRET'] ?? '');
 $razorpayWebhookSecret = getenv('RAZORPAY_WEBHOOK_SECRET') ?: ($envLoaded['RAZORPAY_WEBHOOK_SECRET'] ?? $razorpaySecret);
 
-// 4. Connect to Authoritative Hostinger MySQL
+// 4. Connect to Authoritative Hostinger MySQL (Persistent connection to eliminate reconnect cost on every call - Fix 3)
 try {
     $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_PERSISTENT => true,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 } catch (PDOException $e) {
@@ -122,192 +123,19 @@ try {
     exit;
 }
 
-// 5. Database Schema Initialization & Evolution (H1, H2, H3, H4)
-try {
-    // Products Table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS products (
-            id VARCHAR(128) PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            slug VARCHAR(255) NOT NULL,
-            description LONGTEXT,
-            short_description TEXT,
-            sku VARCHAR(100),
-            category_id VARCHAR(100),
-            category_name VARCHAR(100),
-            images LONGTEXT,
-            color_images LONGTEXT,
-            price INT NOT NULL,
-            sale_price INT NULL,
-            stock INT DEFAULT 10,
-            has_variants TINYINT(1) DEFAULT 0,
-            variants LONGTEXT,
-            is_published TINYINT(1) DEFAULT 1,
-            is_featured TINYINT(1) DEFAULT 1,
-            is_new_arrival TINYINT(1) DEFAULT 1,
-            is_bestseller TINYINT(1) DEFAULT 0,
-            details LONGTEXT,
-            seo_title VARCHAR(255),
-            seo_description TEXT,
-            created_at VARCHAR(64),
-            updated_at VARCHAR(64),
-            INDEX idx_slug (slug),
-            INDEX idx_category (category_id),
-            INDEX idx_published (is_published)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Variants Table (H2: Variant-level stock)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS variants (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            product_id VARCHAR(128) NOT NULL,
-            sku VARCHAR(80) UNIQUE,
-            size VARCHAR(20),
-            color VARCHAR(40),
-            stock INT NOT NULL DEFAULT 0,
-            INDEX idx_product (product_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Categories Table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS categories (
-            id VARCHAR(100) PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            slug VARCHAR(255) NOT NULL,
-            description TEXT,
-            image_url TEXT,
-            display_order INT DEFAULT 1,
-            is_published TINYINT(1) DEFAULT 1,
-            is_featured TINYINT(1) DEFAULT 1,
-            INDEX idx_slug (slug),
-            INDEX idx_order (display_order)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Orders Table (With reserved_until, tracking_token, courier, awb, admin_note)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS orders (
-            id VARCHAR(128) PRIMARY KEY,
-            order_number VARCHAR(100) NOT NULL UNIQUE,
-            customer_uid VARCHAR(128),
-            tracking_token CHAR(32) NOT NULL,
-            customer_email VARCHAR(255),
-            customer_name VARCHAR(255),
-            items LONGTEXT,
-            shipping_address LONGTEXT,
-            subtotal INT NOT NULL,
-            shipping_fee INT NOT NULL,
-            discount INT DEFAULT 0,
-            total INT NOT NULL,
-            coupon_code VARCHAR(50) DEFAULT NULL,
-            payment_method VARCHAR(50),
-            payment_status VARCHAR(50),
-            fulfillment_status VARCHAR(50) DEFAULT 'Pending',
-            courier VARCHAR(100) DEFAULT NULL,
-            awb VARCHAR(100) DEFAULT NULL,
-            admin_note TEXT DEFAULT NULL,
-            razorpay_order_id VARCHAR(100),
-            razorpay_payment_id VARCHAR(100) UNIQUE,
-            reserved_until DATETIME DEFAULT NULL,
-            created_at VARCHAR(64),
-            updated_at VARCHAR(64),
-            INDEX idx_order_num (order_number),
-            INDEX idx_customer (customer_uid),
-            INDEX idx_tracking (tracking_token),
-            INDEX idx_res_status (payment_status, reserved_until),
-            INDEX idx_created (created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Auto-migrate columns if updating existing table
-    $columnsToEnsure = [
-        "ALTER TABLE orders ADD COLUMN tracking_token CHAR(32) NOT NULL DEFAULT '' AFTER customer_uid",
-        "ALTER TABLE orders ADD COLUMN razorpay_payment_id VARCHAR(100) UNIQUE AFTER razorpay_order_id",
-        "ALTER TABLE orders ADD COLUMN reserved_until DATETIME DEFAULT NULL AFTER razorpay_payment_id",
-        "ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL AFTER total",
-        "ALTER TABLE orders ADD COLUMN courier VARCHAR(100) DEFAULT NULL AFTER fulfillment_status",
-        "ALTER TABLE orders ADD COLUMN awb VARCHAR(100) DEFAULT NULL AFTER courier",
-        "ALTER TABLE orders ADD COLUMN admin_note TEXT DEFAULT NULL AFTER awb",
-    ];
-    foreach ($columnsToEnsure as $altSql) {
-        try { $pdo->exec($altSql); } catch (Exception $e) {}
+// 5. Validation Helpers: Refuse inline base64 text in products and orders (Fix 1 - Section 3.1)
+function assertNoDataUris($urls): void {
+    if (is_array($urls)) {
+        array_walk_recursive($urls, function ($v) {
+            if (is_string($v) && stripos($v, 'data:') === 0) {
+                http_response_code(422);
+                exit(json_encode(['error' => 'Images must be uploaded first. Inline images are not allowed.']));
+            }
+        });
+    } elseif (is_string($urls) && stripos($urls, 'data:') === 0) {
+        http_response_code(422);
+        exit(json_encode(['error' => 'Images must be uploaded first. Inline images are not allowed.']));
     }
-
-    // Customer Users Table (H1: Profile & Addresses in MySQL)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS users (
-            id VARCHAR(128) PRIMARY KEY,
-            email VARCHAR(255) NOT NULL,
-            display_name VARCHAR(255),
-            phone VARCHAR(50),
-            addresses LONGTEXT,
-            created_at VARCHAR(64),
-            updated_at VARCHAR(64),
-            INDEX idx_email (email)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Coupons Table (H4: Server-side coupons)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS coupons (
-            code VARCHAR(50) PRIMARY KEY,
-            discount_percent INT NOT NULL,
-            min_order INT DEFAULT 0,
-            is_active TINYINT(1) DEFAULT 1
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-    // Seed standard promotional coupons if empty
-    $pdo->exec("
-        INSERT IGNORE INTO coupons (code, discount_percent, min_order, is_active) VALUES
-        ('LEVIX10', 10, 0, 1),
-        ('WELCOME10', 10, 0, 1),
-        ('LEVIX15', 15, 150000, 1);
-    ");
-
-    // Rate Limiting Table (H3: Shared hosting rate limiter)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS rate_limits (
-            k VARCHAR(120) PRIMARY KEY,
-            n INT NOT NULL DEFAULT 1,
-            reset_at DATETIME NOT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Webhook Events Table (Idempotency)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS webhook_events (
-            event_id VARCHAR(64) PRIMARY KEY,
-            received_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Store Settings Table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS store_settings (
-            id VARCHAR(100) PRIMARY KEY,
-            data LONGTEXT,
-            updated_at VARCHAR(64)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-
-    // Audit Log Table (M5: Stores verified actor UID and payload)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS audit_log (
-            id BIGINT AUTO_INCREMENT PRIMARY KEY,
-            actor_uid VARCHAR(64) NOT NULL,
-            action VARCHAR(60) NOT NULL,
-            entity VARCHAR(60) NOT NULL,
-            entity_id VARCHAR(100) NOT NULL,
-            detail JSON,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_entity (entity, entity_id),
-            INDEX idx_actor (actor_uid)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    ");
-} catch (Exception $e) {
-    error_log("Schema initialization note: " . $e->getMessage());
 }
 
 // 6. Rate Limiter Helper (H3 & Appendix F)
