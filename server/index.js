@@ -844,12 +844,14 @@ app.post('/api/orders/create', rateLimiter(20, 60000), async (req, res) => {
       const lineSubtotal = trustedUnitPrice * quantity
       calculatedSubtotal += lineSubtotal
 
+      const catalogFirstImage = (catalogProduct.images && catalogProduct.images[0]) || ''
+
       validatedItems.push({
         productId: catalogProduct.id,
         name: catalogProduct.name,
         slug: catalogProduct.slug,
-        imageUrl: item.imageUrl || (catalogProduct.images && catalogProduct.images[0]) || '',
-        sku: item.sku || catalogProduct.sku || '',
+        imageUrl: catalogFirstImage, // Strictly server catalog URL (Fix 1 - Section 3.3)
+        sku: catalogProduct.sku || item.sku || '',
         variantId: item.variantId || null,
         variantName: item.variantName || null,
         unitPrice: trustedUnitPrice,
