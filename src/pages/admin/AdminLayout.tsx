@@ -29,7 +29,7 @@ export const AdminLayout: React.FC = () => {
     { label: 'Overview', path: '/admin', icon: LayoutDashboard, end: true },
     { label: 'Orders & Dispatch', path: '/admin/orders', icon: ShoppingBag },
     { label: 'Product Inventory', path: '/admin/products', icon: Package },
-    { label: 'Categories', path: '/admin/categories', icon: FolderTree },
+    { label: 'Collections', path: '/admin/categories', icon: FolderTree },
     { label: 'Store Settings', path: '/admin/settings', icon: Settings },
   ]
 

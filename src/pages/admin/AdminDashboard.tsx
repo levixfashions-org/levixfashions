@@ -161,7 +161,7 @@ export const AdminDashboard: React.FC = () => {
                 Your Catalog is Ready for Products
               </h2>
               <p className="text-xs text-levix-secondary mt-0.5">
-                All 13 luxury categories are established. Capture or upload photos from your phone camera or gallery to launch your items.
+                All 13 luxury collections are established. Capture or upload photos from your phone camera or gallery to launch your items.
               </p>
             </div>
           </div>

@@ -38,7 +38,7 @@ export const CategoryGrid: React.FC = () => {
               Curated Collections
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-levix-charcoal uppercase">
-              Shop by Category
+              Shop by Collection
             </h2>
           </div>
           <Link
@@ -54,7 +54,7 @@ export const CategoryGrid: React.FC = () => {
           {publishedCategories.map((category) => (
             <Link
               key={category.id}
-              to={`/category/${category.slug}`}
+              to={`/collection/${category.slug}`}
               className="group relative flex flex-col bg-levix-gray border border-levix-border overflow-hidden"
             >
               <div className="aspect-[4/5] overflow-hidden bg-levix-gray">

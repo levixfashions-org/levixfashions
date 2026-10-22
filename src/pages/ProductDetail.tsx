@@ -247,7 +247,7 @@ export const ProductDetail: React.FC = () => {
           <span>/</span>
           <Link to="/shop" className="hover:text-levix-orange transition-colors">Shop</Link>
           <span>/</span>
-          <Link to={`/category/${product.categoryId.replace('cat-', '')}`} className="hover:text-levix-orange transition-colors">
+          <Link to={`/collection/${product.categoryId.replace('cat-', '')}`} className="hover:text-levix-orange transition-colors">
             {product.categoryName}
           </Link>
           <span>/</span>
@@ -607,10 +607,10 @@ export const ProductDetail: React.FC = () => {
                 </h3>
               </div>
               <Link
-                to={`/category/${product.categoryId.replace('cat-', '')}`}
+                to={`/collection/${product.categoryId.replace('cat-', '')}`}
                 className="text-xs font-semibold uppercase tracking-wider text-levix-orange hover:underline"
               >
-                View Category
+                View Collection
               </Link>
             </div>
 

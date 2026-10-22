@@ -131,7 +131,7 @@ export const Home: React.FC = () => {
                 New Seasonal Run Curating Soon
               </h3>
               <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
-                Explore our silhouette categories above while new garments and accessories are being prepared.
+                Explore our silhouette collections above while new garments and accessories are being prepared.
               </p>
             </div>
           )}

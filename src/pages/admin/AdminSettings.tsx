@@ -85,7 +85,7 @@ export const AdminSettings: React.FC = () => {
   const handleSeedDatabase = async () => {
     if (
       !window.confirm(
-        'Populate Firestore database with initial products, categories, and settings? Existing data with the same IDs will be updated.'
+        'Populate Firestore database with initial products, collections, and settings? Existing data with the same IDs will be updated.'
       )
     ) {
       return
@@ -380,7 +380,7 @@ export const AdminSettings: React.FC = () => {
           </h2>
         </div>
         <p className="text-xs text-levix-secondary leading-relaxed">
-          When deploying to Hostinger or connecting a fresh Firebase project, use this 1-click utility to populate Cloud Firestore with the complete LEVIX catalogue, categories, and initial settings.
+          When deploying to Hostinger or connecting a fresh Firebase project, use this 1-click utility to populate Cloud Firestore with the complete LEVIX catalogue, collections, and initial settings.
         </p>
 
         <button

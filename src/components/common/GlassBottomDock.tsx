@@ -107,7 +107,9 @@ export const GlassBottomDock: React.FC = () => {
   // Active state matching current route
   const isHomeActive = location.pathname === '/'
   const isExploreActive =
-    location.pathname.startsWith('/shop') || location.pathname.startsWith('/category')
+    location.pathname.startsWith('/shop') ||
+    location.pathname.startsWith('/category') ||
+    location.pathname.startsWith('/collection')
   const isWishlistActive = location.pathname === '/wishlist'
   const isAccountActive =
     location.pathname.startsWith('/account') ||

@@ -111,7 +111,7 @@ export const Footer: React.FC = () => {
               {categories.slice(0, 5).map((cat) => (
                 <li key={cat.id}>
                   <Link
-                    to={`/category/${cat.slug}`}
+                    to={`/collection/${cat.slug}`}
                     className="text-levix-secondary hover:text-levix-orange transition-colors"
                   >
                     {cat.name}

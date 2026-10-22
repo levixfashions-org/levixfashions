@@ -68,7 +68,7 @@ export const AdminCategories: React.FC = () => {
             Collections Architecture
           </p>
           <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal">
-            Category Management
+            Collection Management
           </h1>
           <p className="text-xs text-levix-secondary mt-0.5">
             Organize departments, banners, and homepage feature order.
@@ -80,7 +80,7 @@ export const AdminCategories: React.FC = () => {
           className="btn-primary py-2.5 px-4 text-xs uppercase tracking-wider flex items-center gap-1.5 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>New Category</span>
+          <span>New Collection</span>
         </button>
       </div>
 
@@ -151,7 +151,7 @@ export const AdminCategories: React.FC = () => {
           <div className="bg-white max-w-md w-full border border-levix-border shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-levix-border">
               <h3 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
-                {editingCat ? 'Edit Category' : 'Create Category'}
+                {editingCat ? 'Edit Collection' : 'Create Collection'}
               </h3>
               <button
                 type="button"
@@ -164,7 +164,7 @@ export const AdminCategories: React.FC = () => {
 
             <form onSubmit={handleSave} className="space-y-3 text-xs">
               <div>
-                <label className="form-label">Category Name *</label>
+                <label className="form-label">Collection Name *</label>
                 <input
                   type="text"
                   value={name}
@@ -244,7 +244,7 @@ export const AdminCategories: React.FC = () => {
                   type="submit"
                   className="flex-1 btn-primary py-2.5 text-xs uppercase tracking-wider"
                 >
-                  Save Category
+                  Save Collection
                 </button>
                 <button
                   type="button"

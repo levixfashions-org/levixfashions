@@ -518,7 +518,7 @@ export const AdminProducts: React.FC = () => {
           onChange={(e) => setSelectedCat(e.target.value)}
           className="form-input text-xs py-2 w-full sm:w-48 cursor-pointer"
         >
-          <option value="all">All Categories</option>
+          <option value="all">All Collections</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -533,7 +533,7 @@ export const AdminProducts: React.FC = () => {
           <thead>
             <tr className="border-b border-levix-border bg-levix-gray text-levix-secondary uppercase tracking-wider">
               <th className="py-3 px-4">Item</th>
-              <th className="py-3 px-4">Category</th>
+              <th className="py-3 px-4">Collection</th>
               <th className="py-3 px-4">SKU</th>
               <th className="py-3 px-4">Price</th>
               <th className="py-3 px-4">Stock</th>
@@ -740,7 +740,7 @@ export const AdminProducts: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="form-label">Category</label>
+                  <label className="form-label">Collection</label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}

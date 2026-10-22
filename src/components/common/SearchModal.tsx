@@ -74,7 +74,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products by name, SKU, or category..."
+              placeholder="Search products by name, SKU, or collection..."
               className="w-full py-4.5 pl-3 pr-12 text-sm sm:text-base text-levix-charcoal placeholder-levix-secondary focus:outline-none"
               aria-label="Search products"
             />
@@ -102,13 +102,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             {query.trim().length === 0 ? (
               <div className="py-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-levix-secondary mb-3">
-                  Popular Categories
+                  Popular Collections
                 </p>
                 <div className="flex flex-wrap gap-2 mb-6">
                   {categories.map((cat) => (
                     <Link
                       key={cat.id}
-                      to={`/category/${cat.slug}`}
+                      to={`/collection/${cat.slug}`}
                       onClick={onClose}
                       className="px-3 py-1.5 bg-levix-gray hover:bg-levix-soft-orange hover:text-levix-orange text-xs text-levix-charcoal transition-colors border border-transparent hover:border-levix-orange/30"
                     >
@@ -141,7 +141,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                 <Package className="w-10 h-10 text-levix-secondary mx-auto mb-3 stroke-1" />
                 <p className="text-sm font-medium text-levix-charcoal">No results found for &ldquo;{query}&rdquo;</p>
                 <p className="text-xs text-levix-secondary mt-1">
-                  Check your spelling or try searching for a category like Outerwear or Essentials.
+                  Check your spelling or try searching for a collection like Outerwear or Essentials.
                 </p>
               </div>
             ) : (
@@ -149,13 +149,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                 {matchingCategories.length > 0 && (
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-levix-secondary mb-2">
-                      Matching Categories
+                      Matching Collections
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {matchingCategories.map((cat) => (
                         <Link
                           key={cat.id}
-                          to={`/category/${cat.slug}`}
+                          to={`/collection/${cat.slug}`}
                           onClick={onClose}
                           className="px-3 py-1.5 bg-levix-soft-orange text-levix-orange text-xs font-medium border border-levix-orange/30"
                         >

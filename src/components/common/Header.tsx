@@ -115,7 +115,7 @@ export const Header: React.FC = () => {
                 Shop All
               </Link>
 
-              {/* Categories Dropdown */}
+              {/* Collections Dropdown */}
               <div
                 className="relative py-4"
                 onMouseEnter={() => setIsCategoryHovered(true)}
@@ -125,7 +125,7 @@ export const Header: React.FC = () => {
                   type="button"
                   className="flex items-center gap-1 text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
                 >
-                  <span>Categories</span>
+                  <span>Collections</span>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
                       isCategoryHovered ? 'rotate-180 text-levix-orange' : ''
@@ -139,7 +139,7 @@ export const Header: React.FC = () => {
                       {categories.map((cat) => (
                         <Link
                           key={cat.id}
-                          to={`/category/${cat.slug}`}
+                          to={`/collection/${cat.slug}`}
                           onClick={() => setIsCategoryHovered(false)}
                           className="flex items-center gap-3 p-2 hover:bg-levix-gray transition-colors group"
                         >
@@ -353,13 +353,13 @@ export const Header: React.FC = () => {
 
               <div className="pt-4 border-t border-levix-border">
                 <p className="text-xs uppercase font-semibold text-levix-secondary tracking-widest mb-3">
-                  Categories
+                  Collections
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {categories.map((cat) => (
                     <Link
                       key={cat.id}
-                      to={`/category/${cat.slug}`}
+                      to={`/collection/${cat.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="group flex flex-col"
                     >

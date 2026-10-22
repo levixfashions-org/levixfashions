@@ -14,7 +14,7 @@ export const Shop: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Read URL query params
-  const categoryParam = searchParams.get('category') || 'all'
+  const categoryParam = searchParams.get('collection') || searchParams.get('category') || 'all'
   const sortParam = (searchParams.get('sort') as SortOption) || 'featured'
   const searchParam = searchParams.get('search') || ''
 
@@ -30,7 +30,9 @@ export const Shop: React.FC = () => {
     setSelectedCategory(catSlug)
     if (catSlug === 'all') {
       searchParams.delete('category')
+      searchParams.delete('collection')
     } else {
+      searchParams.set('collection', catSlug)
       searchParams.set('category', catSlug)
     }
     setSearchParams(searchParams)
@@ -219,7 +221,7 @@ export const Shop: React.FC = () => {
             {/* Category Selector */}
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal mb-3">
-                Categories
+                Collections
               </h4>
               <div className="space-y-1.5">
                 <button
@@ -231,7 +233,7 @@ export const Shop: React.FC = () => {
                       : 'text-levix-secondary hover:text-levix-charcoal hover:bg-levix-gray'
                   }`}
                 >
-                  <span>All Categories</span>
+                  <span>All Collections</span>
                   <span>{products.filter((p) => p.isPublished).length}</span>
                 </button>
                 {categories.map((cat) => (
@@ -369,7 +371,7 @@ export const Shop: React.FC = () => {
               {/* Categories */}
               <div className="mb-6">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal mb-3">
-                  Categories
+                  Collections
                 </h4>
                 <div className="space-y-1">
                   <button
@@ -383,7 +385,7 @@ export const Shop: React.FC = () => {
                         : 'text-levix-charcoal'
                     }`}
                   >
-                    All Categories
+                    All Collections
                   </button>
                   {categories.map((c) => (
                     <button

@@ -42,7 +42,7 @@ export const CategoryPage: React.FC = () => {
   if (!currentCategory) {
     return (
       <div className="container-levix py-24 text-center">
-        <h2 className="text-2xl font-bold text-levix-charcoal uppercase">Category Not Found</h2>
+        <h2 className="text-2xl font-bold text-levix-charcoal uppercase">Collection Not Found</h2>
         <p className="text-xs text-levix-secondary mt-2 mb-6">
           The requested collection does not exist or has been relocated.
         </p>
@@ -101,7 +101,7 @@ export const CategoryPage: React.FC = () => {
             <PackageOpen className="w-12 h-12 text-levix-secondary mx-auto mb-2 stroke-1" />
             <div>
               <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
-                No products found in this category
+                No products found in this collection
               </h3>
               <p className="text-xs text-levix-secondary mt-1 max-w-sm mx-auto">
                 {isAdmin
