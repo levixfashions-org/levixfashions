@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
   Compass,
+  Search,
+  Heart,
+  ShoppingBag,
   User,
   MapPin,
-  Search,
   MessageSquare,
   X,
   Phone,
@@ -16,12 +18,16 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../context/StoreContext'
+import { useCart } from '../../context/CartContext'
+import { useWishlist } from '../../context/WishlistContext'
 
 export const GlassBottomDock: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { currentUser } = useAuth()
+  const { currentUser, isAdmin } = useAuth()
   const { settings } = useStore()
+  const { totalItems, setIsCartDrawerOpen } = useCart()
+  const { wishlistCount } = useWishlist()
 
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
   const [isSupportDrawerOpen, setIsSupportDrawerOpen] = useState(false)
@@ -33,7 +39,7 @@ export const GlassBottomDock: React.FC = () => {
       : null
   })
 
-  // Hide the dock on checkout, order confirmation, and admin pages to prevent form obstruction
+  // Hide dock on checkout and admin pages to prevent covering payment / admin inputs
   const isHiddenRoute =
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/admin') ||
@@ -45,7 +51,6 @@ export const GlassBottomDock: React.FC = () => {
     if (typeof window === 'undefined' || !window.visualViewport) return
     const handleResize = () => {
       if (!window.visualViewport) return
-      // If viewport height shrinks by more than 150px, keyboard is likely open
       const diff = window.innerHeight - window.visualViewport.height
       setIsKeyboardOpen(diff > 150)
     }
@@ -61,20 +66,14 @@ export const GlassBottomDock: React.FC = () => {
   const isHomeActive = location.pathname === '/'
   const isExploreActive =
     location.pathname.startsWith('/shop') || location.pathname.startsWith('/category')
+  const isWishlistActive = location.pathname === '/wishlist'
   const isAccountActive =
-    location.pathname.startsWith('/account') && !location.pathname.startsWith('/account/addresses') ||
+    location.pathname.startsWith('/account') ||
     location.pathname === '/login' ||
     location.pathname === '/register'
-  const isLocationActive =
-    isLocationModalOpen || location.pathname.startsWith('/account/addresses')
 
   const handleOpenSearch = () => {
     window.dispatchEvent(new CustomEvent('levix_open_search'))
-  }
-
-  const handleLocationClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsLocationModalOpen(true)
   }
 
   const handlePincodeCheck = (e: React.FormEvent) => {
@@ -109,99 +108,125 @@ export const GlassBottomDock: React.FC = () => {
         Bottom Floating Container (Mobile-first, hidden on desktop to preserve existing desktop nav)
       */}
       <div
-        className="fixed left-0 right-0 z-40 pointer-events-none md:hidden flex items-center justify-center px-4"
+        className="fixed left-0 right-0 z-40 pointer-events-none md:hidden flex items-center justify-center px-3 sm:px-4"
         style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="w-full max-w-sm flex items-center justify-between gap-3 pointer-events-auto">
+        <div className="w-full max-w-[360px] flex items-center justify-between gap-2.5 pointer-events-auto">
           {/* Glassy Floating Pill Navigation Bar (Inspired by Bluorng) */}
           <nav
             aria-label="Mobile Bottom Navigation"
-            className="glass-dock-pill flex-1 py-1.5 px-2 flex items-center justify-between"
+            className="glass-dock-pill flex-1 py-1 px-2 flex items-center justify-between shadow-2xl"
           >
-            {/* 1. Home / Store */}
+            {/* 1. Home */}
             <Link
               to="/"
-              aria-label="Home / Store"
+              aria-label="Home"
               aria-current={isHomeActive ? 'page' : undefined}
-              className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange select-none"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none"
             >
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-250 ${
+                className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isHomeActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80 scale-100'
+                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
                     : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
                 }`}
               >
-                <Home className="w-4.5 h-4.5" strokeWidth={isHomeActive ? 2.4 : 1.8} />
+                <Home className="w-4.5 h-4.5" strokeWidth={isHomeActive ? 2.4 : 1.9} />
               </div>
             </Link>
 
-            {/* 2. Explore / Discovery */}
+            {/* 2. Explore / Shop */}
             <Link
               to="/shop"
               aria-label="Explore Collections"
               aria-current={isExploreActive ? 'page' : undefined}
-              className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange select-none"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none"
             >
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-250 ${
+                className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isExploreActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80 scale-100'
+                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
                     : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
                 }`}
               >
-                <Compass className="w-4.5 h-4.5" strokeWidth={isExploreActive ? 2.4 : 1.8} />
+                <Compass className="w-4.5 h-4.5" strokeWidth={isExploreActive ? 2.4 : 1.9} />
               </div>
             </Link>
 
-            {/* 3. Account */}
-            <Link
-              to={currentUser ? '/account' : '/login'}
-              aria-label={currentUser ? 'Customer Account' : 'Sign In'}
-              aria-current={isAccountActive ? 'page' : undefined}
-              className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange select-none"
-            >
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-250 ${
-                  isAccountActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80 scale-100'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
-                }`}
-              >
-                <User className="w-4.5 h-4.5" strokeWidth={isAccountActive ? 2.4 : 1.8} />
-              </div>
-            </Link>
-
-            {/* 4. Location / Delivery */}
-            <button
-              type="button"
-              onClick={handleLocationClick}
-              aria-label="Delivery Location & Serviceability"
-              aria-haspopup="dialog"
-              className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange select-none"
-            >
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-250 ${
-                  isLocationActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80 scale-100'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
-                }`}
-              >
-                <MapPin className="w-4.5 h-4.5" strokeWidth={isLocationActive ? 2.4 : 1.8} />
-              </div>
-            </button>
-
-            {/* 5. Search */}
+            {/* 3. Search */}
             <button
               type="button"
               onClick={handleOpenSearch}
               aria-label="Open Product Search"
-              className="relative w-11 h-11 flex items-center justify-center rounded-full transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange select-none text-levix-charcoal hover:text-levix-orange active:scale-90"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-levix-orange active:scale-90"
             >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center">
-                <Search className="w-4.5 h-4.5" strokeWidth={1.8} />
+              <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center">
+                <Search className="w-4.5 h-4.5" strokeWidth={1.9} />
               </div>
             </button>
+
+            {/* 4. Wishlist (with live badge) */}
+            <Link
+              to="/wishlist"
+              aria-label={`Wishlist, ${wishlistCount} items`}
+              aria-current={isWishlistActive ? 'page' : undefined}
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none"
+            >
+              <div
+                className={`relative w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  isWishlistActive
+                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
+                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                }`}
+              >
+                <Heart
+                  className={`w-4.5 h-4.5 ${
+                    !isWishlistActive && wishlistCount > 0 ? 'fill-levix-orange text-levix-orange' : ''
+                  }`}
+                  strokeWidth={isWishlistActive ? 2.4 : 1.9}
+                />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    {wishlistCount}
+                  </span>
+                )}
+              </div>
+            </Link>
+
+            {/* 5. Cart Bag (with live badge & drawer trigger) */}
+            <button
+              type="button"
+              onClick={() => setIsCartDrawerOpen(true)}
+              aria-label={`Shopping bag, ${totalItems} items`}
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-levix-orange active:scale-90"
+            >
+              <div className="relative w-8.5 h-8.5 rounded-full flex items-center justify-center">
+                <ShoppingBag className="w-4.5 h-4.5" strokeWidth={1.9} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+            </button>
+
+            {/* 6. Account */}
+            <Link
+              to={isAdmin ? '/admin' : currentUser ? '/account' : '/login'}
+              aria-label={isAdmin ? 'Admin Console' : currentUser ? 'Customer Account' : 'Sign In'}
+              aria-current={isAccountActive ? 'page' : undefined}
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none"
+            >
+              <div
+                className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  isAccountActive
+                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
+                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                }`}
+              >
+                <User className="w-4.5 h-4.5" strokeWidth={isAccountActive ? 2.4 : 1.9} />
+              </div>
+            </Link>
           </nav>
 
           {/* 
@@ -212,7 +237,7 @@ export const GlassBottomDock: React.FC = () => {
             type="button"
             onClick={() => setIsSupportDrawerOpen(true)}
             aria-label="Customer Care & Live Support"
-            className="w-12 h-12 rounded-full bg-[#1A1A1A] hover:bg-black text-white shadow-lg shadow-black/20 border border-white/20 flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 active:scale-90 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange"
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1A1A1A] hover:bg-black text-white shadow-lg shadow-black/25 border border-white/20 flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 active:scale-90 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange"
           >
             <MessageSquare className="w-5 h-5 fill-white/10" strokeWidth={1.9} />
           </button>

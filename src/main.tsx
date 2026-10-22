@@ -27,7 +27,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 
 // Aggressive cache purge: Ensure no stale HTML or outdated chunk bundles persist across deployments
 if (typeof window !== 'undefined') {
-  const CURRENT_BUILD = '20261023_glass_v3'
+  const CURRENT_BUILD = '20261023_dock_v4'
   if (localStorage.getItem('levix_build') !== CURRENT_BUILD) {
     localStorage.setItem('levix_build', CURRENT_BUILD)
     if ('caches' in window) {

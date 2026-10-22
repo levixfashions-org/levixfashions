@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Search,
   ShoppingBag,
   Heart,
   User,
-  Menu,
   X,
   ChevronDown,
   ShieldCheck,
@@ -31,40 +30,73 @@ export const Header: React.FC = () => {
   const { categories } = useStore()
   const location = useLocation()
 
+  // Listen for mobile bottom dock triggers
+  useEffect(() => {
+    const handleOpenSearch = () => setIsSearchOpen(true)
+    const handleToggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev)
+    const handleCloseMobileMenu = () => setIsMobileMenuOpen(false)
+
+    window.addEventListener('levix_open_search', handleOpenSearch)
+    window.addEventListener('levix_open_mobile_menu', handleToggleMobileMenu)
+    window.addEventListener('levix_close_mobile_menu', handleCloseMobileMenu)
+
+    return () => {
+      window.removeEventListener('levix_open_search', handleOpenSearch)
+      window.removeEventListener('levix_open_mobile_menu', handleToggleMobileMenu)
+      window.removeEventListener('levix_close_mobile_menu', handleCloseMobileMenu)
+    }
+  }, [])
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [location.pathname])
+
   const isActive = (path: string) => location.pathname === path
 
   return (
     <>
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-levix-border transition-all">
         <div className="container-levix">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Mobile Hamburger Button */}
-            <div className="flex items-center lg:hidden">
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 -ml-2 text-levix-charcoal hover:text-levix-orange transition-colors"
-                aria-label="Toggle navigation menu"
-              >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(true)}
-                className="p-2 text-levix-charcoal hover:text-levix-orange transition-colors ml-1"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
+          {/* 
+            MOBILE TOP BAR: Clean, minimal, centered logo.
+            All navigation actions (Menu, Search, Wishlist, Account, Bag) 
+            are brought to the floating bottom glass dock!
+          */}
+          <div className="flex items-center justify-between lg:hidden h-14 sm:h-16">
+            <div className="w-8">
+              {isMobileMenuOpen && (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1 -ml-1 text-levix-charcoal hover:text-levix-orange transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-7 h-7 bg-levix-orange flex items-center justify-center text-white font-black text-xs tracking-tighter shadow-xs">
+                LX
+              </div>
+              <span className="text-xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
+                LEVIX
+              </span>
+            </Link>
+
+            <div className="w-8" />
+          </div>
+
+          {/* DESKTOP HEADER */}
+          <div className="hidden lg:flex items-center justify-between h-20">
             {/* LEVIX Brand Wordmark */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-levix-orange flex items-center justify-center text-white font-black text-sm tracking-tighter">
+                <div className="w-8 h-8 bg-levix-orange flex items-center justify-center text-white font-black text-sm tracking-tighter">
                   LX
                 </div>
-                <span className="text-xl sm:text-2xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
+                <span className="text-2xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
                   LEVIX
                 </span>
               </Link>
@@ -156,8 +188,8 @@ export const Header: React.FC = () => {
               )}
             </nav>
 
-            {/* Right Action Icons */}
-            <div className="flex items-center space-x-4 sm:space-x-5">
+            {/* Right Action Icons (Desktop only - mobile actions are brought to bottom dock) */}
+            <div className="hidden lg:flex items-center space-x-5">
               {/* Desktop Search Button */}
               <button
                 type="button"
