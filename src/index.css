@@ -37,7 +37,7 @@
   }
   ::-webkit-scrollbar-thumb {
     background: #EAEAEA;
-    border-radius: 9999px;
+    border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #777777;
@@ -70,6 +70,33 @@
   /* Layout Containers */
   .container-levix {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full;
+  }
+
+  /* Premium Frosted Glass Floating Bottom Navigation */
+  .glass-dock-pill {
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Fallback when backdrop-filter is unsupported */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .glass-dock-pill {
+    background: rgba(255, 255, 255, 0.96) !important;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

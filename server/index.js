@@ -459,7 +459,12 @@ app.get('/api/products/:slugOrId', async (req, res) => {
         const payload = JSON.stringify({ success: true, product })
         const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
         res.setHeader('ETag', etag)
-        res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+        if (req.query.refresh || req.query._t) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+          res.setHeader('Pragma', 'no-cache')
+        } else {
+          res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+        }
         if (req.headers['if-none-match'] === etag) {
           return res.status(304).end()
         }
@@ -478,7 +483,12 @@ app.get('/api/products/:slugOrId', async (req, res) => {
   const payload = JSON.stringify({ success: true, product: found })
   const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
   res.setHeader('ETag', etag)
-  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+  if (req.query.refresh || req.query._t) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+  }
   if (req.headers['if-none-match'] === etag) {
     return res.status(304).end()
   }
@@ -557,7 +567,12 @@ app.get('/api/products', async (req, res) => {
   const payload = JSON.stringify({ success: true, products })
   const etag = `"${crypto.createHash('md5').update(payload).digest('hex')}"`
   res.setHeader('ETag', etag)
-  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120')
+  if (req.query.refresh || req.query._t) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+  }
   if (req.headers['if-none-match'] === etag) {
     return res.status(304).end()
   }
@@ -1401,11 +1416,29 @@ app.post('/api/orders/webhook', (req, res) => {
 // Serve production Vite frontend if dist folder exists
 const distPath = path.resolve(__dirname, '../dist')
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath))
+  app.use(
+    express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        if (
+          filePath.endsWith('index.html') ||
+          filePath.endsWith('sw.js') ||
+          filePath.endsWith('registerSW.js') ||
+          filePath.endsWith('manifest.webmanifest')
+        ) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+          res.setHeader('Pragma', 'no-cache')
+          res.setHeader('Expires', '0')
+        }
+      },
+    })
+  )
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) {
       return next()
     }
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
     res.sendFile(path.join(distPath, 'index.html'))
   })
 }

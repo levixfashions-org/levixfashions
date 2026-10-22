@@ -26,6 +26,21 @@ export interface ProcessOrderResult {
   error?: string
 }
 
+let orderSyncChannel: BroadcastChannel | null = null
+
+function broadcastOrderSync(event: any) {
+  if (typeof window === 'undefined') return
+  try {
+    if ('BroadcastChannel' in window) {
+      if (!orderSyncChannel) {
+        orderSyncChannel = new BroadcastChannel('levix_store_sync')
+      }
+      orderSyncChannel.postMessage(event)
+    }
+    window.dispatchEvent(new CustomEvent('levix_store_internal_sync', { detail: event }))
+  } catch {}
+}
+
 export async function processCheckoutOrder(
   payload: CheckoutPayload,
   onPaymentStep?: (step: 'initiating' | 'awaiting_payment' | 'verifying') => void
@@ -102,13 +117,7 @@ export async function processCheckoutOrder(
     }
 
     // Broadcast new order creation to open admin tabs
-    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      try {
-        const ch = new BroadcastChannel('levix_store_sync')
-        ch.postMessage({ type: 'ORDER_CREATED', orderId: order.id, order })
-        ch.close()
-      } catch {}
-    }
+    broadcastOrderSync({ type: 'ORDER_CREATED', orderId: order.id, order })
 
     return { success: true, order }
   }
@@ -202,13 +211,7 @@ export async function processCheckoutOrder(
             }
 
             // Broadcast verified online order creation to open admin tabs
-            if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-              try {
-                const ch = new BroadcastChannel('levix_store_sync')
-                ch.postMessage({ type: 'ORDER_CREATED', orderId: confirmedOrder.id, order: confirmedOrder })
-                ch.close()
-              } catch {}
-            }
+            broadcastOrderSync({ type: 'ORDER_CREATED', orderId: confirmedOrder.id, order: confirmedOrder })
 
             resolve({
               success: true,

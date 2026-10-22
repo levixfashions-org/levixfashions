@@ -41,15 +41,29 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
   }
 
   try {
-    const url = forceRefresh ? '/api/products?refresh=1' : '/api/products'
+    const url = forceRefresh ? `/api/products?refresh=1&_t=${now}` : '/api/products'
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    }
+    if (forceRefresh) {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+      headers['Pragma'] = 'no-cache'
+    } else {
+      headers['Cache-Control'] = 'no-cache'
+    }
+
     const res = await Promise.race([
-      fetch(url),
+      fetch(url, {
+        headers,
+        cache: forceRefresh ? 'no-store' : 'no-cache',
+      }),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('API products timeout')), 5000)),
     ])
     if (res.ok) {
       const data = await res.json()
       if (data && Array.isArray(data.products)) {
         productsCache = { data: data.products, expiresAt: now + 30000 }
+        localStore.setProducts(data.products)
         return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
       }
     }
@@ -61,13 +75,21 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
     return onlyPublished ? productsCache.data.filter((p) => p.isPublished) : productsCache.data
   }
 
+  const local = localStore.getProducts()
+  if (local && local.length > 0) {
+    return onlyPublished ? local.filter((p) => p.isPublished) : local
+  }
+
   return []
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
     const res = await Promise.race([
-      fetch(`/api/products/${encodeURIComponent(slug)}`),
+      fetch(`/api/products/${encodeURIComponent(slug)}`, {
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-cache',
+      }),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
@@ -83,7 +105,10 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 export async function getProductById(id: string): Promise<Product | null> {
   try {
     const res = await Promise.race([
-      fetch(`/api/products/${encodeURIComponent(id)}`),
+      fetch(`/api/products/${encodeURIComponent(id)}`, {
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-cache',
+      }),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
@@ -128,12 +153,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     updatedAt: now,
   }
 
-  // 1. Optimistic local cache update
-  const existing = localStore.getProducts()
-  const updated = [fullProduct, ...existing.filter((p) => p.id !== id)]
-  localStore.setProducts(updated)
-
-  // 2. Authoritative save to Backend MySQL API
+  // 1. Authoritative save to Backend MySQL API
   try {
     const headers = await getAdminHeaders()
     const apiPromise = fetch('/api/products', {
@@ -155,6 +175,17 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     throw new Error(apiErr.message || 'Could not connect to production server to save product.')
   }
 
+  // Invalidate cache immediately again after save
+  invalidateProductsCache()
+
+  // Update localStore (preserving order for existing items)
+  const existing = localStore.getProducts()
+  const exists = existing.some((p) => p.id === id)
+  const updated = exists
+    ? existing.map((p) => (p.id === id ? fullProduct : p))
+    : [fullProduct, ...existing]
+  localStore.setProducts(updated)
+
   return fullProduct
 }
 
@@ -174,13 +205,18 @@ export async function deleteProduct(id: string): Promise<void> {
     console.error('Backend delete error:', err)
     throw err
   }
+
+  invalidateProductsCache()
 }
 
 // --- CATEGORIES ---
 export async function getCategories(): Promise<Category[]> {
   try {
     const res = await Promise.race([
-      fetch('/api/categories'),
+      fetch('/api/categories', {
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-cache',
+      }),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {
@@ -227,7 +263,10 @@ export async function saveCategory(category: Category): Promise<Category> {
 export async function getStoreSettings(): Promise<StoreSettings> {
   try {
     const res = await Promise.race([
-      fetch('/api/settings'),
+      fetch('/api/settings', {
+        headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-cache',
+      }),
       new Promise<Response>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ])
     if (res.ok) {

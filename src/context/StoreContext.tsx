@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import type { Product, Category } from '../types/product'
 import type { StoreSettings } from '../types/settings'
 import {
@@ -30,6 +30,37 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
+// Shared singleton BroadcastChannel instance (avoids early close truncation bugs)
+let broadcastChannelInstance: BroadcastChannel | null = null
+
+function getBroadcastChannel(): BroadcastChannel | null {
+  if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return null
+  if (!broadcastChannelInstance) {
+    try {
+      broadcastChannelInstance = new BroadcastChannel('levix_store_sync')
+    } catch (e) {
+      console.warn('BroadcastChannel creation error:', e)
+    }
+  }
+  return broadcastChannelInstance
+}
+
+function broadcastStoreEvent(event: { type: string; [key: string]: any }) {
+  const ch = getBroadcastChannel()
+  if (ch) {
+    try {
+      ch.postMessage(event)
+    } catch (e) {
+      console.warn('BroadcastChannel postMessage failed:', e)
+    }
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(new CustomEvent('levix_store_internal_sync', { detail: event }))
+    } catch {}
+  }
+}
+
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Synchronously initialize with local data for zero-latency instant rendering
   const [products, setProducts] = useState<Product[]>(() => localStore.getProducts())
@@ -38,11 +69,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (force = false) => {
     try {
       // Fetch products, categories, and settings with individual error isolation
       const [prodResult, catResult, setResult] = await Promise.allSettled([
-        getProducts(false),
+        getProducts(false, force),
         getCategories(),
         getStoreSettings(),
       ])
@@ -50,11 +81,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (prodResult.status === 'fulfilled' && Array.isArray(prodResult.value)) {
         setProducts((prev) => {
           if (
+            !force &&
             prev.length === prodResult.value.length &&
             JSON.stringify(prev) === JSON.stringify(prodResult.value)
           ) {
             return prev
           }
+          localStore.setProducts(prodResult.value)
           return prodResult.value
         })
       }
@@ -62,20 +95,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (catResult.status === 'fulfilled' && Array.isArray(catResult.value)) {
         setCategories((prev) => {
           if (
+            !force &&
             prev.length === catResult.value.length &&
             JSON.stringify(prev) === JSON.stringify(catResult.value)
           ) {
             return prev
           }
+          localStore.setCategories(catResult.value)
           return catResult.value
         })
       }
 
       if (setResult.status === 'fulfilled' && setResult.value) {
         setSettings((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(setResult.value)) {
+          if (!force && JSON.stringify(prev) === JSON.stringify(setResult.value)) {
             return prev
           }
+          localStore.setSettings(setResult.value)
           return setResult.value
         })
       }
@@ -90,34 +126,44 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [loadData])
 
   // Real-time live synchronization across tabs and throttled refresh (Fix 2.1)
-  const lastLoad = React.useRef(0)
+  const lastLoad = useRef(0)
   const refreshIfStale = useCallback(() => {
-    if (Date.now() - lastLoad.current < 60_000) return // at most once a minute
+    if (Date.now() - lastLoad.current < 30_000) return // at most once every 30 seconds on visibility change
     lastLoad.current = Date.now()
-    loadData()
+    loadData(true)
   }, [loadData])
 
   useEffect(() => {
-    let channel: BroadcastChannel | null = null
-    try {
-      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-        channel = new BroadcastChannel('levix_store_sync')
-        channel.onmessage = (event) => {
-          if (event.data?.type === 'PRODUCTS_UPDATED' && Array.isArray(event.data.products)) {
-            invalidateProductsCache()
-            setProducts(event.data.products)
-          } else if (event.data?.type === 'CATEGORIES_UPDATED' && Array.isArray(event.data.categories)) {
-            setCategories(event.data.categories)
-          } else if (event.data?.type === 'SETTINGS_UPDATED' && event.data.settings) {
-            setSettings(event.data.settings)
-          }
-        }
+    const handleIncomingSync = (data: any) => {
+      if (!data || !data.type) return
+      if (data.type === 'PRODUCTS_UPDATED' && Array.isArray(data.products)) {
+        invalidateProductsCache()
+        setProducts(data.products)
+        localStore.setProducts(data.products)
+      } else if (data.type === 'CATEGORIES_UPDATED' && Array.isArray(data.categories)) {
+        setCategories(data.categories)
+        localStore.setCategories(data.categories)
+      } else if (data.type === 'SETTINGS_UPDATED' && data.settings) {
+        setSettings(data.settings)
+        localStore.setSettings(data.settings)
       }
-    } catch (e) {
-      console.warn('BroadcastChannel setup note:', e)
     }
 
-    // Single throttled refresh on tab visibility (replaces aggressive 8s polling and focus handler)
+    const ch = getBroadcastChannel()
+    const handleChannelMessage = (event: MessageEvent) => {
+      handleIncomingSync(event.data)
+    }
+    if (ch) {
+      ch.addEventListener('message', handleChannelMessage)
+    }
+
+    const handleCustomEvent = (event: Event) => {
+      const customEvent = event as CustomEvent
+      handleIncomingSync(customEvent.detail)
+    }
+    window.addEventListener('levix_store_internal_sync', handleCustomEvent)
+
+    // Single throttled refresh on tab visibility (revalidates when switching to this tab)
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         refreshIfStale()
@@ -138,7 +184,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.addEventListener('storage', handleStorage)
 
     return () => {
-      if (channel) channel.close()
+      if (ch) {
+        ch.removeEventListener('message', handleChannelMessage)
+      }
+      window.removeEventListener('levix_store_internal_sync', handleCustomEvent)
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('storage', handleStorage)
     }
@@ -147,39 +196,38 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateStoreSettings = async (newSettings: StoreSettings) => {
     const saved = await saveStoreSettings(newSettings)
     setSettings(saved)
-    try {
-      if ('BroadcastChannel' in window) {
-        const ch = new BroadcastChannel('levix_store_sync')
-        ch.postMessage({ type: 'SETTINGS_UPDATED', settings: saved })
-        ch.close()
-      }
-    } catch {}
+    localStore.setSettings(saved)
+    broadcastStoreEvent({ type: 'SETTINGS_UPDATED', settings: saved })
   }
 
   const addProductOrUpdate = async (productData: Partial<Product> & { name: string }) => {
-    // 1. Optimistic instant local update in 0ms so price/cost changes reflect without lag
     const tempId = productData.id || `prod-${Date.now()}`
+
+    // 1. Optimistic instant local update in 0ms so price/cost changes reflect without lag
     setProducts((prev) => {
       const exists = prev.some((p) => p.id === tempId)
       const next = exists
         ? prev.map((p) => (p.id === tempId ? ({ ...p, ...productData } as Product) : p))
         : [{ ...productData, id: tempId } as Product, ...prev]
-      try {
-        if ('BroadcastChannel' in window) {
-          const ch = new BroadcastChannel('levix_store_sync')
-          ch.postMessage({ type: 'PRODUCTS_UPDATED', products: next })
-          ch.close()
-        }
-      } catch {}
+      localStore.setProducts(next)
+      broadcastStoreEvent({ type: 'PRODUCTS_UPDATED', products: next })
       return next
     })
 
     // 2. Persist to authoritative backend API
     const saved = await saveProduct(productData)
+
+    // 3. Update with confirmed server product and re-sync across all components & tabs
     setProducts((prev) => {
-      const next = [saved, ...prev.filter((p) => p.id !== saved.id)]
+      const exists = prev.some((p) => p.id === saved.id)
+      const next = exists
+        ? prev.map((p) => (p.id === saved.id ? saved : p))
+        : [saved, ...prev]
+      localStore.setProducts(next)
+      broadcastStoreEvent({ type: 'PRODUCTS_UPDATED', products: next })
       return next
     })
+
     return saved
   }
 
@@ -187,13 +235,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // 1. Optimistic removal in 0ms
     setProducts((prev) => {
       const next = prev.filter((p) => p.id !== id)
-      try {
-        if ('BroadcastChannel' in window) {
-          const ch = new BroadcastChannel('levix_store_sync')
-          ch.postMessage({ type: 'PRODUCTS_UPDATED', products: next })
-          ch.close()
-        }
-      } catch {}
+      localStore.setProducts(next)
+      broadcastStoreEvent({ type: 'PRODUCTS_UPDATED', products: next })
       return next
     })
 
@@ -204,14 +247,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addCategoryOrUpdate = async (catData: Category) => {
     const saved = await saveCategory(catData)
     setCategories((prev) => {
-      const next = [saved, ...prev.filter((c) => c.id !== saved.id)]
-      try {
-        if ('BroadcastChannel' in window) {
-          const ch = new BroadcastChannel('levix_store_sync')
-          ch.postMessage({ type: 'CATEGORIES_UPDATED', categories: next })
-          ch.close()
-        }
-      } catch {}
+      const exists = prev.some((c) => c.id === saved.id)
+      const next = exists
+        ? prev.map((c) => (c.id === saved.id ? saved : c))
+        : [saved, ...prev]
+      localStore.setCategories(next)
+      broadcastStoreEvent({ type: 'CATEGORIES_UPDATED', categories: next })
       return next
     })
     return saved
@@ -219,7 +260,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const seedInitialData = async () => {
     const res = await seedFirestoreDatabase()
-    await loadData()
+    await loadData(true)
     return res
   }
 
@@ -231,7 +272,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         settings,
         loading,
         error,
-        refreshStore: loadData,
+        refreshStore: () => loadData(true),
         updateStoreSettings,
         addProductOrUpdate,
         removeProduct,

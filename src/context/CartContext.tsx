@@ -34,7 +34,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { settings } = useStore()
+  const { products, settings } = useStore()
   const [items, setItems] = useState<CartItem[]>(() => localStore.getCart())
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState<boolean>(false)
 
@@ -42,6 +42,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStore.setCart(items)
   }, [items])
+
+  // Auto-sync cart line items with live catalog changes (price, name, stock)
+  useEffect(() => {
+    if (products.length === 0) return
+    const prodMap = new Map(products.map((p) => [p.id, p]))
+
+    setItems((prevItems) => {
+      if (prevItems.length === 0) return prevItems
+      let hasChanges = false
+      const updated = prevItems.map((item) => {
+        const prod = prodMap.get(item.productId)
+        if (!prod) return item
+
+        let currentPrice = prod.salePrice || prod.price
+        let maxStock = prod.stock
+        if (item.variantId && prod.hasVariants && prod.variants) {
+          const v = prod.variants.find((vr) => vr.id === item.variantId)
+          if (v) {
+            if (v.price) currentPrice = v.price
+            maxStock = v.stock
+          }
+        }
+
+        if (item.price !== currentPrice || item.maxStock !== maxStock || item.name !== prod.name) {
+          hasChanges = true
+          return {
+            ...item,
+            name: prod.name,
+            price: currentPrice,
+            maxStock,
+          }
+        }
+        return item
+      })
+
+      return hasChanges ? updated : prevItems
+    })
+  }, [products])
 
   const addItem = (item: Omit<CartItem, 'quantity'>, quantity = 1) => {
     setItems((prevItems) => {

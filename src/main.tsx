@@ -27,20 +27,13 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 
 // Aggressive cache purge: Ensure no stale HTML or outdated chunk bundles persist across deployments
 if (typeof window !== 'undefined') {
-  const CURRENT_BUILD = '20261020_v3_clean'
+  const CURRENT_BUILD = '20261023_glass_v3'
   if (localStorage.getItem('levix_build') !== CURRENT_BUILD) {
     localStorage.setItem('levix_build', CURRENT_BUILD)
     if ('caches' in window) {
       caches.keys().then((names) => {
         for (const name of names) {
-          if (
-            name.includes('pages-cache') ||
-            name.includes('levix-old') ||
-            name.includes('navigation-html-cache') ||
-            name.includes('workbox-precache')
-          ) {
-            caches.delete(name).catch(() => {})
-          }
+          caches.delete(name).catch(() => {})
         }
       }).catch(() => {})
     }

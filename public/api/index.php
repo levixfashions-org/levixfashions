@@ -532,7 +532,12 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
         $payload = json_encode(['success' => true, 'product' => $prod]);
         $etag = '"' . md5($payload) . '"';
         header('ETag: ' . $etag);
-        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (isset($_GET['refresh']) || isset($_GET['_t'])) {
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+        } else {
+            header('Cache-Control: no-cache, must-revalidate');
+        }
         if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
             http_response_code(304);
             exit;
@@ -579,7 +584,12 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
         $payload = json_encode(['success' => true, 'products' => $products, 'page' => $page]);
         $etag = '"' . md5($payload) . '"';
         header('ETag: ' . $etag);
-        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (isset($_GET['refresh']) || isset($_GET['_t'])) {
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+        } else {
+            header('Cache-Control: no-cache, must-revalidate');
+        }
         if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
             http_response_code(304);
             exit;
@@ -623,7 +633,12 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
         $payload = json_encode(['success' => true, 'source' => 'mysql', 'products' => $products]);
         $etag = '"' . md5($payload) . '"';
         header('ETag: ' . $etag);
-        header('Cache-Control: public, max-age=30, stale-while-revalidate=120');
+        if (isset($_GET['refresh']) || isset($_GET['_t'])) {
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+        } else {
+            header('Cache-Control: no-cache, must-revalidate');
+        }
         if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
             http_response_code(304);
             exit;
