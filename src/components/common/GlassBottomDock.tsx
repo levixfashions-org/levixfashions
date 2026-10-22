@@ -84,10 +84,10 @@ export const GlassBottomDock: React.FC = () => {
         clearTimeout(scrollTimeoutRef.current)
       }
 
-      // When user stops scrolling (250ms of inactivity), smoothly slide bar back in
+      // When user stops scrolling, wait 3 seconds of pause before smoothly sliding bar back in
       scrollTimeoutRef.current = setTimeout(() => {
         setIsVisible(true)
-      }, 250)
+      }, 3000)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -154,7 +154,7 @@ export const GlassBottomDock: React.FC = () => {
         style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <div
-          className={`w-full max-w-[360px] flex items-center justify-between gap-2.5 transition-all duration-300 ease-out transform ${
+          className={`w-full max-w-[360px] flex items-center justify-between gap-2.5 transition-all duration-500 ease-in-out transform ${
             isVisible
               ? 'translate-y-0 opacity-100 pointer-events-auto scale-100'
               : 'translate-y-28 opacity-0 pointer-events-none scale-95'
