@@ -1,0 +1,7 @@
+# public_html/uploads/.htaccess
+# Disables PHP execution in uploads directory and prevents directory indexing
+php_flag engine off
+<FilesMatch "\.(php|phtml|phar|pl|py|cgi|sh|env|sql)$">
+ Require all denied
+</FilesMatch>
+Options -Indexes -ExecCGI
