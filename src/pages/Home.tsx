@@ -44,7 +44,7 @@ export const Home: React.FC = () => {
                 className="btn-primary py-1 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add / Manage Products</span>
+                <span>Manage Products</span>
               </Link>
               <Link
                 to="/admin"

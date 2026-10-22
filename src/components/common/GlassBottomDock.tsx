@@ -177,8 +177,8 @@ export const GlassBottomDock: React.FC = () => {
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isHomeActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
+                    : 'text-levix-charcoal hover:text-black active:scale-90'
                 }`}
               >
                 <Home className="w-4.5 h-4.5" strokeWidth={isHomeActive ? 2.4 : 1.9} />
@@ -195,8 +195,8 @@ export const GlassBottomDock: React.FC = () => {
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isExploreActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
+                    : 'text-levix-charcoal hover:text-black active:scale-90'
                 }`}
               >
                 <Compass className="w-4.5 h-4.5" strokeWidth={isExploreActive ? 2.4 : 1.9} />
@@ -208,7 +208,7 @@ export const GlassBottomDock: React.FC = () => {
               type="button"
               onClick={handleOpenSearch}
               aria-label="Open Product Search"
-              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-levix-orange active:scale-90"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-black active:scale-90"
             >
               <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center">
                 <Search className="w-4.5 h-4.5" strokeWidth={1.9} />
@@ -225,18 +225,18 @@ export const GlassBottomDock: React.FC = () => {
               <div
                 className={`relative w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isWishlistActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
+                    : 'text-levix-charcoal hover:text-black active:scale-90'
                 }`}
               >
                 <Heart
                   className={`w-4.5 h-4.5 ${
-                    !isWishlistActive && wishlistCount > 0 ? 'fill-levix-orange text-levix-orange' : ''
+                    !isWishlistActive && wishlistCount > 0 ? 'fill-black text-black' : ''
                   }`}
                   strokeWidth={isWishlistActive ? 2.4 : 1.9}
                 />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1 -right-1 bg-black/90 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white/40 backdrop-blur-xs">
                     {wishlistCount}
                   </span>
                 )}
@@ -248,12 +248,12 @@ export const GlassBottomDock: React.FC = () => {
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
               aria-label={`Shopping bag, ${totalItems} items`}
-              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-levix-orange active:scale-90"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-black active:scale-90"
             >
               <div className="relative w-8.5 h-8.5 rounded-full flex items-center justify-center">
                 <ShoppingBag className="w-4.5 h-4.5" strokeWidth={1.9} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1 -right-1 bg-black/90 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white/40 backdrop-blur-xs">
                     {totalItems}
                   </span>
                 )}
@@ -270,8 +270,8 @@ export const GlassBottomDock: React.FC = () => {
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isAccountActive
-                    ? 'bg-levix-orange text-white shadow-md shadow-orange-500/30 ring-2 ring-levix-orange/30 ring-offset-1 ring-offset-white/80'
-                    : 'text-levix-charcoal hover:text-levix-orange active:scale-90'
+                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
+                    : 'text-levix-charcoal hover:text-black active:scale-90'
                 }`}
               >
                 <User className="w-4.5 h-4.5" strokeWidth={isAccountActive ? 2.4 : 1.9} />
@@ -308,7 +308,7 @@ export const GlassBottomDock: React.FC = () => {
           >
             <div className="flex items-center justify-between pb-3 border-b border-levix-border">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-levix-soft-orange flex items-center justify-center text-levix-orange">
+                <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-black">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
@@ -518,7 +518,7 @@ export const GlassBottomDock: React.FC = () => {
               <Link
                 to="/account/orders"
                 onClick={() => setIsSupportDrawerOpen(false)}
-                className="text-xs text-levix-secondary hover:text-levix-orange transition-colors font-medium"
+                className="text-xs text-levix-secondary hover:text-black transition-colors font-medium"
               >
                 Looking for an existing purchase? Track Order →
               </Link>

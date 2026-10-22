@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Save,
   Check,
@@ -7,13 +7,17 @@ import {
   CreditCard,
   Megaphone,
   Sparkles,
+  Camera,
+  Upload,
+  Loader2,
 } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { paiseToRupees, rupeesToPaise } from '../../lib/utils'
+import { compressAndProcessImage } from '../../lib/imageUpload'
 import type { StoreSettings } from '../../types/settings'
 
 export const AdminSettings: React.FC = () => {
-  const { settings, updateStoreSettings, seedInitialData } = useStore()
+  const { settings, categories, updateStoreSettings, seedInitialData } = useStore()
 
   // Form states
   const [storeName, setStoreName] = useState(settings.storeName)
@@ -35,9 +39,30 @@ export const AdminSettings: React.FC = () => {
   const [announcementLink, setAnnouncementLink] = useState(settings.announcementBar?.link || '')
 
   // Hero Section
-  const [heroHeadline, setHeroHeadline] = useState(settings.hero.headline)
-  const [heroSubheadline, setHeroSubheadline] = useState(settings.hero.subheadline)
-  const [heroImageUrl, setHeroImageUrl] = useState(settings.hero.imageUrl)
+  const [heroImageUrl, setHeroImageUrl] = useState(
+    settings.hero?.imageUrl ||
+      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85'
+  )
+  const [heroSubtitle, setHeroSubtitle] = useState(settings.hero?.subtitle || 'Autumn / Winter Lookbook 2026')
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+
+  const handleBannerFile = async (file?: File) => {
+    if (!file) return
+    setIsUploadingBanner(true)
+    setUploadError(null)
+    try {
+      const url = await compressAndProcessImage(file, 1600, 0.85)
+      setHeroImageUrl(url)
+    } catch (err: any) {
+      setUploadError(err?.message || 'Failed to process banner photo. Try another image or direct URL.')
+    } finally {
+      setIsUploadingBanner(false)
+    }
+  }
+
   const [heroPrimaryBtnText, setHeroPrimaryBtnText] = useState(settings.hero.primaryButtonText)
   const [heroPrimaryBtnLink, setHeroPrimaryBtnLink] = useState(settings.hero.primaryButtonLink)
 
@@ -68,11 +93,12 @@ export const AdminSettings: React.FC = () => {
         link: announcementLink.trim(),
       },
       hero: {
-        headline: heroHeadline.trim(),
-        subheadline: heroSubheadline.trim(),
+        headline: '',
+        subheadline: '',
         imageUrl: heroImageUrl.trim(),
-        primaryButtonText: heroPrimaryBtnText.trim(),
+        primaryButtonText: (heroPrimaryBtnText || '').trim() || 'Shop now',
         primaryButtonLink: heroPrimaryBtnLink.trim(),
+        subtitle: heroSubtitle.trim(),
       },
     }
 
@@ -297,62 +323,187 @@ export const AdminSettings: React.FC = () => {
           )}
         </div>
 
-        {/* Hero Banner Editor */}
-        <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal pb-3 border-b border-levix-border">
-            4. Homepage Editorial Hero Banner
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <label className="form-label">Hero Headline *</label>
-              <input
-                type="text"
-                value={heroHeadline}
-                onChange={(e) => setHeroHeadline(e.target.value)}
-                required
-                className="form-input"
-              />
-            </div>
+        {/* Hero Banner Editor (Full-Bleed Minimal Look with Photo Upload & Collection Picker) */}
+        <div id="hero-banner" className="bg-white border border-levix-border p-6 shadow-subtle space-y-5">
+          <div className="pb-3 border-b border-levix-border">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
+              4. Homepage Full-Screen Hero Banner
+            </h2>
+            <p className="text-xs text-levix-secondary mt-0.5">
+              Manage the full-screen mobile cover photo, small sentence, and destination collection for \"Shop now\".
+            </p>
+          </div>
 
-            <div>
-              <label className="form-label">Supporting Subheadline</label>
-              <textarea
-                value={heroSubheadline}
-                onChange={(e) => setHeroSubheadline(e.target.value)}
-                rows={2}
-                className="form-input"
+          {/* Live Mobile Simulation Preview */}
+          <div>
+            <label className="form-label mb-2">Live Mobile Banner Preview</label>
+            <div className="relative max-w-[320px] mx-auto h-[460px] rounded-2xl overflow-hidden border-4 border-neutral-800 shadow-2xl bg-neutral-900 flex flex-col justify-end">
+              <img
+                src={heroImageUrl || "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85"}
+                alt="Banner Preview"
+                className="absolute inset-0 w-full h-full object-cover object-center"
               />
-            </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent pointer-events-none" />
 
+              {/* Preview Underlined Shop now & Subtitle */}
+              <div className="relative z-10 w-full pb-8 flex flex-col items-center justify-center text-center px-4">
+                {heroSubtitle && heroSubtitle.trim() && (
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/90 drop-shadow-md mb-1.5">
+                    {heroSubtitle}
+                  </p>
+                )}
+                <span className="text-sm font-semibold tracking-wide text-white underline underline-offset-8 decoration-white drop-shadow-md">
+                  {heroPrimaryBtnText || "Shop now"}
+                </span>
+                <span className="text-[10px] text-white/70 mt-2 font-mono">
+                  &rarr; {heroPrimaryBtnLink}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Photo Upload & Camera Controls */}
+          <div className="space-y-4 pt-2">
             <div>
-              <label className="form-label">Hero Background Image URL *</label>
+              <label className="form-label">Banner Photo (Camera, Gallery, or Direct URL)</label>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <input
+                  type="file"
+                  ref={cameraInputRef}
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleBannerFile(e.target.files?.[0])}
+                />
+                <input
+                  type="file"
+                  ref={galleryInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleBannerFile(e.target.files?.[0])}
+                />
+
+                <button
+                  type="button"
+                  disabled={isUploadingBanner}
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-levix-charcoal hover:bg-black text-white text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  <Camera className="w-4 h-4 text-white" />
+                  <span>Take Photo (Camera)</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isUploadingBanner}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-levix-gray hover:bg-neutral-200 text-levix-charcoal border border-levix-border text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  <Upload className="w-4 h-4 text-levix-secondary" />
+                  <span>Upload from Gallery</span>
+                </button>
+
+                {isUploadingBanner && (
+                  <div className="inline-flex items-center gap-1.5 text-xs text-levix-orange font-medium animate-pulse">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Compressing & uploading photo...</span>
+                  </div>
+                )}
+              </div>
+
+              {uploadError && (
+                <p className="text-xs text-rose-600 mb-2">{uploadError}</p>
+              )}
+
               <input
                 type="url"
                 value={heroImageUrl}
                 onChange={(e) => setHeroImageUrl(e.target.value)}
+                placeholder="Or paste an image URL..."
                 required
                 className="form-input font-mono text-[11px]"
               />
             </div>
 
+            {/* Curated Editorial Preset Photos */}
+            <div>
+              <p className="text-[11px] font-semibold text-levix-secondary uppercase tracking-wider mb-2">
+                Or pick a luxury editorial preset:
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: "Look 1", url: "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85" },
+                  { label: "Look 2", url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=85" },
+                  { label: "Look 3", url: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=85" },
+                  { label: "Look 4", url: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=85" },
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setHeroImageUrl(preset.url)}
+                    className={"relative rounded-md overflow-hidden aspect-[4/5] border-2 transition-all " + (heroImageUrl === preset.url ? "border-black ring-2 ring-black/30" : "border-levix-border hover:border-black")}
+                  >
+                    <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1 inset-x-1 bg-black/75 text-white text-[9px] font-bold uppercase text-center py-0.5 rounded-xs">
+                      {preset.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Small sentence above shop now */}
+            <div>
+              <label className="form-label">
+                Small Sentence Above \"Shop now\" (Optional)
+              </label>
+              <input
+                type="text"
+                value={heroSubtitle}
+                onChange={(e) => setHeroSubtitle(e.target.value)}
+                placeholder="e.g. AUTUMN / WINTER 26 or LATE DROP"
+                className="form-input"
+              />
+              <p className="text-[11px] text-levix-secondary mt-1">
+                Displays in clean, understated uppercase typography directly above the \"Shop now\" text.
+              </p>
+            </div>
+
+            {/* Redirect Collection Picker */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="form-label">Primary Button Text</label>
+                <label className="form-label">Destination Collection</label>
+                <select
+                  value={heroPrimaryBtnLink}
+                  onChange={(e) => setHeroPrimaryBtnLink(e.target.value)}
+                  className="form-input cursor-pointer font-medium"
+                >
+                  <option value="/shop">All Collections (/shop)</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={"/collection/" + cat.slug}>
+                      {cat.name} (/collection/{cat.slug})
+                    </option>
+                  ))}
+                  <option value="/shop?sort=newest">New Arrivals (/shop?sort=newest)</option>
+                  <option value="/shop?sort=price_desc">High to Low (/shop?sort=price_desc)</option>
+                </select>
+                <p className="text-[11px] text-levix-secondary mt-1">
+                  Customer will be instantly redirected here when clicking \"Shop now\".
+                </p>
+              </div>
+
+              <div>
+                <label className="form-label">Underlined Link Text</label>
                 <input
                   type="text"
                   value={heroPrimaryBtnText}
                   onChange={(e) => setHeroPrimaryBtnText(e.target.value)}
-                  className="form-input"
+                  placeholder="Shop now"
+                  className="form-input font-medium"
                 />
-              </div>
-              <div>
-                <label className="form-label">Primary Button Destination Link</label>
-                <input
-                  type="text"
-                  value={heroPrimaryBtnLink}
-                  onChange={(e) => setHeroPrimaryBtnLink(e.target.value)}
-                  className="form-input font-mono"
-                />
+                <p className="text-[11px] text-levix-secondary mt-1">
+                  Default: <span className="font-semibold text-black">Shop now</span> (underlined design, no button box).
+                </p>
               </div>
             </div>
           </div>

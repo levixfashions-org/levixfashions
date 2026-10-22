@@ -5,13 +5,15 @@ export interface AnnouncementBarConfig {
 }
 
 export interface HeroConfig {
-  headline: string
-  subheadline: string
-  primaryButtonText: string
+  headline?: string
+  subheadline?: string
+  primaryButtonText?: string
   primaryButtonLink: string
   secondaryButtonText?: string
   secondaryButtonLink?: string
   imageUrl: string
+  subtitle?: string // Small sentence above "Shop now" (e.g. "Late Drop" or "A/W 2026 Collection")
+  targetCollectionSlug?: string // Destination collection slug
 }
 
 export interface StoreSettings {

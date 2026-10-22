@@ -77,7 +77,7 @@ export const Header: React.FC = () => {
             </div>
 
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-7 h-7 bg-levix-orange flex items-center justify-center text-white font-black text-xs tracking-tighter shadow-xs">
+              <div className="w-7 h-7 bg-black flex items-center justify-center text-white font-black text-xs tracking-tighter shadow-xs">
                 LX
               </div>
               <span className="text-xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
