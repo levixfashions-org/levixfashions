@@ -84,10 +84,10 @@ export const GlassBottomDock: React.FC = () => {
         clearTimeout(scrollTimeoutRef.current)
       }
 
-      // When user stops scrolling, wait 3 seconds of pause before smoothly sliding bar back in
+      // When user stops scrolling, wait 2 seconds of pause before smoothly sliding bar back in
       scrollTimeoutRef.current = setTimeout(() => {
         setIsVisible(true)
-      }, 3000)
+      }, 2000)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
