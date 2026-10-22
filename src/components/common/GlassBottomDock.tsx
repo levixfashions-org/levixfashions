@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Home,
@@ -62,6 +62,48 @@ export const GlassBottomDock: React.FC = () => {
     return null
   }
 
+  // Auto-hide when scrolling, smoothly reappear when stopped
+  const [isVisible, setIsVisible] = useState(true)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop
+
+      // If scrolling motion is detected, slide out the bar
+      if (Math.abs(currentScrollY - lastScrollY.current) > 4) {
+        setIsVisible(false)
+      }
+      lastScrollY.current = currentScrollY
+
+      // Reset timer
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+
+      // When user stops scrolling (250ms of inactivity), smoothly slide bar back in
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsVisible(true)
+      }, 250)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Keep visible on route change
+  useEffect(() => {
+    setIsVisible(true)
+  }, [location.pathname])
+
   // Active state matching current route
   const isHomeActive = location.pathname === '/'
   const isExploreActive =
@@ -105,13 +147,19 @@ export const GlassBottomDock: React.FC = () => {
   return (
     <>
       {/* 
-        Bottom Floating Container (Mobile-first, hidden on desktop to preserve existing desktop nav)
+        Bottom Floating Container (Mobile & Tablet, hidden on desktop >= 1024px to preserve existing desktop nav)
       */}
       <div
-        className="fixed left-0 right-0 z-40 pointer-events-none md:hidden flex items-center justify-center px-3 sm:px-4"
+        className="fixed left-0 right-0 z-40 pointer-events-none lg:hidden flex items-center justify-center px-3 sm:px-4"
         style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="w-full max-w-[360px] flex items-center justify-between gap-2.5 pointer-events-auto">
+        <div
+          className={`w-full max-w-[360px] flex items-center justify-between gap-2.5 transition-all duration-300 ease-out transform ${
+            isVisible
+              ? 'translate-y-0 opacity-100 pointer-events-auto scale-100'
+              : 'translate-y-28 opacity-0 pointer-events-none scale-95'
+          }`}
+        >
           {/* Glassy Floating Pill Navigation Bar (Inspired by Bluorng) */}
           <nav
             aria-label="Mobile Bottom Navigation"
