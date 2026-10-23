@@ -19,6 +19,7 @@ export async function getAdminHeaders(): Promise<Record<string, string>> {
       const token = await auth.currentUser.getIdToken()
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
+        headers['X-Firebase-Token'] = token
       }
     } catch (e) {
       console.warn('Failed to retrieve Firebase ID token:', e)
@@ -62,9 +63,11 @@ export async function getProducts(onlyPublished = true, forceRefresh = false): P
     if (res.ok) {
       const data = await res.json()
       if (data && Array.isArray(data.products)) {
-        productsCache = { data: data.products, expiresAt: now + 30000 }
-        localStore.setProducts(data.products)
-        return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
+        if (data.products.length > 0) {
+          productsCache = { data: data.products, expiresAt: now + 30000 }
+          localStore.setProducts(data.products)
+          return onlyPublished ? data.products.filter((p: Product) => p.isPublished) : data.products
+        }
       }
     }
   } catch (err) {
@@ -153,6 +156,14 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
     updatedAt: now,
   }
 
+  // Optimistically update localStore so UI reflects edits instantly
+  const existing = localStore.getProducts()
+  const exists = existing.some((p) => p.id === id)
+  const updated = exists
+    ? existing.map((p) => (p.id === id ? fullProduct : p))
+    : [fullProduct, ...existing]
+  localStore.setProducts(updated)
+
   // 1. Authoritative save to Backend MySQL API
   try {
     const headers = await getAdminHeaders()
@@ -162,7 +173,7 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
       body: JSON.stringify(fullProduct),
     })
     const timeoutPromise = new Promise<Response>((_, reject) =>
-      setTimeout(() => reject(new Error('API save timeout')), 4000)
+      setTimeout(() => reject(new Error('API save timeout')), 7000)
     )
     const res = await Promise.race([apiPromise, timeoutPromise])
     if (!res.ok) {
@@ -177,14 +188,6 @@ export async function saveProduct(product: Partial<Product> & { name: string }):
 
   // Invalidate cache immediately again after save
   invalidateProductsCache()
-
-  // Update localStore (preserving order for existing items)
-  const existing = localStore.getProducts()
-  const exists = existing.some((p) => p.id === id)
-  const updated = exists
-    ? existing.map((p) => (p.id === id ? fullProduct : p))
-    : [fullProduct, ...existing]
-  localStore.setProducts(updated)
 
   return fullProduct
 }
