@@ -5,12 +5,14 @@ import type { Product } from '../../types/product'
 import { formatPrice, normalizeColorImages } from '../../lib/utils'
 import { useWishlist } from '../../context/WishlistContext'
 import { useCart } from '../../context/CartContext'
+import { useStore } from '../../context/StoreContext'
 
 interface ProductCardProps {
   product: Product
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { settings } = useStore()
   const { isInWishlist, toggleWishlist } = useWishlist()
   const { addItem, items } = useCart()
 
@@ -20,6 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const hasDiscount = product.salePrice && product.salePrice < product.price
 
   const inCart = items.some((i) => i.productId === product.id)
+  const cardBg = settings?.productCardBgColor || '#f0f0f0'
 
   // Determine secondary image for hover (back of t-shirt or second gallery image)
   const secondaryImage = useMemo(() => {
@@ -60,9 +63,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   }
 
   return (
-    <div className="group relative flex flex-col bg-white border border-levix-border hover:border-levix-orange/40 transition-all duration-300">
+    <div
+      style={{ backgroundColor: cardBg }}
+      className="group relative flex flex-col border border-levix-border hover:border-black/30 transition-all duration-300 shadow-xs"
+    >
       {/* Product Image Container */}
-      <Link to={`/product/${product.slug}`} className="relative aspect-[3/4] bg-levix-gray overflow-hidden">
+      <Link
+        to={`/product/${product.slug}`}
+        style={{ backgroundColor: cardBg }}
+        className="relative aspect-[3/4] overflow-hidden"
+      >
         <img
           src={product.images[0]}
           alt={product.name}

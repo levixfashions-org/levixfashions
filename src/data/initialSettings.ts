@@ -26,6 +26,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
     imageUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85',
     subtitle: 'Autumn / Winter Lookbook 2026',
   },
+  productCardBgColor: '#f0f0f0',
   socialLinks: {
     instagram: 'https://instagram.com/levix.official',
     twitter: 'https://x.com/levix_official',

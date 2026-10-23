@@ -43,6 +43,7 @@ export const AdminSettings: React.FC = () => {
     settings.hero?.imageUrl ||
       'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85'
   )
+  const [productCardBgColor, setProductCardBgColor] = useState(settings.productCardBgColor || '#f0f0f0')
   const [heroSubtitle, setHeroSubtitle] = useState(settings.hero?.subtitle || 'Autumn / Winter Lookbook 2026')
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -509,6 +510,108 @@ export const AdminSettings: React.FC = () => {
           </div>
         </div>
 
+        {/* Product Card Background Color Styling */}
+        <div id="product-card-style" className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
+          <div className="pb-3 border-b border-levix-border flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
+                5. Product Card Background Color
+              </h2>
+              <p className="text-xs text-levix-secondary mt-0.5">
+                Customize the background color of product cards across the entire website by entering any HEX code (e.g. #f0f0f0).
+              </p>
+            </div>
+            {/* Visual Color Swatch */}
+            <div
+              className="w-10 h-10 rounded-lg border-2 border-levix-border shadow-xs"
+              style={{ backgroundColor: productCardBgColor || "#f0f0f0" }}
+              title={"Current background: " + (productCardBgColor || "#f0f0f0")}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              <div>
+                <label className="form-label">Background HEX Code</label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={productCardBgColor}
+                      onChange={(e) => {
+                        let val = e.target.value.trim()
+                        if (!val.startsWith("#") && val.length > 0) val = "#" + val
+                        setProductCardBgColor(val)
+                      }}
+                      placeholder="#f0f0f0"
+                      maxLength={7}
+                      className="form-input font-mono uppercase tracking-wider font-bold"
+                    />
+                  </div>
+                  {/* Native HTML Color Picker synced with HEX */}
+                  <input
+                    type="color"
+                    value={/^#[0-9A-Fa-f]{6}$/.test(productCardBgColor) ? productCardBgColor : "#f0f0f0"}
+                    onChange={(e) => setProductCardBgColor(e.target.value)}
+                    className="w-11 h-10 p-1 bg-white border border-levix-border rounded cursor-pointer shrink-0"
+                    title="Choose color using color picker"
+                  />
+                </div>
+                <p className="text-[11px] text-levix-secondary mt-1">
+                  Enter any valid 6-digit HEX code (e.g. <span className="font-mono font-bold text-black">#f0f0f0</span>).
+                </p>
+              </div>
+
+              {/* Live Mini Product Card Preview */}
+              <div>
+                <label className="form-label">Live Product Card Preview</label>
+                <div
+                  style={{ backgroundColor: productCardBgColor || "#f0f0f0" }}
+                  className="p-3 border border-levix-border rounded-lg shadow-xs flex items-center gap-3 transition-colors"
+                >
+                  <div className="w-12 h-14 bg-black/10 rounded overflow-hidden flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-mono text-neutral-500">Image</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">T-SHIRTS</span>
+                    <p className="text-xs font-bold text-black line-clamp-1">Heavyweight Boxy Tee</p>
+                    <p className="text-xs font-semibold text-neutral-800">₹2,499</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div>
+              <p className="text-[11px] font-semibold text-levix-secondary uppercase tracking-wider mb-2">
+                Quick Luxury Color Presets:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "#f0f0f0 (Default Minimal Studio)", hex: "#f0f0f0" },
+                  { label: "#ffffff (Pure White)", hex: "#ffffff" },
+                  { label: "#f8f8f8 (Soft Off-White)", hex: "#f8f8f8" },
+                  { label: "#eceae6 (Warm Oatmeal)", hex: "#eceae6" },
+                  { label: "#e5e5e5 (Neutral Studio Gray)", hex: "#e5e5e5" },
+                ].map((preset) => (
+                  <button
+                    key={preset.hex}
+                    type="button"
+                    onClick={() => setProductCardBgColor(preset.hex)}
+                    className={"inline-flex items-center gap-2 px-3 py-1.5 border text-xs transition-all " + (productCardBgColor.toLowerCase() === preset.hex.toLowerCase() ? "border-black bg-black text-white font-bold" : "border-levix-border bg-white text-levix-charcoal hover:border-black")}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full border border-black/20"
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                    <span>{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Save Settings Action */}
         <div className="flex items-center justify-between pt-4 border-t border-levix-border">
           <button
@@ -527,7 +630,7 @@ export const AdminSettings: React.FC = () => {
         <div className="flex items-center gap-2 pb-2 border-b border-levix-border">
           <Database className="w-4 h-4 text-levix-orange" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
-            5. Database Synchronization & Initial Seeding
+            6. Database Synchronization & Initial Seeding
           </h2>
         </div>
         <p className="text-xs text-levix-secondary leading-relaxed">

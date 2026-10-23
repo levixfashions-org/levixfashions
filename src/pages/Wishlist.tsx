@@ -9,8 +9,9 @@ import { SEO } from '../components/common/SEO'
 
 export const Wishlist: React.FC = () => {
   const { wishlistIds, removeFromWishlist, clearWishlist } = useWishlist()
-  const { products } = useStore()
+  const { products, settings } = useStore()
   const { addItem } = useCart()
+  const cardBg = settings?.productCardBgColor || '#f0f0f0'
 
   const wishlistedProducts = products.filter((p) => wishlistIds.includes(p.id))
 
@@ -79,9 +80,14 @@ export const Wishlist: React.FC = () => {
             return (
               <div
                 key={product.id}
-                className="group relative flex flex-col bg-white border border-levix-border hover:border-levix-orange/40 transition-colors"
+                style={{ backgroundColor: cardBg }}
+                className="group relative flex flex-col border border-levix-border hover:border-black/30 transition-colors shadow-xs"
               >
-                <Link to={`/product/${product.slug}`} className="relative aspect-[3/4] bg-levix-gray overflow-hidden">
+                <Link
+                  to={`/product/${product.slug}`}
+                  style={{ backgroundColor: cardBg }}
+                  className="relative aspect-[3/4] overflow-hidden"
+                >
                   <img
                     src={product.images[0]}
                     alt={product.name}

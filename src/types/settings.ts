@@ -29,6 +29,7 @@ export interface StoreSettings {
   razorpayKeyId?: string
   announcementBar: AnnouncementBarConfig
   hero: HeroConfig
+  productCardBgColor?: string // Custom product card background HEX color (e.g. #f0f0f0)
   socialLinks: {
     instagram?: string
     twitter?: string
