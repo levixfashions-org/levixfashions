@@ -8,7 +8,8 @@ import { SEO } from '../components/common/SEO'
 
 export const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
-  const { categories, products } = useStore()
+  const { categories, products, settings } = useStore()
+  const pageBg = settings?.productCardBgColor || '#f0f0f0'
   const { isAdmin } = useAuth()
 
   const currentCategory = categories.find((c) => c.slug === slug)
@@ -54,7 +55,7 @@ export const CategoryPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen py-10 sm:py-14">
+    <div style={{ backgroundColor: pageBg }} className="min-h-screen py-10 sm:py-14 transition-colors duration-300">
       <SEO
         title={currentCategory.name}
         description={currentCategory.description}

@@ -4,7 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 
 export const CategoryGrid: React.FC = () => {
-  const { categories, products } = useStore()
+  const { categories, products, settings } = useStore()
+  const pageBg = settings?.productCardBgColor || '#f0f0f0'
   const publishedCategories = categories.filter((c) => c.isPublished)
 
   const getProductCount = (category: typeof categories[0]) => {
@@ -30,7 +31,7 @@ export const CategoryGrid: React.FC = () => {
   }
 
   return (
-    <section className="py-16 sm:py-20 bg-white">
+    <section style={{ backgroundColor: pageBg }} className="py-16 sm:py-20 transition-colors duration-300">
       <div className="container-levix">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
           <div>

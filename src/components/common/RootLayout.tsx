@@ -10,18 +10,33 @@ import { useStore } from '../../context/StoreContext'
 
 export const RootLayout: React.FC = () => {
   const location = useLocation()
-  const { refreshStore } = useStore()
+  const { refreshStore, settings } = useStore()
+  const pageBg = settings?.productCardBgColor || '#f0f0f0'
+
+  // Apply dynamic background color to html and body elements across the entire website
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.backgroundColor = pageBg
+      document.documentElement.style.backgroundColor = pageBg
+    }
+  }, [pageBg])
 
   // Revalidate store data on route navigation so the customer always sees current catalog data
   useEffect(() => {
     refreshStore()
   }, [location.pathname, refreshStore])
   return (
-    <div className="min-h-screen flex flex-col text-levix-charcoal font-sans antialiased selection:bg-levix-orange/20 selection:text-levix-orange">
+    <div
+      style={{ backgroundColor: pageBg }}
+      className="min-h-screen flex flex-col text-levix-charcoal font-sans antialiased selection:bg-levix-orange/20 selection:text-levix-orange transition-colors duration-300"
+    >
       <ScrollRestoration />
       <AnnouncementBar />
       <Header />
-      <main className="flex-1 pb-24 sm:pb-28">
+      <main
+        style={{ backgroundColor: pageBg }}
+        className="flex-1 pb-24 sm:pb-28 transition-colors duration-300"
+      >
         <Outlet />
       </main>
       <Footer />

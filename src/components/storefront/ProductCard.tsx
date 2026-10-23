@@ -77,7 +77,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           src={product.images[0]}
           alt={product.name}
           loading="lazy"
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply"
         />
 
         {/* Secondary Image on Hover if available (e.g. Back view of t-shirt) */}
@@ -86,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             src={secondaryImage}
             alt={`${product.name} alternate view`}
             loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out"
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out mix-blend-multiply"
           />
         )}
 
@@ -152,7 +152,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </Link>
 
       {/* Product Details */}
-      <div style={{ backgroundColor: cardBg }} className="p-4 flex-1 flex flex-col justify-between transition-colors duration-300">
+      <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <p className="text-[11px] font-medium text-levix-secondary uppercase tracking-wider">
             {product.categoryName}

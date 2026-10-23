@@ -9,7 +9,8 @@ import { ProductCard } from '../components/storefront/ProductCard'
 import { SEO } from '../components/common/SEO'
 
 export const Home: React.FC = () => {
-  const { products, loading } = useStore()
+  const { products, settings, loading } = useStore()
+  const pageBg = settings?.productCardBgColor || '#f0f0f0'
   const { isAdmin } = useAuth()
 
   const publishedProducts = products.filter((p) => p.isPublished)
@@ -64,7 +65,7 @@ export const Home: React.FC = () => {
       <CategoryGrid />
 
       {/* Featured Products Section */}
-      <section className="py-16 sm:py-20 bg-levix-gray/40 border-y border-levix-border">
+      <section style={{ backgroundColor: pageBg }} className="py-16 sm:py-20 border-y border-levix-border/40 transition-colors duration-300">
         <div className="container-levix">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
             <div>
@@ -148,7 +149,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Editorial Brand Story Section */}
-      <section className="py-20 sm:py-28 bg-white overflow-hidden">
+      <section style={{ backgroundColor: pageBg }} className="py-20 sm:py-28 overflow-hidden transition-colors duration-300">
         <div className="container-levix">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             <div className="lg:col-span-6 relative">
@@ -211,7 +212,7 @@ export const Home: React.FC = () => {
 
       {/* New Arrivals Section */}
       {newArrivals.length > 0 && (
-        <section className="py-16 sm:py-20 bg-levix-gray/30 border-t border-levix-border">
+        <section style={{ backgroundColor: pageBg }} className="py-16 sm:py-20 border-t border-levix-border/40 transition-colors duration-300">
           <div className="container-levix">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
               <div>

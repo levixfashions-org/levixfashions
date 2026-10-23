@@ -21,7 +21,8 @@ import type { ProductVariant } from '../types/product'
 export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
-  const { products } = useStore()
+  const { products, settings } = useStore()
+  const pageBg = settings?.productCardBgColor || '#f0f0f0'
   const { addItem } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
 
@@ -231,7 +232,7 @@ export const ProductDetail: React.FC = () => {
     .slice(0, 4)
 
   return (
-    <div className="bg-white min-h-screen pt-8 sm:pt-14 pb-28 sm:pb-32">
+    <div style={{ backgroundColor: pageBg }} className="min-h-screen pt-8 sm:pt-14 pb-28 sm:pb-32 transition-colors duration-300">
       <SEO
         title={product.seoTitle || product.name}
         description={product.seoDescription || product.shortDescription}
@@ -287,13 +288,14 @@ export const ProductDetail: React.FC = () => {
                           }
                         }
                       }}
-                      className={`relative w-16 h-20 sm:w-20 sm:h-24 bg-levix-gray border overflow-hidden shrink-0 transition-all ${
+                      style={{ backgroundColor: pageBg }}
+                      className={`relative w-16 h-20 sm:w-20 sm:h-24 border overflow-hidden shrink-0 transition-all ${
                         activeImageIndex === idx
                           ? 'border-levix-orange ring-1 ring-levix-orange'
                           : 'border-levix-border hover:border-levix-charcoal'
                       }`}
                     >
-                      <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="w-full h-full object-cover mix-blend-multiply" />
                       {(isFront || isBack) && (
                         <span className="absolute bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.2 bg-black/85 text-white text-[8px] font-mono uppercase tracking-wider font-bold whitespace-nowrap">
                           {isFront ? 'Front' : 'Back'}
@@ -306,11 +308,11 @@ export const ProductDetail: React.FC = () => {
             )}
 
             {/* Main Stage Image */}
-            <div className="relative flex-1 aspect-[3/4] bg-levix-gray border border-levix-border overflow-hidden">
+            <div style={{ backgroundColor: pageBg }} className="relative flex-1 aspect-[3/4] border border-levix-border overflow-hidden">
               <img
                 src={allDisplayImages[activeImageIndex] || allDisplayImages[0]}
                 alt={product.name}
-                className="w-full h-full object-cover object-center transition-all duration-300"
+                className="w-full h-full object-cover object-center transition-all duration-300 mix-blend-multiply"
               />
 
               {/* Front / Back View Switcher Toggle for Active Color */}
@@ -629,11 +631,11 @@ export const ProductDetail: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
             {/* Left: Thumbnail + Title + Pricing */}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-14 sm:w-14 sm:h-16 bg-levix-gray border border-levix-border overflow-hidden shrink-0 shadow-xs">
+              <div style={{ backgroundColor: pageBg }} className="w-11 h-14 sm:w-14 sm:h-16 border border-levix-border overflow-hidden shrink-0 shadow-xs">
                 <img
                   src={chosenImage}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover mix-blend-multiply"
                 />
               </div>
               <div className="min-w-0 flex-1">

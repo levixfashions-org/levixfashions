@@ -52,7 +52,7 @@ export const Wishlist: React.FC = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen py-10 sm:py-14">
+    <div style={{ backgroundColor: cardBg }} className="min-h-screen py-10 sm:py-14 transition-colors duration-300">
       <SEO title="My Wishlist" />
 
       <div className="container-levix">
@@ -91,7 +91,7 @@ export const Wishlist: React.FC = () => {
                   <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
                   />
                   <button
                     type="button"
