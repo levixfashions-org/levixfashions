@@ -1,17 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth, checkIsAdminEmail } from '../../context/AuthContext'
 import { SEO } from '../../components/common/SEO'
 
 export const AdminLogin: React.FC = () => {
-  const { login, loginWithGoogle } = useAuth()
+  const { login, loginWithGoogle, isAdmin, currentUser } = useAuth()
   const navigate = useNavigate()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Auto-redirect if already authenticated as administrator
+  useEffect(() => {
+    if (isAdmin || checkIsAdminEmail(currentUser?.email)) {
+      navigate('/admin/products', { replace: true })
+    }
+  }, [isAdmin, currentUser, navigate])
 
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,9 +32,16 @@ export const AdminLogin: React.FC = () => {
         setError('This account is not authorized as an administrator.')
       }
     } catch (err: any) {
-      // If email matches owner, offer direct admin session or Google sign-in
-      if (email.trim().toLowerCase() === 'levixfashions@gmail.com') {
-        setError('Could not verify password with Firebase. Please use "Sign In with Google" below.')
+      console.error('Admin password login error:', err)
+      const code = err?.code || ''
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setError('Incorrect password. If you do not have a password set, please use "Sign In with Google" below.')
+      } else if (code === 'auth/user-not-found') {
+        setError('No account found with this email. Please use "Sign In with Google" below.')
+      } else if (code === 'auth/too-many-requests') {
+        setError('Too many failed attempts. Please wait a moment or sign in with Google.')
+      } else if (code === 'auth/internal-error') {
+        setError('Authentication service error. Please use "Sign In with Google" below.')
       } else {
         setError(err.message || 'Invalid administrator credentials.')
       }
@@ -49,10 +63,18 @@ export const AdminLogin: React.FC = () => {
     } catch (err: any) {
       console.error('Google Admin Sign-in error:', err)
       if (err.code === 'auth/popup-closed-by-user') return
+      if (err.code === 'auth/popup-blocked') {
+        setError('Browser pop-up was blocked. Please allow pop-ups for thelevix.shop to complete Google Sign-In.')
+        return
+      }
       if (err.code === 'auth/unauthorized-domain') {
         setError(
           `Domain not authorized in Firebase Console! Please add: "${window.location.hostname}" to Firebase Console > Authentication > Settings > Authorized Domains.`
         )
+        return
+      }
+      if (err.code === 'auth/internal-error') {
+        setError('Firebase communication error. Please ensure pop-ups are allowed and try clicking "Sign In with Google" again.')
         return
       }
       setError(err.message || 'Google Authentication failed. Please try again.')
