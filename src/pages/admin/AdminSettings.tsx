@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Save,
   Check,
@@ -67,6 +67,28 @@ export const AdminSettings: React.FC = () => {
   const [heroPrimaryBtnText, setHeroPrimaryBtnText] = useState(settings.hero.primaryButtonText)
   const [heroPrimaryBtnLink, setHeroPrimaryBtnLink] = useState(settings.hero.primaryButtonLink)
 
+  // Synchronize state with store settings when loaded from database
+  useEffect(() => {
+    if (settings) {
+      if (settings.storeName !== undefined) setStoreName(settings.storeName)
+      if (settings.supportEmail !== undefined) setSupportEmail(settings.supportEmail)
+      if (settings.supportPhone !== undefined) setSupportPhone(settings.supportPhone)
+      if (settings.freeShippingThreshold !== undefined) setFreeShippingRupees(paiseToRupees(settings.freeShippingThreshold))
+      if (settings.standardShippingFee !== undefined) setStandardShippingRupees(paiseToRupees(settings.standardShippingFee))
+      if (settings.codEnabled !== undefined) setCodEnabled(settings.codEnabled)
+      if (settings.maxCodAmount !== undefined) setMaxCodRupees(paiseToRupees(settings.maxCodAmount))
+      if (settings.razorpayKeyId !== undefined) setRazorpayKeyId(settings.razorpayKeyId || "")
+      if (settings.announcementBar?.enabled !== undefined) setAnnouncementEnabled(settings.announcementBar.enabled)
+      if (settings.announcementBar?.text !== undefined) setAnnouncementText(settings.announcementBar.text)
+      if (settings.announcementBar?.link !== undefined) setAnnouncementLink(settings.announcementBar.link)
+      if (settings.hero?.imageUrl !== undefined) setHeroImageUrl(settings.hero.imageUrl)
+      if (settings.hero?.subtitle !== undefined) setHeroSubtitle(settings.hero.subtitle)
+      if (settings.hero?.primaryButtonText !== undefined) setHeroPrimaryBtnText(settings.hero.primaryButtonText)
+      if (settings.hero?.primaryButtonLink !== undefined) setHeroPrimaryBtnLink(settings.hero.primaryButtonLink)
+      if (settings.productCardBgColor !== undefined) setProductCardBgColor(settings.productCardBgColor)
+    }
+  }, [settings])
+
   // Statuses
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -88,6 +110,7 @@ export const AdminSettings: React.FC = () => {
       codEnabled,
       maxCodAmount: rupeesToPaise(Number(maxCodRupees) || 0),
       razorpayKeyId: razorpayKeyId.trim(),
+      productCardBgColor: (productCardBgColor.trim().startsWith("#") ? productCardBgColor.trim() : ("#" + productCardBgColor.trim())) || "#f0f0f0",
       announcementBar: {
         enabled: announcementEnabled,
         text: announcementText.trim(),

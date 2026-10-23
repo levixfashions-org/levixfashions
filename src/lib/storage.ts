@@ -100,7 +100,10 @@ export const localStore = {
   getSettings: (): StoreSettings => {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS)
-      if (data) return JSON.parse(data)
+      if (data) {
+        const parsed = JSON.parse(data)
+        return { ...INITIAL_SETTINGS, ...parsed }
+      }
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(INITIAL_SETTINGS))
       return INITIAL_SETTINGS
     } catch {

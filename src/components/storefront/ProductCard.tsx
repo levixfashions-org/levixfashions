@@ -152,7 +152,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </Link>
 
       {/* Product Details */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div style={{ backgroundColor: cardBg }} className="p-4 flex-1 flex flex-col justify-between transition-colors duration-300">
         <div>
           <p className="text-[11px] font-medium text-levix-secondary uppercase tracking-wider">
             {product.categoryName}
