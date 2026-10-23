@@ -62,9 +62,10 @@ export const GlassBottomDock: React.FC = () => {
     return null
   }
 
-  // Auto-hide when scrolling, smoothly reappear when stopped
+  // Directional Scroll Visibility:
+  // - Scrolling DOWN (top to bottom of page): Dock glides away
+  // - Scrolling UP (bottom to top of page): Dock smoothly reappears
   const [isVisible, setIsVisible] = useState(true)
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastScrollY = useRef(0)
 
   useEffect(() => {
@@ -72,30 +73,34 @@ export const GlassBottomDock: React.FC = () => {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY || document.documentElement.scrollTop
+      const scrollDiff = currentScrollY - lastScrollY.current
 
-      // If scrolling motion is detected, slide out the bar
-      if (Math.abs(currentScrollY - lastScrollY.current) > 4) {
-        setIsVisible(false)
-      }
-      lastScrollY.current = currentScrollY
-
-      // Reset timer
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
-
-      // When user stops scrolling, wait 2 seconds of pause before smoothly sliding bar back in
-      scrollTimeoutRef.current = setTimeout(() => {
+      // Always visible when near top of page (< 40px)
+      if (currentScrollY <= 40) {
         setIsVisible(true)
-      }, 2000)
+        lastScrollY.current = Math.max(0, currentScrollY)
+        return
+      }
+
+      // Ignore micro-jitters (< 6px) to keep animation rock-solid
+      if (Math.abs(scrollDiff) < 6) {
+        return
+      }
+
+      if (scrollDiff > 0) {
+        // Scrolling DOWN (towards bottom): slide dock out
+        setIsVisible(false)
+      } else {
+        // Scrolling UP (towards top): slide dock back in
+        setIsVisible(true)
+      }
+
+      lastScrollY.current = Math.max(0, currentScrollY)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', handleScroll)
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
     }
   }, [])
 
@@ -156,7 +161,7 @@ export const GlassBottomDock: React.FC = () => {
         style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <div
-          className={`w-full max-w-[360px] flex items-center justify-between gap-2.5 transition-all duration-500 ease-in-out transform ${
+          className={`w-full max-w-[360px] flex items-center justify-between gap-2.5 transition-all duration-300 ease-out transform ${
             isVisible
               ? 'translate-y-0 opacity-100 pointer-events-auto scale-100'
               : 'translate-y-28 opacity-0 pointer-events-none scale-95'
