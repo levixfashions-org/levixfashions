@@ -4,6 +4,17 @@
 
 ---
 
+## ⚠️ STRICT DEVELOPER & AGENT OPERATING MANDATE
+
+> [!IMPORTANT]
+> **PERMANENT CORE DIRECTIVE FOR ALL DEVELOPERS AND AI ASSISTANTS:**
+> 1. **EXECUTE ONLY WHAT IS REQUESTED:** You must ONLY touch, edit, or modify what the user explicitly instructs. Never perform unrequested alterations or secondary changes.
+> 2. **NO UNREQUESTED SIDE-EFFECTS OR SITE-WIDE RESKINNING:** Do not touch other pages, components, layout colors, or features without explicit request.
+> 3. **RESPECT THE PURE WHITE DESIGN SYSTEM:** The website interface must remain clean, gallery-level pure white (`#FFFFFF`) and dark charcoal (`#222222`). Never apply colored backdrops across the entire webpage or body.
+> 4. **PERMANENT COMMITMENT:** This mandate applies to every task and instruction permanently without needing to be reminded.
+
+---
+
 ## 🎨 BRAND IDENTITY & DESIGN SYSTEM
 
 - **Pure White (`#FFFFFF`):** Dominates the entire interface for clean whitespace and gallery-like breathing room.

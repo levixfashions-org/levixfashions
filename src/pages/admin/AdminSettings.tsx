@@ -43,7 +43,11 @@ export const AdminSettings: React.FC = () => {
     settings.hero?.imageUrl ||
       'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=85'
   )
-  const [productCardBgColor, setProductCardBgColor] = useState(settings.productCardBgColor || '#f0f0f0')
+  const [productCardBgColor, setProductCardBgColor] = useState(
+    settings.productCardBgColor && !['#add8e6', 'blue', '#0000ff'].includes(settings.productCardBgColor.toLowerCase())
+      ? settings.productCardBgColor
+      : '#f0f0f0'
+  )
   const [heroSubtitle, setHeroSubtitle] = useState(settings.hero?.subtitle || 'Autumn / Winter Lookbook 2026')
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -85,7 +89,10 @@ export const AdminSettings: React.FC = () => {
       if (settings.hero?.subtitle !== undefined) setHeroSubtitle(settings.hero.subtitle)
       if (settings.hero?.primaryButtonText !== undefined) setHeroPrimaryBtnText(settings.hero.primaryButtonText)
       if (settings.hero?.primaryButtonLink !== undefined) setHeroPrimaryBtnLink(settings.hero.primaryButtonLink)
-      if (settings.productCardBgColor !== undefined) setProductCardBgColor(settings.productCardBgColor)
+      if (settings.productCardBgColor !== undefined) {
+        const bg = settings.productCardBgColor.trim()
+        setProductCardBgColor(['#add8e6', 'blue', '#0000ff'].includes(bg.toLowerCase()) ? '#f0f0f0' : bg)
+      }
     }
   }, [settings])
 

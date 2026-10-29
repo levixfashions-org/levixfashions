@@ -22,7 +22,8 @@ export const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { products, settings } = useStore()
-  const pageBg = settings?.productCardBgColor || '#f0f0f0'
+  const rawBg = settings?.productCardBgColor?.trim()
+  const pageBg = (rawBg && !['#add8e6', 'blue', '#0000ff'].includes(rawBg.toLowerCase())) ? rawBg : '#f0f0f0'
   const { addItem } = useCart()
   const { isInWishlist, toggleWishlist } = useWishlist()
 
@@ -232,7 +233,7 @@ export const ProductDetail: React.FC = () => {
     .slice(0, 4)
 
   return (
-    <div style={{ backgroundColor: pageBg }} className="min-h-screen pt-8 sm:pt-14 pb-28 sm:pb-32 transition-colors duration-300">
+    <div className="bg-white min-h-screen pt-8 sm:pt-14 pb-28 sm:pb-32">
       <SEO
         title={product.seoTitle || product.name}
         description={product.seoDescription || product.shortDescription}

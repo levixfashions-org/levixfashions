@@ -102,6 +102,10 @@ export const localStore = {
       const data = localStorage.getItem(STORAGE_KEYS.SETTINGS)
       if (data) {
         const parsed = JSON.parse(data)
+        if (parsed.productCardBgColor && ['#add8e6', 'blue', '#0000ff'].includes(String(parsed.productCardBgColor).toLowerCase())) {
+          parsed.productCardBgColor = '#f0f0f0'
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({ ...INITIAL_SETTINGS, ...parsed }))
+        }
         return { ...INITIAL_SETTINGS, ...parsed }
       }
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(INITIAL_SETTINGS))

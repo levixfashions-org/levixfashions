@@ -1030,6 +1030,14 @@ if ($route === 'settings' || strpos($route, 'settings/') === 0) {
         $row = $stmt->fetch();
         if ($row && !empty($row['data'])) {
             $settings = json_decode($row['data'], true);
+            // If the blue test color #add8e6 or similar was saved, reset to #f0f0f0
+            if (isset($settings['productCardBgColor']) && in_array(strtolower($settings['productCardBgColor']), ['#add8e6', '#0000ff', 'blue'])) {
+                $settings['productCardBgColor'] = '#f0f0f0';
+                try {
+                    $upStmt = $pdo->prepare("UPDATE store_settings SET data = :data, updated_at = :updated_at WHERE id = 'general'");
+                    $upStmt->execute([':data' => json_encode($settings), ':updated_at' => date('c')]);
+                } catch (\Throwable $e) {}
+            }
             echo json_encode(['success' => true, 'source' => 'mysql', 'settings' => $settings]);
             exit;
         }

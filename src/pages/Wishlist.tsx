@@ -11,7 +11,7 @@ export const Wishlist: React.FC = () => {
   const { wishlistIds, removeFromWishlist, clearWishlist } = useWishlist()
   const { products, settings } = useStore()
   const { addItem } = useCart()
-  const cardBg = settings?.productCardBgColor || '#f0f0f0'
+  const cardBg = settings?.productCardBgColor && !['#add8e6', 'blue', '#0000ff'].includes(settings.productCardBgColor.toLowerCase()) ? settings.productCardBgColor : '#f0f0f0'
 
   const wishlistedProducts = products.filter((p) => wishlistIds.includes(p.id))
 
@@ -52,7 +52,7 @@ export const Wishlist: React.FC = () => {
   }
 
   return (
-    <div style={{ backgroundColor: cardBg }} className="min-h-screen py-10 sm:py-14 transition-colors duration-300">
+    <div className="bg-white min-h-screen py-10 sm:py-14">
       <SEO title="My Wishlist" />
 
       <div className="container-levix">

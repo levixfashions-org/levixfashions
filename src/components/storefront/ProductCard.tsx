@@ -22,7 +22,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const hasDiscount = product.salePrice && product.salePrice < product.price
 
   const inCart = items.some((i) => i.productId === product.id)
-  const cardBg = settings?.productCardBgColor || '#f0f0f0'
+  const rawBg = settings?.productCardBgColor?.trim()
+  const cardBg = (rawBg && !['#add8e6', 'blue', '#0000ff'].includes(rawBg.toLowerCase())) ? rawBg : '#f0f0f0'
 
   // Determine secondary image for hover (back of t-shirt or second gallery image)
   const secondaryImage = useMemo(() => {

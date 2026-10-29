@@ -9,8 +9,7 @@ import type { SortOption } from '../types/product'
 import { formatPrice } from '../lib/utils'
 
 export const Shop: React.FC = () => {
-  const { products, categories, settings, loading } = useStore()
-  const pageBg = settings?.productCardBgColor || '#f0f0f0'
+  const { products, categories, loading } = useStore()
   const { isAdmin } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -124,7 +123,7 @@ export const Shop: React.FC = () => {
   }
 
   return (
-    <div style={{ backgroundColor: pageBg }} className="min-h-screen py-10 sm:py-14 transition-colors duration-300">
+    <div className="bg-white min-h-screen py-10 sm:py-14">
       <SEO
         title={searchParam ? `Search: "${searchParam}"` : 'Shop Collection'}
         description="Browse the complete LEVIX catalogue: heavyweight outerwear, minimal everyday essentials, footwear, and leather goods."
@@ -202,7 +201,7 @@ export const Shop: React.FC = () => {
         {/* Content Layout: Sidebar + Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12 items-start">
           {/* Desktop Filter Sidebar */}
-          <aside style={{ backgroundColor: pageBg }} className="hidden lg:block lg:col-span-1 space-y-8 sticky top-28 border border-levix-border p-6 transition-colors duration-300">
+          <aside className="hidden lg:block lg:col-span-1 space-y-8 sticky top-28 border border-levix-border p-6 bg-white">
             <div className="flex items-center justify-between pb-4 border-b border-levix-border">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-levix-charcoal" />
