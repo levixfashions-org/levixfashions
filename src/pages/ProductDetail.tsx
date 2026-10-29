@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Heart,
@@ -48,12 +48,17 @@ export const ProductDetail: React.FC = () => {
     return Array.from(new Set(sizes))
   }, [product?.variants])
 
+  const galleryTopRef = useRef<HTMLDivElement>(null)
+
+  // Active color name
+  const activeColor = selectedVariant?.color || uniqueColors[0] || ''
+
   // Active color's Front and Back image URLs
   const activeColorImages = useMemo(() => {
-    if (!selectedVariant?.color || !product?.colorImages) return null
-    const raw = product.colorImages[selectedVariant.color]
+    if (!activeColor || !product?.colorImages) return null
+    const raw = product.colorImages[activeColor]
     return raw ? normalizeColorImages(raw) : null
-  }, [selectedVariant?.color, product?.colorImages])
+  }, [activeColor, product?.colorImages])
 
   // Parse editorial description into clean luxury bullet points (7 to 8 separate lines)
   const descriptionBullets = useMemo(() => {
@@ -101,24 +106,69 @@ export const ProductDetail: React.FC = () => {
     return [raw]
   }, [product?.description])
 
-  // Extract all images including color-assigned images (both Front and Back)
-  const allDisplayImages = useMemo(() => {
+  // Extract images for the currently active color only (Front, Back, and color-specific images)
+  const currentDisplayImages = useMemo(() => {
     if (!product) return []
-    const list = [...product.images]
-    if (product.colorImages) {
-      Object.values(product.colorImages).forEach((raw) => {
-        const { front, back } = normalizeColorImages(raw)
-        if (front && !list.includes(front)) list.push(front)
-        if (back && !list.includes(back)) list.push(back)
+
+    // 1. If product has colorImages configured for activeColor
+    if (activeColor && product.colorImages?.[activeColor]) {
+      const { front, back } = normalizeColorImages(product.colorImages[activeColor])
+      const colorList: string[] = []
+      if (front) colorList.push(front)
+      if (back && back.trim() !== front.trim()) colorList.push(back)
+
+      // Also check if any variant of this active color has a specific imageUrl
+      if (product.variants) {
+        product.variants.forEach((v) => {
+          if (v.color === activeColor && v.imageUrl && !colorList.includes(v.imageUrl)) {
+            colorList.push(v.imageUrl)
+          }
+        })
+      }
+
+      // Collect all images belonging to OTHER colors to make sure they are excluded
+      const otherColorsImages = new Set<string>()
+      Object.entries(product.colorImages).forEach(([c, raw]) => {
+        if (c !== activeColor) {
+          const norm = normalizeColorImages(raw)
+          if (norm.front) otherColorsImages.add(norm.front)
+          if (norm.back) otherColorsImages.add(norm.back)
+        }
       })
+      if (product.variants) {
+        product.variants.forEach((v) => {
+          if (v.color && v.color !== activeColor && v.imageUrl) {
+            otherColorsImages.add(v.imageUrl)
+          }
+        })
+      }
+
+      // Append any general detail images from product.images that do NOT belong to other colors
+      product.images.forEach((img) => {
+        if (!colorList.includes(img) && !otherColorsImages.has(img)) {
+          colorList.push(img)
+        }
+      })
+
+      if (colorList.length > 0) return colorList
     }
-    if (product.variants) {
+
+    // 2. If product has variants with imageUrls for this activeColor
+    if (activeColor && product.variants) {
+      const colorList: string[] = []
       product.variants.forEach((v) => {
-        if (v.imageUrl && !list.includes(v.imageUrl)) list.push(v.imageUrl)
+        if (v.color === activeColor && v.imageUrl && !colorList.includes(v.imageUrl)) {
+          colorList.push(v.imageUrl)
+        }
       })
+      if (colorList.length > 0) return colorList
     }
-    return list.length > 0 ? list : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80']
-  }, [product])
+
+    // 3. Fallback to base product images
+    return product.images.length > 0
+      ? product.images
+      : ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80']
+  }, [product, activeColor])
 
   // Initialize default variant
   useEffect(() => {
@@ -133,20 +183,10 @@ export const ProductDetail: React.FC = () => {
     }
   }, [product])
 
-  // When selectedVariant changes, auto-switch image to the matching color front image
+  // Reset active image index to 0 whenever active color changes
   useEffect(() => {
-    const targetUrl =
-      (selectedVariant?.color && product?.colorImages?.[selectedVariant.color]
-        ? normalizeColorImages(product.colorImages[selectedVariant.color]).front
-        : null) ||
-      selectedVariant?.imageUrl
-    if (targetUrl) {
-      const idx = allDisplayImages.indexOf(targetUrl)
-      if (idx !== -1) {
-        setActiveImageIndex(idx)
-      }
-    }
-  }, [selectedVariant, allDisplayImages, product?.colorImages])
+    setActiveImageIndex(0)
+  }, [activeColor])
 
   if (!product) {
     return (
@@ -171,7 +211,8 @@ export const ProductDetail: React.FC = () => {
   const chosenImage =
     activeColorImages?.front ||
     selectedVariant?.imageUrl ||
-    allDisplayImages[activeImageIndex] ||
+    currentDisplayImages[activeImageIndex] ||
+    currentDisplayImages[0] ||
     product.images[0]
 
   const handleAddToCart = () => {
@@ -257,13 +298,13 @@ export const ProductDetail: React.FC = () => {
         </nav>
 
         {/* Product Hero Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+        <div ref={galleryTopRef} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 scroll-mt-24 sm:scroll-mt-28">
           {/* Image Gallery Column (7 cols) */}
           <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
             {/* Thumbnail Strip */}
-            {allDisplayImages.length > 1 && (
+            {currentDisplayImages.length > 1 && (
               <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[620px] scrollbar-none shrink-0">
-                {allDisplayImages.map((img, idx) => {
+                {currentDisplayImages.map((img, idx) => {
                   const hasBothViews = Boolean(
                     activeColorImages?.front &&
                     activeColorImages?.back &&
@@ -311,7 +352,7 @@ export const ProductDetail: React.FC = () => {
             {/* Main Stage Image */}
             <div style={{ backgroundColor: pageBg }} className="relative flex-1 aspect-[3/4] border border-levix-border overflow-hidden">
               <img
-                src={allDisplayImages[activeImageIndex] || allDisplayImages[0]}
+                src={currentDisplayImages[activeImageIndex] || currentDisplayImages[0]}
                 alt={product.name}
                 className="w-full h-full object-cover object-center transition-all duration-300 mix-blend-multiply"
               />
@@ -322,11 +363,11 @@ export const ProductDetail: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const idx = allDisplayImages.indexOf(activeColorImages.front)
+                      const idx = currentDisplayImages.indexOf(activeColorImages.front)
                       if (idx !== -1) setActiveImageIndex(idx)
                     }}
                     className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                      allDisplayImages[activeImageIndex] === activeColorImages.front
+                      (currentDisplayImages[activeImageIndex] || currentDisplayImages[0]) === activeColorImages.front
                         ? 'bg-levix-charcoal text-white'
                         : 'text-levix-charcoal hover:bg-levix-gray'
                     }`}
@@ -336,11 +377,11 @@ export const ProductDetail: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const idx = allDisplayImages.indexOf(activeColorImages.back)
+                      const idx = currentDisplayImages.indexOf(activeColorImages.back)
                       if (idx !== -1) setActiveImageIndex(idx)
                     }}
                     className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                      allDisplayImages[activeImageIndex] === activeColorImages.back
+                      currentDisplayImages[activeImageIndex] === activeColorImages.back
                         ? 'bg-levix-charcoal text-white'
                         : 'text-levix-charcoal hover:bg-levix-gray'
                     }`}
@@ -479,11 +520,13 @@ export const ProductDetail: React.FC = () => {
                             product.variants?.find((v) => v.color === color)
                           if (matching) {
                             setSelectedVariant(matching)
-                            const targetImg = colorObj?.front || matching.imageUrl || colorPhoto
-                            if (targetImg) {
-                              const idx = allDisplayImages.indexOf(targetImg)
-                              if (idx !== -1) setActiveImageIndex(idx)
-                            }
+                          }
+                          setActiveImageIndex(0)
+                          // Auto scroll smoothly to the top of the gallery so the selected color is shown at the top
+                          if (galleryTopRef.current) {
+                            galleryTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          } else {
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
                           }
                         }}
                         className={`group relative w-16 h-20 sm:w-20 sm:h-26 rounded-xl overflow-hidden shrink-0 transition-all duration-200 cursor-pointer ${
