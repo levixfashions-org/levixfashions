@@ -472,7 +472,7 @@ export const AdminProducts: React.FC = () => {
       {/* Header */}
       <div className="pb-4 border-b border-levix-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
             Catalogue Database
           </p>
           <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -597,11 +597,11 @@ export const AdminProducts: React.FC = () => {
                       type="button"
                       onClick={() => handleToggleFeatured(product)}
                       className={`p-1 transition-colors ${
-                        product.isFeatured ? 'text-levix-orange' : 'text-levix-secondary/40'
+                        product.isFeatured ? 'text-black' : 'text-levix-secondary/40'
                       }`}
                       aria-label="Toggle featured"
                     >
-                      <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-levix-orange' : ''}`} />
+                      <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-black text-black' : ''}`} />
                     </button>
                   </td>
                   <td className="py-3 px-4 text-center">
@@ -656,13 +656,13 @@ export const AdminProducts: React.FC = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`bg-white max-w-2xl w-full border shadow-2xl p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto relative transition-colors ${
-              isDragging ? 'border-2 border-levix-orange ring-4 ring-levix-orange/20' : 'border-levix-border'
+              isDragging ? 'border-2 border-black ring-4 ring-black/10' : 'border-levix-border'
             }`}
           >
             {/* Full-Modal Dragging Overlay */}
             {isDragging && (
-              <div className="absolute inset-0 z-50 bg-levix-charcoal/90 backdrop-blur-xs flex flex-col items-center justify-center text-white border-4 border-dashed border-levix-orange pointer-events-none p-6 text-center animate-in fade-in duration-150">
-                <Upload className="w-14 h-14 text-levix-orange mb-3 animate-bounce" />
+              <div className="absolute inset-0 z-50 bg-levix-charcoal/90 backdrop-blur-xs flex flex-col items-center justify-center text-white border-4 border-dashed border-black pointer-events-none p-6 text-center animate-in fade-in duration-150">
+                <Upload className="w-14 h-14 text-black mb-3 animate-bounce" />
                 <h4 className="text-base font-black uppercase tracking-widest text-white">
                   Drop Product Photos Here
                 </h4>
@@ -773,7 +773,7 @@ export const AdminProducts: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDescription(DEFAULT_PRODUCT_BULLETS)}
-                      className="text-[11px] text-levix-orange hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] text-black hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
                     >
                       + Insert 8 Luxury Bullets
                     </button>
@@ -853,7 +853,7 @@ export const AdminProducts: React.FC = () => {
                     className="form-input"
                   />
                   {hasVariants && (
-                    <p className="text-[10px] text-levix-orange font-semibold mt-1">
+                    <p className="text-[10px] text-black font-semibold mt-1">
                       Auto-synced from {variantsList.length} variants
                     </p>
                   )}
@@ -875,14 +875,14 @@ export const AdminProducts: React.FC = () => {
                           setQuickSizes('S, M, L, XL')
                         }
                       }}
-                      className="w-4 h-4 text-levix-orange accent-levix-orange"
+                      className="w-4 h-4 text-black accent-black"
                     />
                     <span className="font-bold text-xs uppercase tracking-wider text-levix-charcoal">
                       This Product Has Multiple Colors & Sizes (Variants)
                     </span>
                   </label>
                   {hasVariants && (
-                    <span className="text-[11px] font-semibold text-levix-orange">
+                    <span className="text-[11px] font-semibold text-black">
                       {variantsList.length} Variant(s) • Total Stock: {stock}
                     </span>
                   )}
@@ -956,7 +956,7 @@ export const AdminProducts: React.FC = () => {
                               Add both Front and Back photos for every t-shirt color!
                             </span>
                           </div>
-                          <span className="text-[10px] font-mono text-levix-orange font-bold">
+                          <span className="text-[10px] font-mono text-black font-bold">
                             2 Views / Color
                           </span>
                         </div>
@@ -971,7 +971,7 @@ export const AdminProducts: React.FC = () => {
                               >
                                 <div className="flex items-center justify-between border-b border-levix-border/40 pb-1.5">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-levix-orange" />
+                                    <span className="w-2 h-2 rounded-full bg-black" />
                                     <span className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                                       {color}
                                     </span>
@@ -1001,7 +1001,7 @@ export const AdminProducts: React.FC = () => {
                                     className="bg-white p-2.5 border border-levix-border flex flex-col gap-2"
                                   >
                                     <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-bold uppercase tracking-wider text-levix-orange">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-black">
                                         Front View (Main)
                                       </span>
                                       {colorData.front && (
@@ -1015,7 +1015,7 @@ export const AdminProducts: React.FC = () => {
                                       {/* Preview Thumbnail */}
                                       <div className="w-11 h-13 border border-levix-border overflow-hidden shrink-0 bg-levix-gray/50 flex items-center justify-center relative">
                                         {uploadingColorSide === `${color}-front` ? (
-                                          <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                                          <Loader2 className="w-4 h-4 animate-spin text-black" />
                                         ) : colorData.front ? (
                                           <img
                                             src={colorData.front}
@@ -1077,7 +1077,7 @@ export const AdminProducts: React.FC = () => {
                                         className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-levix-charcoal text-white hover:bg-black text-[9px] font-bold uppercase tracking-wider transition-colors"
                                         title={`Camera for ${color} front`}
                                       >
-                                        <Camera className="w-2.5 h-2.5 text-levix-orange" />
+                                        <Camera className="w-2.5 h-2.5 text-black" />
                                         <span>Camera</span>
                                       </label>
                                       <label
@@ -1135,7 +1135,7 @@ export const AdminProducts: React.FC = () => {
                                       {/* Preview Thumbnail */}
                                       <div className="w-11 h-13 border border-levix-border overflow-hidden shrink-0 bg-levix-gray/50 flex items-center justify-center relative">
                                         {uploadingColorSide === `${color}-back` ? (
-                                          <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                                          <Loader2 className="w-4 h-4 animate-spin text-black" />
                                         ) : colorData.back ? (
                                           <img
                                             src={colorData.back}
@@ -1197,7 +1197,7 @@ export const AdminProducts: React.FC = () => {
                                         className="cursor-pointer inline-flex items-center gap-1 px-2 py-1 bg-levix-charcoal text-white hover:bg-black text-[9px] font-bold uppercase tracking-wider transition-colors"
                                         title={`Camera for ${color} back`}
                                       >
-                                        <Camera className="w-2.5 h-2.5 text-levix-orange" />
+                                        <Camera className="w-2.5 h-2.5 text-black" />
                                         <span>Camera</span>
                                       </label>
                                       <label
@@ -1248,7 +1248,7 @@ export const AdminProducts: React.FC = () => {
                           </thead>
                           <tbody className="divide-y divide-levix-border">
                             {variantsList.map((v, idx) => (
-                              <tr key={v.id} className="hover:bg-levix-soft-orange/20">
+                              <tr key={v.id} className="hover:bg-black/5">
                                 <td className="p-2">
                                   <input
                                     type="text"
@@ -1309,7 +1309,7 @@ export const AdminProducts: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleAddManualVariant}
-                        className="text-xs font-bold uppercase tracking-wider text-levix-orange hover:text-levix-orange-hover flex items-center gap-1"
+                        className="text-xs font-bold uppercase tracking-wider text-black hover:text-neutral-700 flex items-center gap-1"
                       >
                         <Plus className="w-3.5 h-3.5" /> Add Single Variant Row
                       </button>
@@ -1359,7 +1359,7 @@ export const AdminProducts: React.FC = () => {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white hover:bg-black text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                       title="Take a photo with device camera"
                     >
-                      <Camera className="w-3.5 h-3.5 text-levix-orange" />
+                      <Camera className="w-3.5 h-3.5 text-black" />
                       <span>Camera</span>
                     </button>
 
@@ -1393,8 +1393,8 @@ export const AdminProducts: React.FC = () => {
 
                 {/* Upload Spinner Alert */}
                 {isUploadingImage && (
-                  <div className="flex items-center gap-2 p-2.5 bg-levix-soft-orange/30 border border-levix-orange/30 text-levix-charcoal text-xs">
-                    <Loader2 className="w-4 h-4 animate-spin text-levix-orange" />
+                  <div className="flex items-center gap-2 p-2.5 bg-black/5 border border-neutral-300 text-levix-charcoal text-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-black" />
                     <span className="font-semibold">Optimizing and compressing high-resolution photos...</span>
                   </div>
                 )}
@@ -1413,10 +1413,10 @@ export const AdminProducts: React.FC = () => {
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                         onClick={() => galleryInputRef.current?.click()}
-                        className="border-2 border-dashed border-levix-orange/60 hover:border-levix-orange bg-levix-orange/5 hover:bg-levix-orange/10 p-7 text-center transition-all cursor-pointer group space-y-3"
+                        className="border-2 border-dashed border-neutral-300 hover:border-black bg-black/5 hover:bg-black/5 p-7 text-center transition-all cursor-pointer group space-y-3"
                       >
-                        <div className="w-12 h-12 mx-auto rounded-full bg-white border border-levix-orange/40 flex items-center justify-center text-levix-orange group-hover:scale-105 transition-transform shadow-xs">
-                          <Upload className="w-6 h-6 text-levix-orange" />
+                        <div className="w-12 h-12 mx-auto rounded-full bg-white border border-neutral-300 flex items-center justify-center text-black group-hover:scale-105 transition-transform shadow-xs">
+                          <Upload className="w-6 h-6 text-black" />
                         </div>
                         <div>
                           <p className="text-xs sm:text-sm font-black uppercase tracking-wider text-levix-charcoal">
@@ -1435,7 +1435,7 @@ export const AdminProducts: React.FC = () => {
                             onClick={() => cameraInputRef.current?.click()}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-charcoal text-white hover:bg-black text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
                           >
-                            <Camera className="w-3.5 h-3.5 text-levix-orange" />
+                            <Camera className="w-3.5 h-3.5 text-black" />
                             <span>Take Photo</span>
                           </button>
                           <button
@@ -1473,7 +1473,7 @@ export const AdminProducts: React.FC = () => {
 
                             {/* Cover Badge / Button */}
                             {idx === 0 ? (
-                              <span className="absolute top-1.5 left-1.5 bg-black text-levix-orange text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-sm">
+                              <span className="absolute top-1.5 left-1.5 bg-black text-black text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 shadow-sm">
                                 ★ Main Cover
                               </span>
                             ) : (
@@ -1510,13 +1510,13 @@ export const AdminProducts: React.FC = () => {
                           onDragLeave={handleDragLeave}
                           onDrop={handleDrop}
                           onClick={() => galleryInputRef.current?.click()}
-                          className="border-2 border-dashed border-levix-border hover:border-levix-orange bg-levix-gray/40 hover:bg-levix-orange/5 aspect-3/4 flex flex-col items-center justify-center p-3 text-center cursor-pointer transition-all group/add"
+                          className="border-2 border-dashed border-levix-border hover:border-black bg-levix-gray/40 hover:bg-black/5 aspect-3/4 flex flex-col items-center justify-center p-3 text-center cursor-pointer transition-all group/add"
                           title="Drag and drop photos directly here or click to browse"
                         >
-                          <div className="w-8 h-8 rounded-full bg-white border border-levix-border flex items-center justify-center text-levix-charcoal group-hover/add:text-levix-orange group-hover/add:border-levix-orange transition-colors mb-1.5 shadow-xs">
+                          <div className="w-8 h-8 rounded-full bg-white border border-levix-border flex items-center justify-center text-levix-charcoal group-hover/add:text-black group-hover/add:border-black transition-colors mb-1.5 shadow-xs">
                             <Plus className="w-4 h-4" />
                           </div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-levix-charcoal group-hover/add:text-levix-orange">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-levix-charcoal group-hover/add:text-black">
                             + Add More
                           </span>
                           <span className="text-[9px] text-levix-secondary leading-tight mt-0.5">
@@ -1534,16 +1534,16 @@ export const AdminProducts: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => cameraInputRef.current?.click()}
-                            className="text-levix-charcoal hover:text-levix-orange font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                            className="text-levix-charcoal hover:text-black font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                           >
-                            <Camera className="w-3 h-3 text-levix-orange" />
+                            <Camera className="w-3 h-3 text-black" />
                             Camera
                           </button>
                           <span>•</span>
                           <button
                             type="button"
                             onClick={() => galleryInputRef.current?.click()}
-                            className="text-levix-charcoal hover:text-levix-orange font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                            className="text-levix-charcoal hover:text-black font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                           >
                             <ImageIcon className="w-3 h-3 text-levix-charcoal" />
                             Browse Files
@@ -1578,7 +1578,7 @@ export const AdminProducts: React.FC = () => {
                     type="checkbox"
                     checked={isPublished}
                     onChange={(e) => setIsPublished(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">Published</span>
                 </label>
@@ -1588,7 +1588,7 @@ export const AdminProducts: React.FC = () => {
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">Featured Home</span>
                 </label>
@@ -1598,7 +1598,7 @@ export const AdminProducts: React.FC = () => {
                     type="checkbox"
                     checked={isNewArrival}
                     onChange={(e) => setIsNewArrival(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">New Arrival</span>
                 </label>
@@ -1608,7 +1608,7 @@ export const AdminProducts: React.FC = () => {
                     type="checkbox"
                     checked={isBestseller}
                     onChange={(e) => setIsBestseller(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">Bestseller</span>
                 </label>

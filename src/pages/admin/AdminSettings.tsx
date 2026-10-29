@@ -158,7 +158,7 @@ export const AdminSettings: React.FC = () => {
   return (
     <div className="space-y-8 max-w-4xl">
       <div className="pb-4 border-b border-levix-border">
-        <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+        <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
           Store Configuration
         </p>
         <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -177,7 +177,7 @@ export const AdminSettings: React.FC = () => {
       )}
 
       {seedMessage && (
-        <div className="p-4 bg-levix-soft-orange border border-levix-orange/30 text-levix-orange text-xs flex items-center gap-2">
+        <div className="p-4 bg-black/5 border border-neutral-300 text-black text-xs flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           <span>{seedMessage}</span>
         </div>
@@ -226,7 +226,7 @@ export const AdminSettings: React.FC = () => {
         {/* Shipping & COD Rules */}
         <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-levix-border">
-            <Truck className="w-4 h-4 text-levix-orange" />
+            <Truck className="w-4 h-4 text-black" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
               2. Shipping Rules & Payment Policies
             </h2>
@@ -270,7 +270,7 @@ export const AdminSettings: React.FC = () => {
                 type="checkbox"
                 checked={codEnabled}
                 onChange={(e) => setCodEnabled(e.target.checked)}
-                className="w-4 h-4 text-levix-orange accent-levix-orange"
+                className="w-4 h-4 text-black accent-black"
               />
               <span className="font-bold text-levix-charcoal uppercase tracking-wider">
                 Enable Cash on Delivery (COD) Checkout Option
@@ -293,7 +293,7 @@ export const AdminSettings: React.FC = () => {
 
           <div className="pt-3 border-t border-levix-border">
             <label className="form-label flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5 text-levix-orange" />
+              <CreditCard className="w-3.5 h-3.5 text-black" />
               <span>Razorpay Key ID (Client-facing)</span>
             </label>
             <input
@@ -312,7 +312,7 @@ export const AdminSettings: React.FC = () => {
         {/* Announcement Bar */}
         <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-levix-border">
-            <Megaphone className="w-4 h-4 text-levix-orange" />
+            <Megaphone className="w-4 h-4 text-black" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
               3. Storefront Announcement Bar
             </h2>
@@ -323,7 +323,7 @@ export const AdminSettings: React.FC = () => {
               type="checkbox"
               checked={announcementEnabled}
               onChange={(e) => setAnnouncementEnabled(e.target.checked)}
-              className="w-4 h-4 text-levix-orange accent-levix-orange"
+              className="w-4 h-4 text-black accent-black"
             />
             <span className="font-semibold text-levix-charcoal">Display Announcement Bar at top of website</span>
           </label>
@@ -435,7 +435,7 @@ export const AdminSettings: React.FC = () => {
                 </button>
 
                 {isUploadingBanner && (
-                  <div className="inline-flex items-center gap-1.5 text-xs text-levix-orange font-medium animate-pulse">
+                  <div className="inline-flex items-center gap-1.5 text-xs text-black font-medium animate-pulse">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Compressing & uploading photo...</span>
                   </div>
@@ -658,7 +658,7 @@ export const AdminSettings: React.FC = () => {
       {/* Cloud Firestore Database Sync & Seeding Utility */}
       <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-3 mt-10">
         <div className="flex items-center gap-2 pb-2 border-b border-levix-border">
-          <Database className="w-4 h-4 text-levix-orange" />
+          <Database className="w-4 h-4 text-black" />
           <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
             6. Database Synchronization & Initial Seeding
           </h2>
@@ -673,7 +673,7 @@ export const AdminSettings: React.FC = () => {
           disabled={seeding}
           className="btn-secondary py-2.5 px-5 text-xs uppercase tracking-wider flex items-center gap-2 border-levix-charcoal"
         >
-          <Database className="w-4 h-4 text-levix-orange" />
+          <Database className="w-4 h-4 text-black" />
           <span>{seeding ? 'Seeding Firestore...' : 'Seed Initial Firestore Database'}</span>
         </button>
       </div>

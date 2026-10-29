@@ -15,7 +15,7 @@ export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }
     return (
       <div className="min-h-screen flex items-center justify-center bg-levix-charcoal text-white">
         <div className="text-center space-y-3">
-          <div className="w-8 h-8 border-2 border-levix-orange border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs uppercase tracking-widest font-bold">Verifying Administrator Access...</p>
         </div>
       </div>

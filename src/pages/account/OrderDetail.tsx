@@ -47,7 +47,7 @@ export const OrderDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="py-12 text-center">
-        <div className="w-6 h-6 border-2 border-levix-orange border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <p className="text-xs text-levix-secondary">Loading order details...</p>
       </div>
     )
@@ -81,7 +81,7 @@ export const OrderDetail: React.FC = () => {
         <div>
           <Link
             to="/account/orders"
-            className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-levix-orange transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-black transition-colors mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Orders List</span>
@@ -126,7 +126,7 @@ export const OrderDetail: React.FC = () => {
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-2 transition-colors ${
                       isPassed
-                        ? 'bg-levix-orange text-white'
+                        ? 'bg-black text-white'
                         : 'bg-white border border-levix-border text-levix-secondary'
                     }`}
                   >
@@ -135,7 +135,7 @@ export const OrderDetail: React.FC = () => {
                   <span
                     className={`text-xs font-bold uppercase tracking-wider ${
                       isCurrent
-                        ? 'text-levix-orange'
+                        ? 'text-black'
                         : isPassed
                         ? 'text-levix-charcoal'
                         : 'text-levix-secondary'
@@ -192,7 +192,7 @@ export const OrderDetail: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <Link
                   to={`/product/${item.slug}`}
-                  className="font-bold text-sm text-levix-charcoal hover:text-levix-orange transition-colors truncate block"
+                  className="font-bold text-sm text-levix-charcoal hover:text-black transition-colors truncate block"
                 >
                   {item.name}
                 </Link>
@@ -233,7 +233,7 @@ export const OrderDetail: React.FC = () => {
       {/* Destination Address Snapshot */}
       <div className="border border-levix-border p-6 space-y-2">
         <div className="flex items-center gap-2 pb-2 border-b border-levix-border">
-          <MapPin className="w-4 h-4 text-levix-orange" />
+          <MapPin className="w-4 h-4 text-black" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
             Shipping Destination Snapshot
           </h3>

@@ -93,7 +93,7 @@ export const Cart: React.FC = () => {
       <div className="container-levix">
         <div className="border-b border-levix-border pb-6 mb-8 flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
               Review Selection
             </p>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -110,15 +110,15 @@ export const Cart: React.FC = () => {
         </div>
 
         {/* Free Shipping Alert Banner */}
-        <div className="mb-8 p-4 bg-levix-soft-orange border border-levix-orange/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="mb-8 p-4 bg-neutral-100 border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Truck className="w-5 h-5 text-levix-orange shrink-0" />
+            <Truck className="w-5 h-5 text-black shrink-0" />
             <p className="text-xs text-levix-charcoal font-medium">
               {isFreeShipping ? (
-                <strong className="text-levix-orange font-bold">You qualify for complimentary domestic express shipping!</strong>
+                <strong className="text-black font-bold">You qualify for complimentary domestic express shipping!</strong>
               ) : (
                 <span>
-                  Add <strong className="text-levix-orange font-bold">{formatPrice(amountToFreeShipping)}</strong> more to your order to unlock Free Express Shipping.
+                  Add <strong className="text-black font-bold">{formatPrice(amountToFreeShipping)}</strong> more to your order to unlock Free Express Shipping.
                 </span>
               )}
             </p>
@@ -126,7 +126,7 @@ export const Cart: React.FC = () => {
           {!isFreeShipping && (
             <Link
               to="/shop"
-              className="text-xs font-bold uppercase tracking-wider text-levix-orange hover:underline shrink-0"
+              className="text-xs font-bold uppercase tracking-wider text-black hover:underline shrink-0"
             >
               Shop More Pieces &rarr;
             </Link>
@@ -162,7 +162,7 @@ export const Cart: React.FC = () => {
                     <div>
                       <Link
                         to={`/product/${item.slug}`}
-                        className="text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors truncate block max-w-xs sm:max-w-md" title={item.name}
+                        className="text-sm font-semibold text-levix-charcoal hover:text-black transition-colors truncate block max-w-xs sm:max-w-md" title={item.name}
                       >
                         {item.name}
                       </Link>
@@ -261,7 +261,7 @@ export const Cart: React.FC = () => {
               {/* Promo Code Input */}
               <form onSubmit={handleApplyPromo} className="pt-2 border-t border-levix-border">
                 <label className="form-label text-[11px] flex items-center gap-1">
-                  <Tag className="w-3 h-3 text-levix-orange" />
+                  <Tag className="w-3 h-3 text-black" />
                   <span>Promo Code</span>
                 </label>
                 <div className="flex gap-2">

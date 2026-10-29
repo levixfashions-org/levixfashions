@@ -46,16 +46,16 @@ export const RouteErrorBoundary: React.FC = () => {
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-6 bg-levix-gray/30">
       <div className="max-w-md w-full bg-white border border-levix-border shadow-xl p-8 text-center space-y-6">
-        <div className="w-14 h-14 rounded-full bg-levix-soft-orange/60 border border-levix-orange/30 flex items-center justify-center mx-auto text-levix-orange">
+        <div className="w-14 h-14 rounded-full bg-neutral-100 border border-neutral-300 flex items-center justify-center mx-auto text-black">
           {isChunkError ? (
-            <RefreshCw className="w-7 h-7 text-levix-orange animate-spin" />
+            <RefreshCw className="w-7 h-7 text-black animate-spin" />
           ) : (
-            <AlertTriangle className="w-7 h-7 text-levix-orange" />
+            <AlertTriangle className="w-7 h-7 text-black" />
           )}
         </div>
 
         <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-levix-orange">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-black">
             {isChunkError ? 'New Update Available' : 'Application Notice'}
           </span>
           <h2 className="text-xl font-black uppercase tracking-tight text-levix-charcoal">

@@ -8,9 +8,9 @@ export default {
     extend: {
       colors: {
         levix: {
-          orange: '#E87524',
-          'orange-hover': '#C85D16',
-          'soft-orange': '#FFF5ED',
+          orange: '#111111',
+          'orange-hover': '#262626',
+          'soft-orange': '#F4F4F5',
           charcoal: '#222222',
           secondary: '#777777',
           border: '#EAEAEA',

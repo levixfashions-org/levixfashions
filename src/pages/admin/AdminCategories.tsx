@@ -64,7 +64,7 @@ export const AdminCategories: React.FC = () => {
     <div className="space-y-6">
       <div className="pb-4 border-b border-levix-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
             Collections Architecture
           </p>
           <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -104,7 +104,7 @@ export const AdminCategories: React.FC = () => {
                   <h3 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
                     {cat.name}
                   </h3>
-                  <span className="text-xs font-semibold text-levix-orange">
+                  <span className="text-xs font-semibold text-black">
                     {productCount} Products
                   </span>
                 </div>
@@ -125,7 +125,7 @@ export const AdminCategories: React.FC = () => {
                     {cat.isPublished ? 'Visible' : 'Hidden'}
                   </span>
                   {cat.isFeatured && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-levix-soft-orange text-levix-orange border border-levix-orange/30">
+                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-black/5 text-black border border-neutral-300">
                       Featured
                     </span>
                   )}
@@ -223,7 +223,7 @@ export const AdminCategories: React.FC = () => {
                     type="checkbox"
                     checked={isPublished}
                     onChange={(e) => setIsPublished(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">Published</span>
                 </label>
@@ -233,7 +233,7 @@ export const AdminCategories: React.FC = () => {
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="w-4 h-4 text-levix-orange accent-levix-orange"
+                    className="w-4 h-4 text-black accent-black"
                   />
                   <span className="font-semibold text-levix-charcoal">Feature on Homepage</span>
                 </label>

@@ -32,7 +32,7 @@ export const AccountOrders: React.FC = () => {
   if (loading) {
     return (
       <div className="py-12 text-center">
-        <div className="w-6 h-6 border-2 border-levix-orange border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <p className="text-xs text-levix-secondary">Loading your order history...</p>
       </div>
     )
@@ -75,7 +75,7 @@ export const AccountOrders: React.FC = () => {
         {orders.map((order) => (
           <div
             key={order.id}
-            className="border border-levix-border hover:border-levix-orange/40 transition-colors p-5 bg-white space-y-4"
+            className="border border-levix-border hover:border-black/40 transition-colors p-5 bg-white space-y-4"
           >
             {/* Header: Order Number, Date, Status Badges */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-levix-border text-xs">
@@ -100,7 +100,7 @@ export const AccountOrders: React.FC = () => {
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : order.fulfillmentStatus === 'Cancelled'
                       ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-levix-soft-orange text-levix-orange border-levix-orange/30'
+                      : 'bg-black/5 text-black border-neutral-300'
                   }`}
                 >
                   {order.fulfillmentStatus}
@@ -138,7 +138,7 @@ export const AccountOrders: React.FC = () => {
               </div>
               <Link
                 to={`/account/orders/${order.id}`}
-                className="btn-secondary py-1.5 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1 hover:border-levix-orange hover:text-levix-orange"
+                className="btn-secondary py-1.5 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1 hover:border-black hover:text-black"
               >
                 <span>Track & Details</span>
                 <ArrowRight className="w-3.5 h-3.5" />

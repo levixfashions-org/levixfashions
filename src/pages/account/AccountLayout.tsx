@@ -36,7 +36,7 @@ export const AccountLayout: React.FC = () => {
           {/* Header */}
           <div className="mb-8 pb-4 border-b border-levix-border flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
                 Client Portal
               </p>
               <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -46,7 +46,7 @@ export const AccountLayout: React.FC = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-levix-orange text-white text-xs font-bold uppercase tracking-wider shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-xs font-bold uppercase tracking-wider shadow-xs"
               >
                 <ShieldCheck className="w-4 h-4" />
                 <span>Open Admin Dashboard</span>
@@ -76,8 +76,8 @@ export const AccountLayout: React.FC = () => {
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
                         isActive
-                          ? 'bg-levix-soft-orange text-levix-orange border-l-2 border-levix-orange font-bold'
-                          : 'text-levix-charcoal hover:bg-levix-gray hover:text-levix-orange'
+                          ? 'bg-black/5 text-black border-l-2 border-black font-bold'
+                          : 'text-levix-charcoal hover:bg-levix-gray hover:text-black'
                       }`
                     }
                   >

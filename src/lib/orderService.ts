@@ -160,7 +160,7 @@ export async function processCheckoutOrder(
           contact: shippingAddress.phone,
         },
         theme: {
-          color: '#E87524',
+          color: '#121212',
         },
         handler: async function (response: any) {
           onPaymentStep?.('verifying')

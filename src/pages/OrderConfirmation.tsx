@@ -28,7 +28,7 @@ export const OrderConfirmation: React.FC = () => {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#E87524', '#222222', '#FFF5ED', '#F8F8F8'],
+          colors: ['#000000', '#222222', '#FFFFFF', '#EAEAEA'],
         })
       } catch {}
       return
@@ -46,7 +46,7 @@ export const OrderConfirmation: React.FC = () => {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#E87524', '#222222', '#FFF5ED', '#F8F8F8'],
+          colors: ['#000000', '#222222', '#FFFFFF', '#EAEAEA'],
         })
       } catch {}
     })
@@ -55,7 +55,7 @@ export const OrderConfirmation: React.FC = () => {
   if (loading) {
     return (
       <div className="container-levix py-24 text-center">
-        <div className="w-8 h-8 border-2 border-levix-orange border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-xs text-levix-secondary uppercase tracking-wider font-semibold">
           Retrieving order details...
         </p>
@@ -90,7 +90,7 @@ export const OrderConfirmation: React.FC = () => {
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-levix-orange">
+              <p className="text-xs font-bold uppercase tracking-widest text-black">
                 Thank You For Your Order
               </p>
               <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal mt-1">
@@ -105,7 +105,7 @@ export const OrderConfirmation: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-levix-gray border border-levix-border text-xs font-mono font-bold text-levix-charcoal">
                 <span>Order Number:</span>
-                <span className="text-levix-orange">{order.orderNumber}</span>
+                <span className="text-black">{order.orderNumber}</span>
               </div>
               {order.trackingToken && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-levix-gray border border-levix-border text-xs font-mono font-bold text-levix-charcoal" title="Save this private tracking token to look up your order as a guest.">
@@ -120,7 +120,7 @@ export const OrderConfirmation: React.FC = () => {
           <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-levix-border">
               <div className="flex items-center gap-2">
-                <Truck className="w-5 h-5 text-levix-orange" />
+                <Truck className="w-5 h-5 text-black" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                   Fulfillment Status
                 </h3>
@@ -207,7 +207,7 @@ export const OrderConfirmation: React.FC = () => {
           {/* Shipping Address Snapshot */}
           <div className="bg-white border border-levix-border p-6 shadow-subtle space-y-3">
             <div className="flex items-center gap-2 pb-3 border-b border-levix-border">
-              <MapPin className="w-4 h-4 text-levix-orange" />
+              <MapPin className="w-4 h-4 text-black" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                 Delivery Destination
               </h3>

@@ -14,7 +14,7 @@ export default defineConfig({
         name: 'LEVIX — Contemporary Lifestyle & Apparel',
         short_name: 'LEVIX',
         description: 'Minimal, premium, contemporary apparel and lifestyle essentials.',
-        theme_color: '#E87524',
+        theme_color: '#121212',
         background_color: '#0C0C0E',
         display: 'standalone',
         start_url: '/',

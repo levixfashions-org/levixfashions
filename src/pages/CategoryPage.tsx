@@ -65,7 +65,7 @@ export const CategoryPage: React.FC = () => {
         {/* Back Link */}
         <Link
           to="/shop"
-          className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-levix-orange transition-colors mb-6"
+          className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-black transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to All Products</span>
@@ -83,7 +83,7 @@ export const CategoryPage: React.FC = () => {
           </div>
 
           <div className="relative z-10 p-8 sm:p-14 max-w-xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-2">
               Collection Overview
             </p>
             <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">

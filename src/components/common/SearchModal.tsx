@@ -110,7 +110,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                       key={cat.id}
                       to={`/collection/${cat.slug}`}
                       onClick={onClose}
-                      className="px-3 py-1.5 bg-levix-gray hover:bg-levix-soft-orange hover:text-levix-orange text-xs text-levix-charcoal transition-colors border border-transparent hover:border-levix-orange/30"
+                      className="px-3 py-1.5 bg-levix-gray hover:bg-neutral-100 hover:text-black text-xs text-levix-charcoal transition-colors border border-transparent hover:border-neutral-300"
                     >
                       {cat.name}
                     </Link>
@@ -128,10 +128,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                       onClick={onClose}
                       className="flex items-center justify-between p-2 hover:bg-levix-gray transition-colors group"
                     >
-                      <span className="text-sm text-levix-charcoal group-hover:text-levix-orange">
+                      <span className="text-sm text-levix-charcoal group-hover:text-black">
                         {p.name}
                       </span>
-                      <ArrowRight className="w-4 h-4 text-levix-secondary group-hover:text-levix-orange group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="w-4 h-4 text-levix-secondary group-hover:text-black group-hover:translate-x-1 transition-transform" />
                     </Link>
                   ))}
                 </div>
@@ -157,7 +157,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                           key={cat.id}
                           to={`/collection/${cat.slug}`}
                           onClick={onClose}
-                          className="px-3 py-1.5 bg-levix-soft-orange text-levix-orange text-xs font-medium border border-levix-orange/30"
+                          className="px-3 py-1.5 bg-black/5 text-black text-xs font-medium border border-black/10"
                         >
                           {cat.name}
                         </Link>
@@ -174,7 +174,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                       </p>
                       <button
                         onClick={handleSearchSubmit}
-                        className="text-xs font-semibold text-levix-orange hover:underline inline-flex items-center gap-1"
+                        className="text-xs font-semibold text-black hover:underline inline-flex items-center gap-1"
                       >
                         View all results <ArrowRight className="w-3 h-3" />
                       </button>
@@ -194,7 +194,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-levix-secondary">{p.categoryName} • SKU: {p.sku}</p>
-                            <h4 className="text-sm font-medium text-levix-charcoal group-hover:text-levix-orange truncate">
+                            <h4 className="text-sm font-medium text-levix-charcoal group-hover:text-black truncate">
                               {p.name}
                             </h4>
                             <p className="text-xs font-semibold text-levix-charcoal mt-0.5">
@@ -206,7 +206,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                               )}
                             </p>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-levix-secondary group-hover:text-levix-orange group-hover:translate-x-1 transition-transform" />
+                          <ArrowRight className="w-4 h-4 text-levix-secondary group-hover:text-black group-hover:translate-x-1 transition-transform" />
                         </Link>
                       ))}
                     </div>

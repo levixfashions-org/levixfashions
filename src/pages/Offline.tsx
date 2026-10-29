@@ -7,7 +7,7 @@ export const Offline: React.FC = () => {
       <SEO title="Offline Mode" />
       <div className="max-w-md">
         <WifiOff className="w-16 h-16 text-levix-secondary/40 mx-auto mb-4 stroke-1" />
-        <span className="text-xs font-bold uppercase tracking-widest text-levix-orange">
+        <span className="text-xs font-bold uppercase tracking-widest text-black">
           Offline Mode
         </span>
         <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal mt-1">

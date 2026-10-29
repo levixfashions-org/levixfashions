@@ -50,14 +50,14 @@ export const AdminLayout: React.FC = () => {
           </button>
 
           <Link to="/admin" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-levix-orange text-white flex items-center justify-center font-black text-xs tracking-tighter">
+            <div className="w-7 h-7 bg-black text-white flex items-center justify-center font-black text-xs tracking-tighter">
               LX
             </div>
             <span className="font-black text-sm tracking-[0.2em] text-white uppercase">
               LEVIX ADMIN
             </span>
           </Link>
-          <span className="hidden sm:inline-block px-2 py-0.5 bg-white/10 text-levix-orange text-[10px] font-mono uppercase tracking-wider">
+          <span className="hidden sm:inline-block px-2 py-0.5 bg-white/10 text-black text-[10px] font-mono uppercase tracking-wider">
             Production Control
           </span>
         </div>
@@ -66,7 +66,7 @@ export const AdminLayout: React.FC = () => {
           <Link
             to="/"
             target="_blank"
-            className="text-xs text-gray-300 hover:text-levix-orange transition-colors flex items-center gap-1"
+            className="text-xs text-gray-300 hover:text-black transition-colors flex items-center gap-1"
           >
             <span className="hidden sm:inline">Storefront</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -108,8 +108,8 @@ export const AdminLayout: React.FC = () => {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
                       isActive
-                        ? 'bg-levix-soft-orange text-levix-orange border-l-2 border-levix-orange font-bold'
-                        : 'text-levix-charcoal hover:bg-levix-gray hover:text-levix-orange'
+                        ? 'bg-black/5 text-black border-l-2 border-black font-bold'
+                        : 'text-levix-charcoal hover:bg-levix-gray hover:text-black'
                     }`
                   }
                 >
@@ -149,7 +149,7 @@ export const AdminLayout: React.FC = () => {
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
                           isActive
-                            ? 'bg-levix-soft-orange text-levix-orange border-l-2 border-levix-orange font-bold'
+                            ? 'bg-black/5 text-black border-l-2 border-black font-bold'
                             : 'text-levix-charcoal hover:bg-levix-gray'
                         }`
                       }

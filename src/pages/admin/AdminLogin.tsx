@@ -92,14 +92,14 @@ export const AdminLogin: React.FC = () => {
           <div>
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-levix-orange transition-colors mb-4"
+              className="inline-flex items-center gap-1.5 text-xs text-levix-secondary hover:text-black transition-colors mb-4"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Storefront</span>
             </Link>
 
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-levix-orange text-white flex items-center justify-center font-black text-xs">
+              <div className="w-7 h-7 bg-black text-white flex items-center justify-center font-black text-xs">
                 LX
               </div>
               <h1 className="text-xl font-bold uppercase tracking-wider text-levix-charcoal">

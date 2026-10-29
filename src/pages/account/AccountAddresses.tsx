@@ -119,7 +119,7 @@ export const AccountAddresses: React.FC = () => {
               key={addr.id}
               className={`p-5 border flex flex-col justify-between transition-colors ${
                 addr.isDefault
-                  ? 'border-levix-orange bg-levix-soft-orange/30'
+                  ? 'border-black bg-black/5'
                   : 'border-levix-border bg-white hover:border-levix-charcoal'
               }`}
             >
@@ -129,14 +129,14 @@ export const AccountAddresses: React.FC = () => {
                     {addr.fullName}
                   </h4>
                   {addr.isDefault ? (
-                    <span className="text-[10px] font-bold text-levix-orange bg-levix-soft-orange px-2 py-0.5 border border-levix-orange/30">
+                    <span className="text-[10px] font-bold text-black bg-black/5 px-2 py-0.5 border border-neutral-300">
                       Default
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => setDefaultAddress(addr.id)}
-                      className="text-[10px] text-levix-secondary hover:text-levix-orange underline"
+                      className="text-[10px] text-levix-secondary hover:text-black underline"
                     >
                       Set as Default
                     </button>
@@ -290,7 +290,7 @@ export const AccountAddresses: React.FC = () => {
                   type="checkbox"
                   checked={isDefault}
                   onChange={(e) => setIsDefault(e.target.checked)}
-                  className="w-4 h-4 text-levix-orange accent-levix-orange"
+                  className="w-4 h-4 text-black accent-black"
                 />
                 <span className="text-xs text-levix-charcoal font-medium">
                   Set as primary default address

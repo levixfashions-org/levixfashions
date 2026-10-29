@@ -25,7 +25,7 @@ export const RootLayout: React.FC = () => {
     refreshStore()
   }, [location.pathname, refreshStore])
   return (
-    <div className="min-h-screen flex flex-col bg-white text-levix-charcoal font-sans antialiased selection:bg-levix-orange/20 selection:text-levix-orange">
+    <div className="min-h-screen flex flex-col bg-white text-levix-charcoal font-sans antialiased selection:bg-black selection:text-white">
       <ScrollRestoration />
       <AnnouncementBar />
       <Header />

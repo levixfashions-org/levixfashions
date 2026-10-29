@@ -58,7 +58,7 @@ export const Wishlist: React.FC = () => {
       <div className="container-levix">
         <div className="border-b border-levix-border pb-6 mb-8 flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-1">
               Curated Favorites
             </p>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -113,7 +113,7 @@ export const Wishlist: React.FC = () => {
                     </p>
                     <Link
                       to={`/product/${product.slug}`}
-                      className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors truncate block"
+                      className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-black transition-colors truncate block"
                       title={product.name}
                     >
                       {product.name}

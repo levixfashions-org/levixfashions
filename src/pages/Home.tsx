@@ -28,11 +28,11 @@ export const Home: React.FC = () => {
 
       {/* Admin Quick Control Banner for Owner */}
       {isAdmin && (
-        <div className="bg-levix-charcoal text-white border-b-2 border-levix-orange py-2.5 px-4 shadow-sm">
+        <div className="bg-levix-charcoal text-white border-b border-white/20 py-2.5 px-4 shadow-sm">
           <div className="container-levix flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-bold uppercase tracking-wider text-levix-orange flex items-center gap-1.5">
+              <span className="font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Store Owner Controls</span>
               </span>
@@ -68,7 +68,7 @@ export const Home: React.FC = () => {
         <div className="container-levix">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
                 Seasonal Highlights
               </p>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-levix-charcoal uppercase">
@@ -77,7 +77,7 @@ export const Home: React.FC = () => {
             </div>
             <Link
               to="/shop?sort=featured"
-              className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+              className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-black transition-colors"
             >
               <span>View All Featured</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -97,12 +97,12 @@ export const Home: React.FC = () => {
               ))}
             </div>
           ) : isAdmin ? (
-            <div className="py-14 text-center border-2 border-dashed border-levix-orange/60 bg-levix-soft-orange/20 p-8 max-w-xl mx-auto space-y-4 shadow-sm">
-              <div className="w-12 h-12 bg-levix-orange text-white rounded-full flex items-center justify-center mx-auto shadow-md">
+            <div className="py-14 text-center border-2 border-dashed border-neutral-300 bg-neutral-100 p-8 max-w-xl mx-auto space-y-4 shadow-sm">
+              <div className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center mx-auto shadow-md">
                 <Camera className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-widest font-bold text-levix-orange mb-1">
+                <p className="text-xs uppercase tracking-widest font-bold text-black mb-1">
                   Administrator Quick Action
                 </p>
                 <h3 className="text-base sm:text-lg font-bold text-levix-charcoal uppercase tracking-wider">
@@ -124,7 +124,7 @@ export const Home: React.FC = () => {
             </div>
           ) : (
             <div className="py-14 text-center border border-dashed border-levix-border bg-white p-6 max-w-xl mx-auto">
-              <p className="text-xs uppercase tracking-widest font-bold text-levix-orange mb-1">
+              <p className="text-xs uppercase tracking-widest font-bold text-black mb-1">
                 Studio Archive
               </p>
               <h3 className="text-base font-bold text-levix-charcoal uppercase tracking-wider">
@@ -161,8 +161,8 @@ export const Home: React.FC = () => {
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 hidden sm:flex bg-levix-charcoal text-white p-6 max-w-xs shadow-xl border border-white/10 flex-col">
-                <Sparkles className="w-5 h-5 text-levix-orange mb-2" />
-                <span className="text-xs uppercase tracking-widest font-semibold text-levix-orange">
+                <Sparkles className="w-5 h-5 text-black mb-2" />
+                <span className="text-xs uppercase tracking-widest font-semibold text-black">
                   Zero Compromise
                 </span>
                 <p className="text-xs text-gray-300 mt-1 leading-relaxed">
@@ -172,7 +172,7 @@ export const Home: React.FC = () => {
             </div>
 
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-levix-soft-orange text-levix-orange text-xs font-bold tracking-widest uppercase">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-black/5 text-black border border-black/10 text-xs font-bold tracking-widest uppercase">
                 <span>The LEVIX Ethos</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-levix-charcoal uppercase leading-tight">
@@ -215,7 +215,7 @@ export const Home: React.FC = () => {
           <div className="container-levix">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
                   Just In
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-levix-charcoal uppercase">
@@ -224,7 +224,7 @@ export const Home: React.FC = () => {
               </div>
               <Link
                 to="/shop?sort=newest"
-                className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+                className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-black transition-colors"
               >
                 <span>View All New Releases</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

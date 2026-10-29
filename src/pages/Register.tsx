@@ -56,7 +56,7 @@ export const Register: React.FC = () => {
         <div className="bg-white border border-levix-border p-8 shadow-subtle space-y-6">
           <div className="text-center space-y-1">
             <Link to="/" className="inline-flex items-center gap-1.5 justify-center mb-2">
-              <div className="w-6 h-6 bg-levix-orange text-white text-xs font-black flex items-center justify-center">
+              <div className="w-6 h-6 bg-black text-white text-xs font-black flex items-center justify-center">
                 LX
               </div>
               <span className="font-black text-xl tracking-[0.2em] text-levix-charcoal uppercase">
@@ -161,7 +161,7 @@ export const Register: React.FC = () => {
 
           <div className="pt-2 text-center text-xs text-levix-secondary">
             Already registered?{' '}
-            <Link to="/login" className="text-levix-orange font-bold hover:underline">
+            <Link to="/login" className="text-black font-bold hover:underline">
               Sign In
             </Link>
           </div>

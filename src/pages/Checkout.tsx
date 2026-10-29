@@ -172,7 +172,7 @@ export const Checkout: React.FC = () => {
           {/* Header */}
           <div className="mb-8 pb-4 border-b border-levix-border flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+              <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
                 Final Step
               </p>
               <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -200,7 +200,7 @@ export const Checkout: React.FC = () => {
                 {userProfile?.addresses && userProfile.addresses.length > 0 && (
                   <div className="bg-white border border-levix-border p-6 shadow-subtle">
                     <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="w-4 h-4 text-levix-orange" />
+                      <MapPin className="w-4 h-4 text-black" />
                       <h3 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                         Use Saved Address
                       </h3>
@@ -211,7 +211,7 @@ export const Checkout: React.FC = () => {
                           key={addr.id}
                           type="button"
                           onClick={() => handleSelectSavedAddress(addr)}
-                          className="p-3 text-left border border-levix-border hover:border-levix-orange transition-colors bg-levix-gray/30 text-xs space-y-0.5"
+                          className="p-3 text-left border border-levix-border hover:border-black transition-colors bg-levix-gray/30 text-xs space-y-0.5"
                         >
                           <p className="font-bold text-levix-charcoal">{addr.fullName}</p>
                           <p className="text-levix-secondary truncate">{addr.street}</p>
@@ -346,7 +346,7 @@ export const Checkout: React.FC = () => {
                     <label
                       className={`flex items-start gap-4 p-4 border cursor-pointer transition-all ${
                         paymentMethod === 'razorpay'
-                          ? 'border-levix-orange bg-levix-soft-orange/60 ring-1 ring-levix-orange'
+                          ? 'border-black bg-black/5 ring-1 ring-black'
                           : 'border-levix-border hover:bg-levix-gray/40'
                       }`}
                     >
@@ -356,12 +356,12 @@ export const Checkout: React.FC = () => {
                         value="razorpay"
                         checked={paymentMethod === 'razorpay'}
                         onChange={() => setPaymentMethod('razorpay')}
-                        className="mt-1 text-levix-orange focus:ring-levix-orange accent-levix-orange"
+                        className="mt-1 text-black focus:ring-black accent-black"
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold uppercase tracking-wider text-levix-charcoal flex items-center gap-1.5">
-                            <CreditCard className="w-4 h-4 text-levix-orange" />
+                            <CreditCard className="w-4 h-4 text-black" />
                             <span>Online Payment (Razorpay)</span>
                           </span>
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
@@ -379,7 +379,7 @@ export const Checkout: React.FC = () => {
                       <label
                         className={`flex items-start gap-4 p-4 border cursor-pointer transition-all ${
                           paymentMethod === 'cod'
-                            ? 'border-levix-orange bg-levix-soft-orange/60 ring-1 ring-levix-orange'
+                            ? 'border-black bg-black/5 ring-1 ring-black'
                             : 'border-levix-border hover:bg-levix-gray/40'
                         }`}
                       >
@@ -389,12 +389,12 @@ export const Checkout: React.FC = () => {
                           value="cod"
                           checked={paymentMethod === 'cod'}
                           onChange={() => setPaymentMethod('cod')}
-                          className="mt-1 text-levix-orange focus:ring-levix-orange accent-levix-orange"
+                          className="mt-1 text-black focus:ring-black accent-black"
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold uppercase tracking-wider text-levix-charcoal flex items-center gap-1.5">
-                              <Banknote className="w-4 h-4 text-levix-orange" />
+                              <Banknote className="w-4 h-4 text-black" />
                               <span>Cash on Delivery (COD)</span>
                             </span>
                             <span className="text-[10px] text-levix-secondary">

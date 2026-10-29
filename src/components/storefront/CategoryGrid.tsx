@@ -34,7 +34,7 @@ export const CategoryGrid: React.FC = () => {
       <div className="container-levix">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-levix-border">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-1">
               Curated Collections
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-levix-charcoal uppercase">
@@ -43,7 +43,7 @@ export const CategoryGrid: React.FC = () => {
           </div>
           <Link
             to="/shop"
-            className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+            className="group hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-levix-charcoal hover:text-black/60 transition-colors"
           >
             <span>View All Collections</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -68,10 +68,10 @@ export const CategoryGrid: React.FC = () => {
               </div>
 
               <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                <p className="text-[10px] uppercase tracking-widest text-levix-orange font-semibold">
+                <p className="text-[10px] uppercase tracking-widest text-black/60 font-semibold">
                   {getProductCount(category)} Products
                 </p>
-                <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-white mt-0.5 group-hover:text-levix-soft-orange transition-colors">
+                <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-white mt-0.5 group-hover:text-white transition-colors">
                   {category.name}
                 </h3>
               </div>

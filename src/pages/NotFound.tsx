@@ -9,7 +9,7 @@ export const NotFound: React.FC = () => {
       <SEO title="Page Not Found (404)" />
       <div className="max-w-md">
         <PackageOpen className="w-16 h-16 text-levix-secondary/40 mx-auto mb-4 stroke-1" />
-        <span className="text-xs font-bold uppercase tracking-widest text-levix-orange">
+        <span className="text-xs font-bold uppercase tracking-widest text-black">
           Error 404
         </span>
         <h1 className="text-3xl font-black uppercase tracking-tight text-levix-charcoal mt-1">

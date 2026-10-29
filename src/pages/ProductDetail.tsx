@@ -286,11 +286,11 @@ export const ProductDetail: React.FC = () => {
       <div className="container-levix">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-levix-secondary mb-8">
-          <Link to="/" className="hover:text-levix-orange transition-colors">Home</Link>
+          <Link to="/" className="hover:text-black transition-colors">Home</Link>
           <span>/</span>
-          <Link to="/shop" className="hover:text-levix-orange transition-colors">Shop</Link>
+          <Link to="/shop" className="hover:text-black transition-colors">Shop</Link>
           <span>/</span>
-          <Link to={`/collection/${product.categoryId.replace('cat-', '')}`} className="hover:text-levix-orange transition-colors">
+          <Link to={`/collection/${product.categoryId.replace('cat-', '')}`} className="hover:text-black transition-colors">
             {product.categoryName}
           </Link>
           <span>/</span>
@@ -333,7 +333,7 @@ export const ProductDetail: React.FC = () => {
                       style={{ backgroundColor: pageBg }}
                       className={`relative w-16 h-20 sm:w-20 sm:h-24 border overflow-hidden shrink-0 transition-all ${
                         activeImageIndex === idx
-                          ? 'border-levix-orange ring-1 ring-levix-orange'
+                          ? 'border-black ring-1 ring-black'
                           : 'border-levix-border hover:border-levix-charcoal'
                       }`}
                     >
@@ -394,7 +394,7 @@ export const ProductDetail: React.FC = () => {
               {/* Status Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 {hasDiscount && (
-                  <span className="px-2.5 py-1 bg-levix-orange text-white text-xs font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-1 bg-black/90 backdrop-blur-xs text-white text-xs font-bold uppercase tracking-wider border border-white/20">
                     Sale
                   </span>
                 )}
@@ -425,7 +425,7 @@ export const ProductDetail: React.FC = () => {
           {/* Product Purchasing Info Column (5 cols) */}
           <div className="lg:col-span-5 flex flex-col justify-start space-y-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-levix-orange">
+              <p className="text-xs font-bold uppercase tracking-widest text-black/60">
                 {product.categoryName} • SKU: {selectedVariant?.sku || product.sku}
               </p>
               <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal mt-1.5">
@@ -456,8 +456,8 @@ export const ProductDetail: React.FC = () => {
             {/* Editorial Description / Specifications (Individual Separate Lines) */}
             <div className="py-3 border-y border-levix-border/60 my-2 space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-levix-orange font-bold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-levix-orange" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-black font-bold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
                   Product Specifications & Fit
                 </span>
                 {descriptionBullets.length > 1 && (
@@ -474,7 +474,7 @@ export const ProductDetail: React.FC = () => {
                       key={idx}
                       className="flex items-start gap-2.5 py-1.5 border-b border-levix-border/25 last:border-b-0 text-xs sm:text-sm text-levix-charcoal/90 leading-relaxed"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-levix-orange mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-black mt-1.5 shrink-0" />
                       <span className="flex-1 block font-normal">{bullet}</span>
                     </li>
                   ))}
@@ -531,7 +531,7 @@ export const ProductDetail: React.FC = () => {
                         }}
                         className={`group relative w-16 h-20 sm:w-20 sm:h-26 rounded-xl overflow-hidden shrink-0 transition-all duration-200 cursor-pointer ${
                           isColorSelected
-                            ? 'ring-2 ring-levix-orange ring-offset-2 scale-[1.03] shadow-md border-transparent'
+                            ? 'ring-2 ring-black ring-offset-2 scale-[1.03] shadow-md border-transparent'
                             : 'border border-levix-border/70 hover:border-levix-charcoal/60 opacity-90 hover:opacity-100 hover:scale-[1.01]'
                         }`}
                         title={color}
@@ -559,15 +559,15 @@ export const ProductDetail: React.FC = () => {
             {/* Trust Features Bar */}
             <div className="grid grid-cols-3 gap-2 py-4 border-y border-levix-border text-[11px] text-levix-charcoal text-center">
               <div className="flex flex-col items-center gap-1">
-                <Truck className="w-4 h-4 text-levix-orange" />
+                <Truck className="w-4 h-4 text-black" />
                 <span>24h Dispatch</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <RotateCcw className="w-4 h-4 text-levix-orange" />
+                <RotateCcw className="w-4 h-4 text-black" />
                 <span>7-Day Exchange</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-levix-orange" />
+                <ShieldCheck className="w-4 h-4 text-black" />
                 <span>100% Genuine</span>
               </div>
             </div>
@@ -580,7 +580,7 @@ export const ProductDetail: React.FC = () => {
                   onClick={() => setActiveTab('details')}
                   className={`py-2 px-3 text-xs uppercase font-bold tracking-wider transition-colors border-b-2 ${
                     activeTab === 'details'
-                      ? 'border-levix-orange text-levix-orange'
+                      ? 'border-black text-black'
                       : 'border-transparent text-levix-secondary hover:text-levix-charcoal'
                   }`}
                 >
@@ -591,7 +591,7 @@ export const ProductDetail: React.FC = () => {
                   onClick={() => setActiveTab('shipping')}
                   className={`py-2 px-3 text-xs uppercase font-bold tracking-wider transition-colors border-b-2 ${
                     activeTab === 'shipping'
-                      ? 'border-levix-orange text-levix-orange'
+                      ? 'border-black text-black'
                       : 'border-transparent text-levix-secondary hover:text-levix-charcoal'
                   }`}
                 >
@@ -602,7 +602,7 @@ export const ProductDetail: React.FC = () => {
                   onClick={() => setActiveTab('returns')}
                   className={`py-2 px-3 text-xs uppercase font-bold tracking-wider transition-colors border-b-2 ${
                     activeTab === 'returns'
-                      ? 'border-levix-orange text-levix-orange'
+                      ? 'border-black text-black'
                       : 'border-transparent text-levix-secondary hover:text-levix-charcoal'
                   }`}
                 >
@@ -645,7 +645,7 @@ export const ProductDetail: React.FC = () => {
           <section className="mt-20 pt-12 border-t border-levix-border">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-1">
                   Complete the Wardrobe
                 </p>
                 <h3 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-levix-charcoal">
@@ -654,7 +654,7 @@ export const ProductDetail: React.FC = () => {
               </div>
               <Link
                 to={`/collection/${product.categoryId.replace('cat-', '')}`}
-                className="text-xs font-semibold uppercase tracking-wider text-levix-orange hover:underline"
+                className="text-xs font-semibold uppercase tracking-wider text-black hover:underline"
               >
                 View Collection
               </Link>
@@ -704,7 +704,7 @@ export const ProductDetail: React.FC = () => {
                 {selectedVariant && (
                   <p className="text-[10px] text-levix-secondary truncate mt-0.5">
                     {selectedVariant.color && (
-                      <span className="text-levix-orange font-semibold">{selectedVariant.color}</span>
+                      <span className="text-black font-semibold">{selectedVariant.color}</span>
                     )}
                     {selectedVariant.color && selectedVariant.size && ' • '}
                     {selectedVariant.size && <span>Size {selectedVariant.size}</span>}
@@ -734,7 +734,7 @@ export const ProductDetail: React.FC = () => {
                         onClick={() => matchingVar && setSelectedVariant(matchingVar)}
                         className={`min-w-8 h-8 px-2 text-[11px] font-bold uppercase border transition-all flex items-center justify-center shrink-0 ${
                           isSelected
-                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
+                            ? 'border-black bg-black text-white ring-1 ring-black'
                             : isUnavailable
                             ? 'border-levix-border bg-levix-gray text-levix-secondary/40 line-through cursor-not-allowed'
                             : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
@@ -761,7 +761,7 @@ export const ProductDetail: React.FC = () => {
                         onClick={() => setSelectedVariant(v)}
                         className={`min-w-8 h-8 px-2 text-[11px] font-bold uppercase border transition-all flex items-center justify-center shrink-0 ${
                           isSelected
-                            ? 'border-levix-orange bg-levix-soft-orange text-levix-orange ring-1 ring-levix-orange'
+                            ? 'border-black bg-black text-white ring-1 ring-black'
                             : isUnavailable
                             ? 'border-levix-border bg-levix-gray text-levix-secondary/40 line-through cursor-not-allowed'
                             : 'border-levix-border hover:border-levix-charcoal text-levix-charcoal bg-white'
@@ -825,12 +825,12 @@ export const ProductDetail: React.FC = () => {
                 type="button"
                 onClick={() => toggleWishlist(product.id)}
                 aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
-                className="h-8 w-8 sm:h-9 sm:w-9 border border-levix-border hover:border-levix-orange text-levix-charcoal flex items-center justify-center transition-colors bg-white shrink-0"
+                className="h-8 w-8 sm:h-9 sm:w-9 border border-levix-border hover:border-black text-levix-charcoal flex items-center justify-center transition-colors bg-white shrink-0"
                 title={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
               >
                 <Heart
                   className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-colors ${
-                    wishlisted ? 'fill-levix-orange text-levix-orange' : 'text-levix-charcoal'
+                    wishlisted ? 'fill-black text-black' : 'text-levix-charcoal'
                   }`}
                 />
               </button>

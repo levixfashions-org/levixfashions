@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
         <div className="container-levix">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center md:text-left">
             <div className="flex flex-col md:flex-row items-center gap-3">
-              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-levix-orange shrink-0">
+              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-black shrink-0">
                 <Truck className="w-5 h-5" />
               </div>
               <div>
@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-3">
-              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-levix-orange shrink-0">
+              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-black shrink-0">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
@@ -50,7 +50,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-3">
-              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-levix-orange shrink-0">
+              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-black shrink-0">
                 <RefreshCw className="w-5 h-5" />
               </div>
               <div>
@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-3">
-              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-levix-orange shrink-0">
+              <div className="w-10 h-10 bg-white border border-levix-border flex items-center justify-center text-black shrink-0">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
@@ -86,7 +86,7 @@ export const Footer: React.FC = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-levix-orange flex items-center justify-center text-white font-black text-xs tracking-tighter">
+              <div className="w-7 h-7 bg-black flex items-center justify-center text-white font-black text-xs tracking-tighter">
                 LX
               </div>
               <span className="text-xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
@@ -112,7 +112,7 @@ export const Footer: React.FC = () => {
                 <li key={cat.id}>
                   <Link
                     to={`/collection/${cat.slug}`}
-                    className="text-levix-secondary hover:text-levix-orange transition-colors"
+                    className="text-levix-secondary hover:text-black transition-colors"
                   >
                     {cat.name}
                   </Link>
@@ -121,7 +121,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/shop"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors font-medium"
+                  className="text-levix-secondary hover:text-black transition-colors font-medium"
                 >
                   View All Products
                 </Link>
@@ -138,7 +138,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/account/orders"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors"
+                  className="text-levix-secondary hover:text-black transition-colors"
                 >
                   Track Your Order
                 </Link>
@@ -146,7 +146,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/legal/shipping"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors"
+                  className="text-levix-secondary hover:text-black transition-colors"
                 >
                   Shipping & Dispatch
                 </Link>
@@ -154,7 +154,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/legal/shipping"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors"
+                  className="text-levix-secondary hover:text-black transition-colors"
                 >
                   Returns & Exchanges
                 </Link>
@@ -162,7 +162,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/legal/privacy"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors"
+                  className="text-levix-secondary hover:text-black transition-colors"
                 >
                   Privacy Policy
                 </Link>
@@ -170,7 +170,7 @@ export const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/legal/terms"
-                  className="text-levix-secondary hover:text-levix-orange transition-colors"
+                  className="text-levix-secondary hover:text-black transition-colors"
                 >
                   Terms of Service
                 </Link>
@@ -179,7 +179,7 @@ export const Footer: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
-                  className="text-levix-orange hover:underline transition-colors font-medium text-left"
+                  className="text-black hover:underline transition-colors font-medium text-left"
                 >
                   Install Mobile App (iOS / Android)
                 </button>
@@ -197,7 +197,7 @@ export const Footer: React.FC = () => {
             </p>
 
             {subscribed ? (
-              <div className="p-3 bg-levix-soft-orange border border-levix-orange/30 text-xs text-levix-orange font-medium flex items-center gap-2">
+              <div className="p-3 bg-neutral-100 border border-neutral-300 text-xs text-black font-medium flex items-center gap-2">
                 <Check className="w-4 h-4" />
                 <span>Thank you. You are on the priority list.</span>
               </div>
@@ -214,7 +214,7 @@ export const Footer: React.FC = () => {
                   />
                   <button
                     type="submit"
-                    className="absolute right-0 top-0 bottom-0 px-3 text-levix-secondary hover:text-levix-orange transition-colors"
+                    className="absolute right-0 top-0 bottom-0 px-3 text-levix-secondary hover:text-black transition-colors"
                     aria-label="Subscribe to newsletter"
                   >
                     <ArrowRight className="w-4 h-4" />

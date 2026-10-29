@@ -89,7 +89,7 @@ export const Login: React.FC = () => {
         <div className="bg-white border border-levix-border p-8 shadow-subtle space-y-6">
           <div className="text-center space-y-1">
             <Link to="/" className="inline-flex items-center gap-1.5 justify-center mb-2">
-              <div className="w-6 h-6 bg-levix-orange text-white text-xs font-black flex items-center justify-center">
+              <div className="w-6 h-6 bg-black text-white text-xs font-black flex items-center justify-center">
                 LX
               </div>
               <span className="font-black text-xl tracking-[0.2em] text-levix-charcoal uppercase">
@@ -133,7 +133,7 @@ export const Login: React.FC = () => {
                 <label className="form-label mb-0">Password</label>
                 <Link
                   to="/forgot-password"
-                  className="text-[11px] text-levix-orange hover:underline font-semibold"
+                  className="text-[11px] text-black hover:underline font-semibold"
                 >
                   Forgot Password?
                 </Link>
@@ -197,7 +197,7 @@ export const Login: React.FC = () => {
 
           <div className="pt-2 text-center text-xs text-levix-secondary">
             Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-levix-orange font-bold hover:underline">
+            <Link to="/register" className="text-black font-bold hover:underline">
               Create an account
             </Link>
           </div>

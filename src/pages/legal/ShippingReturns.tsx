@@ -14,7 +14,7 @@ export const ShippingReturns: React.FC = () => {
         <div className="space-y-8 text-xs text-levix-charcoal/80 leading-relaxed">
           <section className="space-y-3 p-6 bg-levix-gray border border-levix-border">
             <div className="flex items-center gap-2">
-              <Truck className="w-4 h-4 text-levix-orange" />
+              <Truck className="w-4 h-4 text-black" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
                 Domestic Express Shipping
               </h2>
@@ -29,7 +29,7 @@ export const ShippingReturns: React.FC = () => {
 
           <section className="space-y-3 p-6 bg-levix-gray border border-levix-border">
             <div className="flex items-center gap-2">
-              <RotateCcw className="w-4 h-4 text-levix-orange" />
+              <RotateCcw className="w-4 h-4 text-black" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-levix-charcoal">
                 7-Day Returns & Exchanges
               </h2>

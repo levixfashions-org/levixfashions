@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Status Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
           {hasDiscount && (
-            <span className="px-2 py-0.5 bg-levix-orange text-white text-[10px] font-bold uppercase tracking-wider">
+            <span className="px-2 py-0.5 bg-black/85 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider border border-white/20">
               Sale
             </span>
           )}
@@ -123,7 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              wishlisted ? 'fill-levix-orange text-levix-orange' : 'text-levix-charcoal'
+              wishlisted ? 'fill-black text-black' : 'text-levix-charcoal'
             }`}
           />
         </button>
@@ -134,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="w-full py-2.5 bg-white/95 hover:bg-levix-orange hover:text-white text-levix-charcoal text-xs font-semibold uppercase tracking-wider border border-levix-border transition-colors flex items-center justify-center gap-1.5 shadow-md"
+              className="w-full py-2.5 bg-black/90 hover:bg-black text-white text-xs font-semibold uppercase tracking-wider border border-white/20 backdrop-blur-md transition-colors flex items-center justify-center gap-1.5 shadow-md"
             >
               {inCart ? (
                 <>
@@ -160,7 +160,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </p>
           <Link
             to={`/product/${product.slug}`}
-            className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors truncate block"
+            className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-black transition-colors truncate block"
             title={product.name}
           >
             {product.name}
@@ -185,7 +185,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               type="button"
               onClick={handleQuickAdd}
               disabled={isOutOfStock}
-              className="p-1.5 text-levix-charcoal hover:text-levix-orange disabled:opacity-40"
+              className="p-1.5 text-levix-charcoal hover:text-black disabled:opacity-40"
               aria-label="Add to bag"
             >
               <Plus className="w-4 h-4" />

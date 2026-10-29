@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    --color-orange: #E87524;
-    --color-orange-hover: #C85D16;
+    --color-orange: #111111;
+    --color-orange-hover: #262626;
     --color-charcoal: #222222;
     --color-secondary: #777777;
     --color-border: #EAEAEA;
-    --color-soft-orange: #FFF5ED;
+    --color-soft-orange: #F4F4F5;
     --color-gray: #F8F8F8;
     --color-white: #FFFFFF;
   }
@@ -47,7 +47,7 @@
 @layer components {
   /* Buttons */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3.5 bg-levix-orange hover:bg-levix-orange-hover text-white text-sm font-semibold tracking-wide rounded-none transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-levix-orange focus:ring-offset-2;
+    @apply inline-flex items-center justify-center px-6 py-3.5 bg-black hover:bg-neutral-900 text-white text-sm font-semibold tracking-wide rounded-none transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2;
   }
 
   .btn-secondary {
@@ -55,12 +55,12 @@
   }
 
   .btn-outline-orange {
-    @apply inline-flex items-center justify-center px-6 py-3.5 bg-transparent hover:bg-levix-soft-orange text-levix-orange text-sm font-semibold tracking-wide border border-levix-orange rounded-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none;
+    @apply inline-flex items-center justify-center px-6 py-3.5 bg-transparent hover:bg-neutral-100 text-black text-sm font-semibold tracking-wide border border-black rounded-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none;
   }
 
   /* Form Inputs */
   .form-input {
-    @apply w-full px-4 py-3 bg-white border border-levix-border text-sm text-levix-charcoal placeholder-levix-secondary rounded-none transition-colors duration-150 focus:outline-none focus:border-levix-orange focus:ring-1 focus:ring-levix-orange disabled:bg-levix-gray disabled:cursor-not-allowed;
+    @apply w-full px-4 py-3 bg-white border border-levix-border text-sm text-levix-charcoal placeholder-levix-secondary rounded-none transition-colors duration-150 focus:outline-none focus:border-black focus:ring-1 focus:ring-black disabled:bg-levix-gray disabled:cursor-not-allowed;
   }
 
   .form-label {
@@ -74,19 +74,31 @@
 
   /* Premium Frosted Glass Floating Bottom Navigation */
   .glass-dock-pill {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(18, 18, 18, 0.82);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* Luxury Dark Glass utility for card overlays and widgets */
+  .glass-dark {
+    background: rgba(18, 18, 18, 0.82);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   }
 }
 
 /* Fallback when backdrop-filter is unsupported */
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .glass-dock-pill {
-    background: rgba(255, 255, 255, 0.96) !important;
+    background: rgba(18, 18, 18, 0.96) !important;
+  }
+  .glass-dark {
+    background: rgba(18, 18, 18, 0.96) !important;
   }
 }
 

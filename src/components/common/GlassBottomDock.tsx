@@ -181,9 +181,7 @@ export const GlassBottomDock: React.FC = () => {
             >
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  isHomeActive
-                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
-                    : 'text-levix-charcoal hover:text-black active:scale-90'
+                  isHomeActive ? 'bg-white/20 text-white shadow-sm border border-white/30 backdrop-blur-md' : 'text-white/70 hover:text-white active:scale-90'
                 }`}
               >
                 <Home className="w-4.5 h-4.5" strokeWidth={isHomeActive ? 2.4 : 1.9} />
@@ -199,9 +197,7 @@ export const GlassBottomDock: React.FC = () => {
             >
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  isExploreActive
-                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
-                    : 'text-levix-charcoal hover:text-black active:scale-90'
+                  isExploreActive ? 'bg-white/20 text-white shadow-sm border border-white/30 backdrop-blur-md' : 'text-white/70 hover:text-white active:scale-90'
                 }`}
               >
                 <Compass className="w-4.5 h-4.5" strokeWidth={isExploreActive ? 2.4 : 1.9} />
@@ -213,7 +209,7 @@ export const GlassBottomDock: React.FC = () => {
               type="button"
               onClick={handleOpenSearch}
               aria-label="Open Product Search"
-              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-black active:scale-90"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-white/70 hover:text-white active:scale-90"
             >
               <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center">
                 <Search className="w-4.5 h-4.5" strokeWidth={1.9} />
@@ -229,19 +225,17 @@ export const GlassBottomDock: React.FC = () => {
             >
               <div
                 className={`relative w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  isWishlistActive
-                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
-                    : 'text-levix-charcoal hover:text-black active:scale-90'
+                  isWishlistActive ? 'bg-white/20 text-white shadow-sm border border-white/30 backdrop-blur-md' : 'text-white/70 hover:text-white active:scale-90'
                 }`}
               >
                 <Heart
                   className={`w-4.5 h-4.5 ${
-                    !isWishlistActive && wishlistCount > 0 ? 'fill-black text-black' : ''
+                    !isWishlistActive && wishlistCount > 0 ? 'fill-white text-white' : ''
                   }`}
                   strokeWidth={isWishlistActive ? 2.4 : 1.9}
                 />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-black/90 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white/40 backdrop-blur-xs">
+                  <span className="absolute -top-1 -right-1 bg-white text-black text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-md border border-black/20">
                     {wishlistCount}
                   </span>
                 )}
@@ -253,12 +247,12 @@ export const GlassBottomDock: React.FC = () => {
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
               aria-label={`Shopping bag, ${totalItems} items`}
-              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-levix-charcoal hover:text-black active:scale-90"
+              className="relative w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 select-none focus:outline-none text-white/70 hover:text-white active:scale-90"
             >
               <div className="relative w-8.5 h-8.5 rounded-full flex items-center justify-center">
                 <ShoppingBag className="w-4.5 h-4.5" strokeWidth={1.9} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-black/90 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white/40 backdrop-blur-xs">
+                  <span className="absolute -top-1 -right-1 bg-white text-black text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-md border border-black/20">
                     {totalItems}
                   </span>
                 )}
@@ -274,9 +268,7 @@ export const GlassBottomDock: React.FC = () => {
             >
               <div
                 className={`w-8.5 h-8.5 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  isAccountActive
-                    ? 'bg-white/95 text-black shadow-md border border-white/80 ring-1 ring-black/10 backdrop-blur-md'
-                    : 'text-levix-charcoal hover:text-black active:scale-90'
+                  isAccountActive ? 'bg-white/20 text-white shadow-sm border border-white/30 backdrop-blur-md' : 'text-white/70 hover:text-white active:scale-90'
                 }`}
               >
                 <User className="w-4.5 h-4.5" strokeWidth={isAccountActive ? 2.4 : 1.9} />
@@ -292,7 +284,7 @@ export const GlassBottomDock: React.FC = () => {
             type="button"
             onClick={() => setIsSupportDrawerOpen(true)}
             aria-label="Customer Care & Live Support"
-            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1A1A1A] hover:bg-black text-white shadow-lg shadow-black/25 border border-white/20 flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 active:scale-90 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-levix-orange"
+            className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1A1A1A] hover:bg-black text-white shadow-lg shadow-black/25 border border-white/20 flex items-center justify-center transition-all duration-200 ease-out hover:scale-105 active:scale-90 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             <MessageSquare className="w-5 h-5 fill-white/10" strokeWidth={1.9} />
           </button>
@@ -377,7 +369,7 @@ export const GlassBottomDock: React.FC = () => {
 
             <div className="bg-levix-gray/70 p-4 space-y-2 border border-levix-border text-xs text-levix-secondary">
               <div className="flex items-center gap-2 text-levix-charcoal font-semibold">
-                <Truck className="w-4 h-4 text-levix-orange" />
+                <Truck className="w-4 h-4 text-black" />
                 <span>Complimentary Shipping over ₹1,999</span>
               </div>
               <p className="text-[11px] leading-relaxed">
@@ -393,7 +385,7 @@ export const GlassBottomDock: React.FC = () => {
                     setIsLocationModalOpen(false)
                     navigate('/account/addresses')
                   }}
-                  className="text-levix-orange font-semibold hover:underline inline-flex items-center gap-1"
+                  className="text-black font-semibold hover:underline inline-flex items-center gap-1"
                 >
                   <span>Manage Saved Addresses</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -402,7 +394,7 @@ export const GlassBottomDock: React.FC = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsLocationModalOpen(false)}
-                  className="text-levix-orange font-semibold hover:underline"
+                  className="text-black font-semibold hover:underline"
                 >
                   Sign In to View Saved Addresses →
                 </Link>
@@ -482,7 +474,7 @@ export const GlassBottomDock: React.FC = () => {
                 className="w-full p-3.5 bg-levix-gray hover:bg-neutral-200 border border-levix-border rounded-xl flex items-center justify-between text-levix-charcoal transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-levix-orange" />
+                  <Phone className="w-4 h-4 text-black" />
                   <div className="text-left">
                     <span className="text-xs font-bold uppercase tracking-wider block">
                       Direct Support Line
@@ -492,7 +484,7 @@ export const GlassBottomDock: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold text-levix-orange uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-black uppercase tracking-wider">
                   Call Now
                 </span>
               </a>
@@ -503,7 +495,7 @@ export const GlassBottomDock: React.FC = () => {
                 className="w-full p-3.5 bg-levix-gray hover:bg-neutral-200 border border-levix-border rounded-xl flex items-center justify-between text-levix-charcoal transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-levix-orange" />
+                  <Mail className="w-4 h-4 text-black" />
                   <div className="text-left">
                     <span className="text-xs font-bold uppercase tracking-wider block">
                       Official Email Inquiries
@@ -513,7 +505,7 @@ export const GlassBottomDock: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold text-levix-orange uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-black uppercase tracking-wider">
                   Email Us
                 </span>
               </a>

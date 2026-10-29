@@ -68,7 +68,7 @@ export const Header: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1 -ml-1 text-levix-charcoal hover:text-levix-orange transition-colors"
+                  className="p-1 -ml-1 text-levix-charcoal hover:text-black transition-colors"
                   aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
@@ -93,7 +93,7 @@ export const Header: React.FC = () => {
             {/* LEVIX Brand Wordmark */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-8 h-8 bg-levix-orange flex items-center justify-center text-white font-black text-sm tracking-tighter">
+                <div className="w-8 h-8 bg-black flex items-center justify-center text-white font-black text-sm tracking-tighter">
                   LX
                 </div>
                 <span className="text-2xl font-black tracking-[0.2em] text-levix-charcoal uppercase">
@@ -108,8 +108,8 @@ export const Header: React.FC = () => {
                 to="/shop"
                 className={`text-xs uppercase font-semibold tracking-wider transition-colors py-1 relative ${
                   isActive('/shop')
-                    ? 'text-levix-orange after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-levix-orange'
-                    : 'text-levix-charcoal hover:text-levix-orange'
+                    ? 'text-black after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-black'
+                    : 'text-levix-charcoal hover:text-black'
                 }`}
               >
                 Shop All
@@ -123,12 +123,12 @@ export const Header: React.FC = () => {
               >
                 <button
                   type="button"
-                  className="flex items-center gap-1 text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+                  className="flex items-center gap-1 text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-black transition-colors"
                 >
                   <span>Collections</span>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      isCategoryHovered ? 'rotate-180 text-levix-orange' : ''
+                      isCategoryHovered ? 'rotate-180 text-black' : ''
                     }`}
                   />
                 </button>
@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
                             className="w-10 h-10 object-cover border border-levix-border bg-levix-gray"
                           />
                           <div>
-                            <p className="text-xs font-semibold text-levix-charcoal group-hover:text-levix-orange transition-colors">
+                            <p className="text-xs font-semibold text-levix-charcoal group-hover:text-black transition-colors">
                               {cat.name}
                             </p>
                             <p className="text-[11px] text-levix-secondary line-clamp-1">
@@ -165,14 +165,14 @@ export const Header: React.FC = () => {
 
               <Link
                 to="/shop?sort=newest"
-                className="text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+                className="text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-black transition-colors"
               >
                 New Arrivals
               </Link>
 
               <Link
                 to="/shop?sort=bestsellers"
-                className="text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-levix-orange transition-colors"
+                className="text-xs uppercase font-semibold tracking-wider text-levix-charcoal hover:text-black transition-colors"
               >
                 Bestsellers
               </Link>
@@ -180,7 +180,7 @@ export const Header: React.FC = () => {
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-levix-orange hover:bg-levix-orange-hover text-white text-[10px] font-black uppercase tracking-widest rounded-xs shadow-xs"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-black hover:bg-black-hover text-white text-[10px] font-black uppercase tracking-widest rounded-xs shadow-xs"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Admin Panel</span>
@@ -194,7 +194,7 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-levix-gray hover:bg-levix-soft-orange text-levix-secondary hover:text-levix-orange text-xs transition-colors border border-transparent hover:border-levix-orange/30"
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-levix-gray hover:bg-neutral-100 text-levix-secondary hover:text-black text-xs transition-colors border border-transparent hover:border-neutral-300"
                 aria-label="Open search dialog"
               >
                 <Search className="w-3.5 h-3.5" />
@@ -207,12 +207,12 @@ export const Header: React.FC = () => {
               {/* Wishlist Icon */}
               <Link
                 to="/wishlist"
-                className="relative p-1.5 text-levix-charcoal hover:text-levix-orange transition-colors"
+                className="relative p-1.5 text-levix-charcoal hover:text-black transition-colors"
                 aria-label={`Wishlist, ${wishlistCount} items`}
               >
                 <Heart className="w-5 h-5" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
@@ -227,7 +227,7 @@ export const Header: React.FC = () => {
                 <Link
                   to={isAdmin ? '/admin' : (currentUser || userProfile ? '/account' : '/login')}
                   className={`p-1.5 transition-colors block ${
-                    isAdmin ? 'text-levix-orange bg-levix-soft-orange rounded-full' : 'text-levix-charcoal hover:text-levix-orange'
+                    isAdmin ? 'text-black bg-neutral-100 rounded-full' : 'text-levix-charcoal hover:text-black'
                   }`}
                   aria-label="Account"
                   title={isAdmin ? 'Admin Dashboard' : 'Account'}
@@ -249,14 +249,14 @@ export const Header: React.FC = () => {
                           <Link
                             to="/account"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="block px-4 py-2 text-xs text-levix-charcoal hover:bg-levix-gray hover:text-levix-orange"
+                            className="block px-4 py-2 text-xs text-levix-charcoal hover:bg-levix-gray hover:text-black"
                           >
                             My Profile & Addresses
                           </Link>
                           <Link
                             to="/account/orders"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="block px-4 py-2 text-xs text-levix-charcoal hover:bg-levix-gray hover:text-levix-orange"
+                            className="block px-4 py-2 text-xs text-levix-charcoal hover:bg-levix-gray hover:text-black"
                           >
                             Order History & Tracking
                           </Link>
@@ -264,7 +264,7 @@ export const Header: React.FC = () => {
                             <Link
                               to="/admin"
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-levix-orange bg-levix-soft-orange/60 hover:bg-levix-soft-orange"
+                              className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-black bg-neutral-100 hover:bg-neutral-100"
                             >
                               <ShieldCheck className="w-3.5 h-3.5" />
                               <span>Admin Dashboard</span>
@@ -311,11 +311,11 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsCartDrawerOpen(true)}
-                className="relative p-1.5 text-levix-charcoal hover:text-levix-orange transition-colors"
+                className="relative p-1.5 text-levix-charcoal hover:text-black transition-colors"
                 aria-label={`Shopping bag with ${totalItems} items`}
               >
                 <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-levix-orange text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {totalItems}
                 </span>
               </button>
@@ -331,21 +331,21 @@ export const Header: React.FC = () => {
                 <Link
                   to="/shop"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-base font-semibold text-levix-charcoal hover:text-levix-orange uppercase tracking-wider"
+                  className="block text-base font-semibold text-levix-charcoal hover:text-black uppercase tracking-wider"
                 >
                   Shop All
                 </Link>
                 <Link
                   to="/shop?sort=newest"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-base font-semibold text-levix-charcoal hover:text-levix-orange uppercase tracking-wider"
+                  className="block text-base font-semibold text-levix-charcoal hover:text-black uppercase tracking-wider"
                 >
                   New Arrivals
                 </Link>
                 <Link
                   to="/shop?sort=bestsellers"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-base font-semibold text-levix-charcoal hover:text-levix-orange uppercase tracking-wider"
+                  className="block text-base font-semibold text-levix-charcoal hover:text-black uppercase tracking-wider"
                 >
                   Bestsellers
                 </Link>
@@ -368,7 +368,7 @@ export const Header: React.FC = () => {
                         alt={cat.name}
                         className="w-full h-24 object-cover border border-levix-border bg-levix-gray"
                       />
-                      <span className="mt-1 text-xs font-medium text-levix-charcoal group-hover:text-levix-orange">
+                      <span className="mt-1 text-xs font-medium text-levix-charcoal group-hover:text-black">
                         {cat.name}
                       </span>
                     </Link>
@@ -397,7 +397,7 @@ export const Header: React.FC = () => {
                       <Link
                         to="/admin"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block text-sm font-semibold text-levix-orange"
+                        className="block text-sm font-semibold text-black"
                       >
                         Admin Control Panel
                       </Link>
@@ -437,7 +437,7 @@ export const Header: React.FC = () => {
                       }}
                       className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-neutral-100 hover:bg-neutral-200 text-levix-charcoal text-xs font-semibold uppercase tracking-wider transition-colors border border-levix-border mt-3"
                     >
-                      <Smartphone className="w-4 h-4 text-levix-orange" />
+                      <Smartphone className="w-4 h-4 text-black" />
                       <span>Install App</span>
                     </button>
                   </div>

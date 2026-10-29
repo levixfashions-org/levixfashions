@@ -66,20 +66,20 @@ export const CartDrawer: React.FC = () => {
           </div>
 
           {/* Free Shipping Progress Indicator */}
-          <div className="px-6 py-3.5 bg-levix-soft-orange/80 border-b border-levix-orange/20">
+          <div className="px-6 py-3.5 bg-neutral-100 border-b border-neutral-200">
             <div className="flex items-center gap-2 text-xs font-medium text-levix-charcoal mb-1.5">
-              <Truck className="w-4 h-4 text-levix-orange" />
+              <Truck className="w-4 h-4 text-black" />
               {isFreeShipping ? (
-                <span className="text-levix-orange font-semibold">You unlocked Free Standard Shipping!</span>
+                <span className="text-black font-semibold">You unlocked Free Standard Shipping!</span>
               ) : (
                 <span>
-                  Add <span className="font-semibold text-levix-orange">{formatPrice(amountToFreeShipping)}</span> more for Free Shipping
+                  Add <span className="font-semibold text-black">{formatPrice(amountToFreeShipping)}</span> more for Free Shipping
                 </span>
               )}
             </div>
             <div className="w-full bg-white h-1.5 rounded-full overflow-hidden">
               <div
-                className="bg-levix-orange h-full transition-all duration-300"
+                className="bg-black h-full transition-all duration-300"
                 style={{
                   width: `${Math.min(100, Math.round(((subtotal) / (subtotal + amountToFreeShipping || 1)) * 100))}%`,
                 }}
@@ -127,7 +127,7 @@ export const CartDrawer: React.FC = () => {
                         <Link
                           to={`/product/${item.slug}`}
                           onClick={() => setIsCartDrawerOpen(false)}
-                          className="text-xs sm:text-sm font-medium text-levix-charcoal hover:text-levix-orange transition-colors truncate block"
+                          className="text-xs sm:text-sm font-medium text-levix-charcoal hover:text-black transition-colors truncate block"
                         >
                           {item.name}
                         </Link>

@@ -118,7 +118,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Overview Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
             Store Analytics
           </p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -133,10 +133,10 @@ export const AdminDashboard: React.FC = () => {
             type="button"
             onClick={() => fetchOrders(true)}
             disabled={refreshing}
-            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-levix-orange hover:text-levix-orange"
+            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-black hover:text-black"
             title="Refresh dashboard metrics"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-levix-orange' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-black' : ''}`} />
             <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
           <Link
@@ -151,9 +151,9 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Zero Products Banner */}
       {products.length === 0 && (
-        <div className="p-6 bg-levix-soft-orange/30 border-2 border-dashed border-levix-orange/70 rounded-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-6 bg-black/5 border-2 border-dashed border-neutral-300 rounded-xs flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-levix-orange text-white rounded-full flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shrink-0">
               <Package className="w-5 h-5" />
             </div>
             <div>
@@ -249,7 +249,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <Link
             to="/admin/orders"
-            className="text-xs font-bold uppercase tracking-wider text-levix-orange hover:underline flex items-center gap-1"
+            className="text-xs font-bold uppercase tracking-wider text-black hover:underline flex items-center gap-1"
           >
             <span>View All Orders</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -306,14 +306,14 @@ export const AdminDashboard: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-levix-soft-orange text-levix-orange border border-levix-orange/30">
+                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-black/5 text-black border border-neutral-300">
                         {order.fulfillmentStatus}
                       </span>
                     </td>
                     <td className="py-3 px-3 text-right">
                       <Link
                         to={`/admin/orders?search=${order.orderNumber}`}
-                        className="text-xs font-semibold text-levix-orange hover:underline"
+                        className="text-xs font-semibold text-black hover:underline"
                       >
                         Manage
                       </Link>

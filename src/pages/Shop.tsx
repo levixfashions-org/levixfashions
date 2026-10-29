@@ -132,9 +132,9 @@ export const Shop: React.FC = () => {
       <div className="container-levix">
         {/* Header Bar */}
         {isAdmin && (
-          <div className="mb-6 p-3 bg-levix-charcoal text-white border-l-4 border-levix-orange flex items-center justify-between gap-4 shadow-sm">
+          <div className="mb-6 p-3 bg-levix-charcoal text-white border-l-4 border-white/40 flex items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-2 text-xs">
-              <ShieldCheck className="w-4 h-4 text-levix-orange shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-white shrink-0" />
               <span className="font-bold uppercase tracking-wider">Admin Catalog Controls</span>
               <span className="text-[11px] text-neutral-400 hidden sm:inline">• You can add products directly from here</span>
             </div>
@@ -150,7 +150,7 @@ export const Shop: React.FC = () => {
 
         <div className="border-b border-levix-border pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-1">
               Catalogue
             </p>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -212,7 +212,7 @@ export const Shop: React.FC = () => {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="text-[11px] font-semibold text-levix-orange hover:underline"
+                className="text-[11px] font-semibold text-black hover:underline"
               >
                 Reset All
               </button>
@@ -229,7 +229,7 @@ export const Shop: React.FC = () => {
                   onClick={() => handleCategoryChange('all')}
                   className={`w-full text-left text-xs py-1.5 px-2 flex justify-between items-center transition-colors ${
                     selectedCategory === 'all'
-                      ? 'bg-levix-soft-orange text-levix-orange font-bold border-l-2 border-levix-orange'
+                      ? 'bg-black/5 text-black font-bold border-l-2 border-black'
                       : 'text-levix-secondary hover:text-levix-charcoal hover:bg-levix-gray'
                   }`}
                 >
@@ -243,7 +243,7 @@ export const Shop: React.FC = () => {
                     onClick={() => handleCategoryChange(cat.slug)}
                     className={`w-full text-left text-xs py-1.5 px-2 flex justify-between items-center transition-colors ${
                       selectedCategory === cat.slug
-                        ? 'bg-levix-soft-orange text-levix-orange font-bold border-l-2 border-levix-orange'
+                        ? 'bg-black/5 text-black font-bold border-l-2 border-black'
                         : 'text-levix-secondary hover:text-levix-charcoal hover:bg-levix-gray'
                     }`}
                   >
@@ -262,7 +262,7 @@ export const Shop: React.FC = () => {
                 <h4 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                   Max Price
                 </h4>
-                <span className="text-xs font-semibold text-levix-orange">
+                <span className="text-xs font-semibold text-black">
                   {formatPrice(priceRange)}
                 </span>
               </div>
@@ -273,7 +273,7 @@ export const Shop: React.FC = () => {
                 step="50000"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
-                className="w-full accent-levix-orange cursor-pointer"
+                className="w-full accent-black cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-levix-secondary mt-1">
                 <span>₹1,000</span>
@@ -288,7 +288,7 @@ export const Shop: React.FC = () => {
                   type="checkbox"
                   checked={inStockOnly}
                   onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="w-4 h-4 text-levix-orange rounded-none border-levix-border focus:ring-levix-orange accent-levix-orange"
+                  className="w-4 h-4 text-black rounded-none border-levix-border focus:ring-black accent-black"
                 />
                 <span className="text-xs font-medium text-levix-charcoal">In Stock Only</span>
               </label>
@@ -381,7 +381,7 @@ export const Shop: React.FC = () => {
                     }}
                     className={`w-full text-left text-xs py-2 px-2 ${
                       selectedCategory === 'all'
-                        ? 'bg-levix-soft-orange text-levix-orange font-bold'
+                        ? 'bg-black/5 text-black font-bold'
                         : 'text-levix-charcoal'
                     }`}
                   >
@@ -396,7 +396,7 @@ export const Shop: React.FC = () => {
                       }}
                       className={`w-full text-left text-xs py-2 px-2 ${
                         selectedCategory === c.slug
-                          ? 'bg-levix-soft-orange text-levix-orange font-bold'
+                          ? 'bg-black/5 text-black font-bold'
                           : 'text-levix-charcoal'
                       }`}
                     >
@@ -412,7 +412,7 @@ export const Shop: React.FC = () => {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-levix-charcoal">
                     Max Price
                   </h4>
-                  <span className="text-xs font-semibold text-levix-orange">
+                  <span className="text-xs font-semibold text-black">
                     {formatPrice(priceRange)}
                   </span>
                 </div>
@@ -423,7 +423,7 @@ export const Shop: React.FC = () => {
                   step="50000"
                   value={priceRange}
                   onChange={(e) => setPriceRange(Number(e.target.value))}
-                  className="w-full accent-levix-orange"
+                  className="w-full accent-black"
                 />
               </div>
 
@@ -433,7 +433,7 @@ export const Shop: React.FC = () => {
                   type="checkbox"
                   checked={inStockOnly}
                   onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="w-4 h-4 text-levix-orange accent-levix-orange"
+                  className="w-4 h-4 text-black accent-black"
                 />
                 <span className="text-xs font-medium text-levix-charcoal">In Stock Only</span>
               </label>

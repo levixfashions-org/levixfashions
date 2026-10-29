@@ -112,7 +112,7 @@ export const PWAInstallPrompt: React.FC = () => {
         <aside
           role="region"
           aria-label="Install LEVIX App"
-          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[380px] z-50 bg-[#0C0C0E] text-white border border-neutral-800 shadow-2xl p-4 animate-in slide-in-from-bottom-5 duration-300 rounded-none"
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[380px] z-50 bg-[#0C0C0E]/90 backdrop-blur-xl text-white border border-white/15 shadow-2xl p-4 animate-in slide-in-from-bottom-5 duration-300 rounded-none"
         >
           <div className="flex items-start gap-3.5">
             {/* App Icon */}
@@ -147,7 +147,7 @@ export const PWAInstallPrompt: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleInstallClick}
-                  className="px-3.5 py-1.5 bg-[#E87524] hover:bg-[#d6671a] text-white text-[11px] font-bold tracking-wider uppercase transition-colors flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-1.5 bg-white hover:bg-neutral-200 text-black text-[11px] font-bold tracking-wider uppercase transition-colors flex items-center gap-1.5 shadow-sm"
                 >
                   {isIOS ? (
                     <>
@@ -175,7 +175,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
           {/* Quick iOS Safari bottom hint */}
           {isIOS && isIOSSafari && (
-            <div className="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between text-[11px] text-[#E87524]">
+            <div className="mt-3 pt-2.5 border-t border-neutral-800 flex items-center justify-between text-[11px] text-white">
               <span className="flex items-center gap-1.5">
                 <span>Tap</span>
                 <Share className="w-3.5 h-3.5" />
@@ -217,7 +217,7 @@ export const PWAInstallPrompt: React.FC = () => {
             {isIOS && !isIOSSafari ? (
               /* Non-Safari on iOS (Chrome, Instagram in-app browser, etc.) */
               <div className="space-y-4 text-xs text-neutral-300">
-                <div className="p-3 bg-neutral-900 border border-neutral-800 text-[#E87524] text-xs font-medium">
+                <div className="p-3 bg-neutral-900 border border-neutral-800 text-white text-xs font-medium">
                   Apple only allows PWA installation via the Safari browser.
                 </div>
                 <p>
@@ -226,18 +226,18 @@ export const PWAInstallPrompt: React.FC = () => {
                 </p>
                 <p>
                   2. Once in Safari, tap the <strong className="text-white">Share</strong> button{' '}
-                  <Share className="w-4 h-4 inline-block text-[#E87524] mx-1" />.
+                  <Share className="w-4 h-4 inline-block text-white mx-1" />.
                 </p>
                 <p>
                   3. Tap <strong className="text-white">Add to Home Screen</strong>{' '}
-                  <PlusSquare className="w-4 h-4 inline-block text-[#E87524] mx-1" />.
+                  <PlusSquare className="w-4 h-4 inline-block text-white mx-1" />.
                 </p>
               </div>
             ) : (
               /* Safari on iOS or General Guide */
               <ol className="space-y-4 text-xs text-neutral-300">
                 <li className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     1
                   </span>
                   <div>
@@ -246,13 +246,13 @@ export const PWAInstallPrompt: React.FC = () => {
                     </p>
                     <p className="text-[11px] text-neutral-400 mt-0.5">
                       Look for the square icon with an arrow pointing up{' '}
-                      <Share className="w-3.5 h-3.5 inline-block text-[#E87524] mx-0.5" /> in the bottom toolbar.
+                      <Share className="w-3.5 h-3.5 inline-block text-white mx-0.5" /> in the bottom toolbar.
                     </p>
                   </div>
                 </li>
 
                 <li className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     2
                   </span>
                   <div>
@@ -261,14 +261,14 @@ export const PWAInstallPrompt: React.FC = () => {
                     </p>
                     <p className="text-[11px] text-neutral-400 mt-0.5">
                       Scroll down the share sheet and tap{' '}
-                      <PlusSquare className="w-3.5 h-3.5 inline-block text-[#E87524] mx-0.5" />{' '}
+                      <PlusSquare className="w-3.5 h-3.5 inline-block text-white mx-0.5" />{' '}
                       <strong className="text-white">Add to Home Screen</strong>.
                     </p>
                   </div>
                 </li>
 
                 <li className="flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-[#E87524] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     3
                   </span>
                   <div>
@@ -285,7 +285,7 @@ export const PWAInstallPrompt: React.FC = () => {
 
             <button
               onClick={() => setShowGuideModal(false)}
-              className="w-full mt-6 py-3 bg-[#E87524] hover:bg-[#d6671a] text-white text-xs font-bold tracking-wider uppercase transition-colors"
+              className="w-full mt-6 py-3 bg-white hover:bg-neutral-200 text-black text-xs font-bold tracking-wider uppercase transition-colors"
             >
               Got It
             </button>

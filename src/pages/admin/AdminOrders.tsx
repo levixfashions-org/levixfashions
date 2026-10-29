@@ -182,7 +182,7 @@ export const AdminOrders: React.FC = () => {
       {/* Header */}
       <div className="pb-4 border-b border-levix-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-levix-orange mb-1">
+          <p className="text-xs font-bold uppercase tracking-widest text-black mb-1">
             Logistics & Operations
           </p>
           <h1 className="text-2xl font-black uppercase tracking-tight text-levix-charcoal">
@@ -202,10 +202,10 @@ export const AdminOrders: React.FC = () => {
             type="button"
             onClick={() => fetchOrders(true)}
             disabled={refreshing}
-            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-levix-orange hover:text-levix-orange"
+            className="btn-secondary py-2 px-3 text-xs uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer shadow-xs hover:border-black hover:text-black"
             title="Refresh orders list from server"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-levix-orange' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-black' : ''}`} />
             <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
@@ -351,7 +351,7 @@ export const AdminOrders: React.FC = () => {
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : order.fulfillmentStatus === 'Cancelled'
                           ? 'bg-red-50 text-red-700 border-red-200'
-                          : 'bg-levix-soft-orange text-levix-orange border-levix-orange/30'
+                          : 'bg-black/5 text-black border-neutral-300'
                       }`}
                     >
                       {order.fulfillmentStatus}
@@ -361,7 +361,7 @@ export const AdminOrders: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenManageModal(order)}
-                      className="btn-secondary py-1 px-3 text-xs uppercase hover:border-levix-orange hover:text-levix-orange"
+                      className="btn-secondary py-1 px-3 text-xs uppercase hover:border-black hover:text-black"
                     >
                       Manage
                     </button>
@@ -379,7 +379,7 @@ export const AdminOrders: React.FC = () => {
           <div className="bg-white max-w-2xl w-full border border-levix-border shadow-2xl p-6 sm:p-8 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-levix-border">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-levix-orange">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-black">
                   Fulfillment & Payment
                 </span>
                 <h3 className="text-base font-bold uppercase tracking-wider text-levix-charcoal font-mono">
@@ -478,7 +478,7 @@ export const AdminOrders: React.FC = () => {
               {/* Shipment Tracking details */}
               <div className="p-4 bg-levix-gray border border-levix-border space-y-3">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-levix-charcoal flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-levix-orange" />
+                  <Truck className="w-3.5 h-3.5 text-black" />
                   <span>Shipment & Dispatch Tracking Details</span>
                 </p>
 
