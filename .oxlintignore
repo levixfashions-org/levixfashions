@@ -1,6 +1,0 @@
-dist
-node_modules
-.git
-coverage
-public/data
-dist/assets
