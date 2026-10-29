@@ -560,7 +560,7 @@ export const AdminProducts: React.FC = () => {
                         className="w-10 h-12 object-cover border border-levix-border bg-levix-gray shrink-0"
                       />
                       <div>
-                        <span className="font-bold text-levix-charcoal line-clamp-1 block">
+                        <span className="font-bold text-levix-charcoal truncate block max-w-[200px] sm:max-w-[280px]" title={product.name}>
                           {product.name}
                         </span>
                         {product.hasVariants && (

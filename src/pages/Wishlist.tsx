@@ -113,7 +113,8 @@ export const Wishlist: React.FC = () => {
                     </p>
                     <Link
                       to={`/product/${product.slug}`}
-                      className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors line-clamp-1 block"
+                      className="mt-1 text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors truncate block"
+                      title={product.name}
                     >
                       {product.name}
                     </Link>

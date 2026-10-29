@@ -162,7 +162,7 @@ export const Cart: React.FC = () => {
                     <div>
                       <Link
                         to={`/product/${item.slug}`}
-                        className="text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors"
+                        className="text-sm font-semibold text-levix-charcoal hover:text-levix-orange transition-colors truncate block max-w-xs sm:max-w-md" title={item.name}
                       >
                         {item.name}
                       </Link>
