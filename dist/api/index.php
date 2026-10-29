@@ -965,7 +965,10 @@ if ($route === 'products' || strpos($route, 'products/') === 0) {
 // --- CATEGORIES API ---
 if ($route === 'categories' || strpos($route, 'categories/') === 0) {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT * FROM categories ORDER BY display_order ASC");
+        try {
+            $pdo->exec("DELETE FROM categories WHERE slug IN ('accessories', 'footwear', 'headwear', 'outerwear', 'essentials') OR id IN ('cat-accessories', 'cat-footwear', 'cat-headwear', 'cat-outerwear', 'cat-essentials')");
+        } catch (\Throwable $e) {}
+        $stmt = $pdo->query("SELECT * FROM categories WHERE slug NOT IN ('accessories', 'footwear', 'headwear', 'outerwear', 'essentials') AND id NOT IN ('cat-accessories', 'cat-footwear', 'cat-headwear', 'cat-outerwear', 'cat-essentials') ORDER BY display_order ASC");
         $rows = $stmt->fetchAll();
         $categories = array_map(function($r) {
             return [

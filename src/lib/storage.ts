@@ -74,16 +74,19 @@ export const localStore = {
   getCategories: (): Category[] => {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CATEGORIES)
+      const REMOVED_IDS = new Set(['cat-accessories', 'cat-footwear', 'cat-headwear', 'cat-outerwear', 'cat-essentials'])
+      const REMOVED_SLUGS = new Set(['accessories', 'footwear', 'headwear', 'outerwear', 'essentials'])
+
       if (data) {
         const stored: Category[] = JSON.parse(data)
-        const storedIds = new Set(stored.map((c) => c.id))
+        const filtered = stored.filter((c) => !REMOVED_IDS.has(c.id) && !REMOVED_SLUGS.has(c.slug))
+        const storedIds = new Set(filtered.map((c) => c.id))
         const missing = INITIAL_CATEGORIES.filter((c) => !storedIds.has(c.id))
-        if (missing.length > 0) {
-          const merged = [...stored, ...missing]
+        const merged = [...filtered, ...missing]
+        if (merged.length !== stored.length || missing.length > 0) {
           localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(merged))
-          return merged
         }
-        return stored
+        return merged
       }
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(INITIAL_CATEGORIES))
       return INITIAL_CATEGORIES

@@ -390,7 +390,7 @@ export const AdminProducts: React.FC = () => {
       mergedImages = ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80']
     }
 
-    const resolvedCategoryId = categoryId || categories[0]?.id || 'cat-essentials'
+    const resolvedCategoryId = categoryId || categories[0]?.id || 'cat-t-shirts'
     const categoryObj = categories.find((c) => c.id === resolvedCategoryId)
 
     const totalStock =
