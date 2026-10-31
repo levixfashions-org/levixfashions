@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.js",
+    "start:next": "next start",
     "test": "vitest run",
     "test:security": "vitest run tests/security.test.ts",
     "test:admin": "vitest run tests/admin.test.ts",

@@ -5,8 +5,7 @@ module.exports = {
   apps: [
     {
       name: 'levix-storefront',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 3000',
+      script: 'server.js',
       instances: 'max', // Spawns one worker per available CPU core
       exec_mode: 'cluster',
       autorestart: true,
